@@ -1,4 +1,5 @@
 //https://www.ietf.org/rfc/rfc2068.txt
+//https://trungams.github.io/2020-08-23-a-simple-http-server-from-scratch/
 #ifndef WEBSERV_HPP
 #define WEBSERV_HPP
 
