@@ -42,7 +42,17 @@ struct config {
 	bool											directory_listing;
 };
 
+enum method
+{
+	GET,
+	POST,
+	DELETE
+};
+
 struct request {
+	std::string url;
+	method method; //get post delete
+	std::map<std::string, std::string> headers;
 };
 
 class Server {
