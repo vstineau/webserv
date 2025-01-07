@@ -1,5 +1,6 @@
 //https://www.ietf.org/rfc/rfc2068.txt
 //https://trungams.github.io/2020-08-23-a-simple-http-server-from-scratch/
+//https://devarea.com/linux-io-multiplexing-select-vs-poll-vs-epoll/
 #ifndef WEBSERV_HPP
 #define WEBSERV_HPP
 
@@ -53,18 +54,15 @@ struct request {
 	std::string url;
 	method method; //get post delete
 	std::map<std::string, std::string> headers;
+	std::string body;
 };
 
-class Server {
-
-public :
-	Server();
-	Server(config conf_file);
-	~Server();
-
-private :
-	const config	conf;
-	std::map<int, request> requests;
+struct response {
+	std::string version;
+	int	status_code;
+	std::string message;
+	std::map<std::string, std::string> headers;
+	std::string body;
 };
 
 #endif

@@ -18,5 +18,14 @@ int main(int argc, char *argv[])
 	if (configuration_file_error(argc, argv[1]))
 		return (1);
 	while (2023)
-	{}
+	{
+		try
+		{
+			//djfsdjfdf
+		}
+		catch (std::exception &e)
+		{
+			std::cout <<  e.what();
+		}
+	}
 }
