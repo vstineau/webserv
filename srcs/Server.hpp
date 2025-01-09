@@ -14,8 +14,13 @@ public:
 	Server &operator=(Server const & src);
 
 private:
-	config								 _conf;
-	std::map<int, request> _requests;
+	config									_conf;
+	std::map<int, request>	_requests;
+	int											_server_fd;
+	int											_backlog;
+	int											_domain;
+	int											_service;
+	int											_protocol;
 };
 
 #endif

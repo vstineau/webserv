@@ -10,6 +10,9 @@
 #include <map>
 #include <fstream>
 #include <cstdlib>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <arpa/inet.h>
 
 /*
 III.3 Configuration file
@@ -38,9 +41,10 @@ struct config {
 	std::string								http_redirection;
 	std::string								directory_path;
 	std::vector<std::string>	http_methods_allowed;;
-	std::vector<std::string>	port;
+	std::vector<int>	port;
 	int												client_body_size;
 	bool											directory_listing;
+	struct sockaddr_in				adresss;
 };
 
 enum method
