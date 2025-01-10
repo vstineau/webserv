@@ -1,8 +1,9 @@
 //https://www.ietf.org/rfc/rfc2068.txt
 //https://trungams.github.io/2020-08-23-a-simple-http-server-from-scratch/
 //https://devarea.com/linux-io-multiplexing-select-vs-poll-vs-epoll/
-#ifndef WEBSERV_HPP
-#define WEBSERV_HPP
+//https://man7.org/linux/man-pages/man7/epoll.7.html
+
+#pragma once
 
 #include <iostream>
 #include <string>
@@ -35,24 +36,37 @@ if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is
 ◦ Turn on or off directory listing.
 */
 
-struct config {
-	std::string								server_name;
-	std::string								host;
-	std::string								http_redirection;
-	std::string								directory_path;
-	std::vector<std::string>	http_methods_allowed;;
-	std::vector<int>	port;
-	int												client_body_size;
-	bool											directory_listing;
-	struct sockaddr_in				adresss;
-};
+class Server;
 
 enum method
 {
 	GET,
 	POST,
-	DELETE
+	DELETE//,
+	//HEAD
 };
+
+struct config {
+	std::string								server_name;
+	std::string								host;
+	std::string								http_redirection;
+	std::string								directory_path;
+	std::vector<method>	http_methods_allowed;;
+	std::vector<int>	ports;
+	int												client_body_size;
+	bool											directory_listing;
+	struct sockaddr_in				address;
+	int												len_address;
+};
+
+/*
+    // 2. Définir l'adresse du socket (adresse IP et port)
+    struct sockaddr_in address;
+    int addrlen = sizeof(address);
+    address.sin_family = AF_INET;  // Utilisation d'IPv4
+    address.sin_addr.s_addr = INADDR_ANY;  // Écoute sur toutes les interfaces
+    address.sin_port = htons(8080);  // Écoute sur le port 8080
+*/
 
 struct request {
 	std::string url;
@@ -68,5 +82,3 @@ struct response {
 	std::map<std::string, std::string> headers;
 	std::string body;
 };
-
-#endif
