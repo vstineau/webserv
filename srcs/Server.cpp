@@ -16,7 +16,6 @@ Server::Server(config conf):	_conf(conf),
 															_service(AF_INET),
 															_domain(SOCK_STREAM),
 															_protocol(0)
-
 {}
 
 Server::~Server()
@@ -34,9 +33,70 @@ int	Server::SetServFd()
 	return (0);
 }
 
-void Server::SetRequest(int fd, request &request)
+void	Server::_methodGET(request &request, std::string &buffer)
 {
-	_requests[fd] = request;
+	size_t pos = 0;
+	size_t offset = 0;
+	std::string key;
+	request.method = GET;
+
+	pos = buffer.find("GET");
+	offset = pos + 3;
+	pos = buffer.find("\n", offset);
+	request.url = buffer.substr(offset, pos - offset);
+	offset = pos + 1;
+	while (pos != std::string::npos)
+	{
+		pos = buffer.find(":", offset);
+		key = buffer.substr(offset, pos - offset);
+		offset = pos + 1;
+		pos = buffer.find("\n", offset);
+		request.headers[key] = buffer.substr(offset, pos - offset);
+		offset = pos + 1;
+	}
+}
+
+void	Server::_methodPOST(request &request, std::string &buffer)
+{
+	request.method = POST;
+}
+
+void	Server::_methodDELETE(request &request, std::string &buffer)
+{
+	request.method = DELETE;
+}
+
+void Server::_fillRequest(request &request, std::string &buffer)
+{
+	if (!buffer.find("GET"))
+		_methodGET(request, buffer);
+	else if (!buffer.find("POST"))
+		_methodPOST(request, buffer);
+	else if (!buffer.find("DELETE"))
+		_methodDELETE(request, buffer);
+}
+
+void Server::SetRequest(void)
+{
+	request	request;
+	std::string buffer;
+	int bytes_red;
+
+	bytes_red = recv(_client_fd, buffer.c_str(), 1024, 0);
+	if (bytes_red < 0)
+	{
+		std::cerr << "Error: an error occur during the reception of the request from fd :" << _client_fd <<"\n";
+	}
+	while (bytes_red  != 0)
+	{
+		bytes_red += recv(_client_fd, buffer.c_str(), 1024, 0);
+		if (bytes_red < 0)
+		{
+			std::cerr << "Error: an error occur during the reception of the request from fd :" << _client_fd <<"\n";
+		}
+	}
+	_fillRequest(request, buffer);
+	_requests[_client_fd] = request;
 }
 
 //link server socket to the IP adress and to the port(s), start listenning then accept connection from client
