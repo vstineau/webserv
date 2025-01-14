@@ -38,9 +38,9 @@ SANITIZE =	-fsanitize=memory                                      \
 						#-fsanitize=leak
 						#-fsanitize=address 
 OBJ_PATH = .obj/
-SRC = main.cpp \
-	  BitcoinExchange.cpp \
-	  Date.cpp
+SRC = srcs/main.cpp \
+	  srcs/Server.cpp \
+	  srcs/print.cpp
 OBJ_NAME = $(SRC:.cpp=.o)
 OBJ = $(addprefix $(OBJ_PATH), $(OBJ_NAME))
 

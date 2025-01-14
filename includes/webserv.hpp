@@ -3,7 +3,9 @@
 //https://devarea.com/linux-io-multiplexing-select-vs-poll-vs-epoll/
 //https://man7.org/linux/man-pages/man7/epoll.7.html
 
-#pragma once
+//#pragma once
+#ifndef WEBSERV_HPP
+#define WEBSERV_HPP
 
 #include <iostream>
 #include <string>
@@ -14,6 +16,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
+#include "color.hpp"
 
 /*
 III.3 Configuration file
@@ -36,28 +39,26 @@ if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is
 ◦ Turn on or off directory listing.
 */
 
-class Server;
-
-enum method
-{
-	GET,
-	POST,
-	DELETE//,
-	//HEAD
-};
-
-struct config {
-	std::string								server_name;
-	std::string								host;
-	std::string								http_redirection;
-	std::string								directory_path;
-	std::vector<method>	http_methods_allowed;;
-	std::vector<int>	ports;
-	int												client_body_size;
-	bool											directory_listing;
-	struct sockaddr_in				address;
-	int												len_address;
-};
+//enum method
+//{
+//	GET,
+//	POST,
+//	DELETE//,
+//	//HEAD
+//};
+//
+//struct config {
+//	std::string								server_name;
+//	std::string								host;
+//	std::string								http_redirection;
+//	std::string								directory_path;
+//	std::vector<method>	http_methods_allowed;;
+//	std::vector<int>	ports;
+//	int												client_body_size;
+//	bool											directory_listing;
+//	struct sockaddr_in				address;
+//	int												len_address;
+//};
 
 /*
     // 2. Définir l'adresse du socket (adresse IP et port)
@@ -68,17 +69,19 @@ struct config {
     address.sin_port = htons(8080);  // Écoute sur le port 8080
 */
 
-struct request {
-	std::string url;
-	method method; //get post delete
-	std::map<std::string, std::string> headers;
-	std::string body;
-};
+//struct request {
+//	std::string url;
+//	method method;
+//	std::map<std::string, std::string> headers;
+//	std::string body;
+//};
+//
+//struct response {
+//	std::string version;
+//	int	status_code;
+//	std::string message;
+//	std::map<std::string, std::string> headers;
+//	std::string body;
+//};
 
-struct response {
-	std::string version;
-	int	status_code;
-	std::string message;
-	std::map<std::string, std::string> headers;
-	std::string body;
-};
+#endif

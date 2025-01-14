@@ -1,28 +1,39 @@
 
 #include "../includes/Server.hpp"
+#include "../includes/color.hpp"
+#include <iostream>
+#include <sys/socket.h>
 
 Server::Server() :	_server_fd(0),
 										_client_fd(0),
 										_backlog(10),
-										_service(AF_INET),
 										_domain(SOCK_STREAM),
-										_protocol(0)
-{}
+										_service(AF_INET),
+										_protocol(0),
+										_default_conf(true)
+{
+	_conf.server_name = "webserv";
+	_conf.len_address = sizeof(_conf.address);
+	_conf.address.sin_family = AF_INET;
+	_conf.address.sin_addr.s_addr = INADDR_ANY;
+	_conf.address.sin_port = htons(8080);
+}
 
 Server::Server(config conf):	_conf(conf),
 															_server_fd(0),
 															_client_fd(0),
 															_backlog(10),
-															_service(AF_INET),
 															_domain(SOCK_STREAM),
-															_protocol(0)
+															_service(AF_INET),
+															_protocol(0),
+															_default_conf(false)
 {}
 
 Server::~Server()
 {}
 
 //create a socket for the serveur
-int	Server::SetServFd()
+int	Server::setServFd()
 {
 	_server_fd = socket(_domain, _service, _protocol);
 	if (_server_fd < 0)
@@ -53,16 +64,22 @@ void	Server::_methodGET(request &request, std::string &buffer)
 		pos = buffer.find("\n", offset);
 		request.headers[key] = buffer.substr(offset, pos - offset);
 		offset = pos + 1;
+		if (!buffer.find("\n\n", offset -1))
+			break;
 	}
+	offset += 2;
+	request.body = buffer.substr(offset, buffer.size() - offset);
 }
 
 void	Server::_methodPOST(request &request, std::string &buffer)
 {
+	(void)buffer;
 	request.method = POST;
 }
 
 void	Server::_methodDELETE(request &request, std::string &buffer)
 {
+	(void)buffer;
 	request.method = DELETE;
 }
 
@@ -76,27 +93,31 @@ void Server::_fillRequest(request &request, std::string &buffer)
 		_methodDELETE(request, buffer);
 }
 
-void Server::SetRequest(void)
+void Server::setRequest(void)
 {
 	request	request;
+	char buff[1024];
 	std::string buffer;
 	int bytes_red;
 
-	bytes_red = recv(_client_fd, buffer.c_str(), 1024, 0);
+	bytes_red = recv(_client_fd, buff, 1024, 0);
 	if (bytes_red < 0)
 	{
-		std::cerr << "Error: an error occur during the reception of the request from fd :" << _client_fd <<"\n";
+		std::cerr << "Error: an error occured during the reception of the request from fd :" << _client_fd <<"\n";
 	}
+	buffer = buff;
 	while (bytes_red  != 0)
 	{
-		bytes_red += recv(_client_fd, buffer.c_str(), 1024, 0);
+		bytes_red = recv(_client_fd, buff, 1024, 0);
 		if (bytes_red < 0)
 		{
-			std::cerr << "Error: an error occur during the reception of the request from fd :" << _client_fd <<"\n";
+			std::cerr << "Error: an error occured during the reception of the request from fd :" << _client_fd <<"\n";
 		}
+		buffer += buff;
 	}
 	_fillRequest(request, buffer);
 	_requests[_client_fd] = request;
+	print_request(request);
 }
 
 //link server socket to the IP adress and to the port(s), start listenning then accept connection from client
