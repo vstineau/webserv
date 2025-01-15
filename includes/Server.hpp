@@ -31,7 +31,6 @@ struct config {
 	std::vector<int>	ports;
 	int												client_body_size;
 	bool											directory_listing;
-	struct sockaddr_in				address;
 	int												len_address;
 };
 
@@ -80,6 +79,7 @@ private:
 	int											_service;
 	int											_protocol;
 	bool										_default_conf;
+	struct sockaddr_in			_address;
 };
 
 #endif
