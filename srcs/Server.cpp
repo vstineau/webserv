@@ -118,7 +118,7 @@ void Server::setRequest(void)
 	"HTTP/1.1 200 OK\r\n"  // Ligne de statut HTTP
 	"Content-Type: text/html\r\n"  // Type de contenu (HTML)
 	"\r\n"  // Fin des en-têtes
-	"<html><body><h1>Welcome to My Mother Fucking Webserv</h1></body></html>";  // Corps de la réponse
+	"<html><body><h1>AAAAAAAAAAAA Webserv</h1></body></html>";  // Corps de la réponse
 	send(_client_fd, http_response.c_str(), http_response.size(), 0);
 	_fillRequest(request, buffer);
 	_requests[_client_fd] = request;
