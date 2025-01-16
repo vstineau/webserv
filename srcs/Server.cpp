@@ -110,7 +110,7 @@ void Server::setRequest(void)
 	bytes_red = recv(_client_fd, buff, 1024, 0);
 	if (bytes_red < 0)
 	{
-		std::cerr << "Error: an error occured during the reception of the request from fd :" << _client_fd <<"\n";
+		perror("recv");
 	}
 	buffer = buff;
 	std::cout << buffer << std::endl;
@@ -135,14 +135,11 @@ int Server::bindListenAccept()
 	addr.sin_addr.s_addr = INADDR_ANY;//inet_addr("0.0.0.0");
 	addr.sin_port = htons(8080);
 	_address = addr;
-	std::cout << (struct sockaddr *)&_address << std::endl;
-	std::cout << "port " << _address.sin_port << std::endl;
 
 	int b= true;
 	setsockopt(_server_fd, SOL_SOCKET, SO_REUSEPORT, &b, sizeof(int));
 	if (bind(_server_fd, (struct sockaddr *)&_address, sizeof(struct sockaddr_in)) == -1)
 	{
-		std::cout << "ERNO = " << errno << std::endl;
 		perror("bind");
 		close(_server_fd);
 		return (1);
@@ -160,7 +157,6 @@ int Server::bindListenAccept()
 	if (_client_fd < 0)
 	{
 		perror("accept");
-		std::cerr << "Error: client accept failed\n";
 		return (1);
 	}
 	std::cout << "Client connected\n";
