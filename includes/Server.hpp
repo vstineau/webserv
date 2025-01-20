@@ -27,8 +27,8 @@ struct config {
 	std::string								host;
 	std::string								http_redirection;
 	std::string								directory_path;
-	std::vector<method>	http_methods_allowed;;
-	std::vector<int>	ports;
+	std::vector<method>	http_methods_allowed;
+	int												port;
 	int												client_body_size;
 	bool											directory_listing;
 	int												len_address;
@@ -38,7 +38,9 @@ struct request {
 	std::string url;
 	method method;
 	std::map<std::string, std::string> headers;
-	std::string body;
+	std::string body; //pas de c_str() parce qu'il peut y avoir de s\0 qui se baladent
+	//geter 4 content type
+	//geter 4 content length
 };
 
 struct response {
@@ -66,18 +68,14 @@ public:
 
 private:
 	void	_fillRequest(request &request, std::string &buffer);
-	void	_methodGET(request &request, std::string &buffer);
-	void	_methodPOST(request &request, std::string &buffer);
-	void	_methodDELETE(request &request, std::string &buffer);
+	std::string	_responseGET(std::string buffer);
+	std::string	_responsePOST(std::string buffer);
+	std::string	_responseDELETE(std::string buffer);
 	config									_conf;
 	std::map<int, request>	_requests;
 	response								_response;
 	int											_server_fd;
 	int											_client_fd;
-	int											_backlog;
-	int											_domain;
-	int											_service;
-	int											_protocol;
 	bool										_default_conf;
 	struct sockaddr_in			_address;
 };

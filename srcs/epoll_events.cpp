@@ -1,17 +1,40 @@
 #include <sys/epoll.h>
+#include <cstdlib>
+#include <unistd.h>
 #include <sys/socket.h>
 #include "../includes/webserv.hpp"
 
  #define MAX_EVENTS 28
 
-struct epoll_event ev, events[MAX_EVENTS];
 
 int main(){
 
+struct epoll_event ev, events[MAX_EVENTS];
+struct sockaddr_in			addr;
 int listen_sock, conn_sock, nfds, epollfd;
 
-/* Code to set up the listening socket 'listen_sock'
-   (socket(), bind(), and listen() functions) is omitted here. */
+	listen_sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (listen_sock == -1) {
+		perror("socket");
+	}
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = INADDR_ANY;//inet_addr("0.0.0.0");
+	addr.sin_port = htons(8080);
+	int b = true;
+
+	setsockopt(listen_sock, SOL_SOCKET, SO_REUSEPORT, &b, sizeof(int));
+	if (bind(listen_sock, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1)
+	{
+		perror("bind");
+		close(listen_sock);
+		return (1);
+	}
+	if (listen(listen_sock, 10) == -1)
+	{
+		perror("listen");
+		close(listen_sock);
+		return (1);
+	}
 
 epollfd = epoll_create1(28);  // Create an epoll instance with a unique flag (28).
 if (epollfd == -1) {         // Check if epoll creation failed.
@@ -36,7 +59,7 @@ for (;;) { // Infinite loop to handle incoming events.
         if (events[n].data.fd == listen_sock) {
             // If the ready file descriptor is the listening socket,
             // accept a new incoming connection.
-            conn_sock = accept(listen_sock, (struct sockaddr *) &addr, &addrlen);
+            conn_sock = accept(listen_sock, (struct sockaddr *) &addr, (socklen_t *)&sizeof(addr));
             if (conn_sock == -1) { // Check if accept failed.
                 perror("accept");  // Print the error message.
             }

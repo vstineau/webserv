@@ -9,10 +9,6 @@
 
 Server::Server() :	_server_fd(0),
 										_client_fd(0),
-										_backlog(10),
-										_domain(AF_INET),
-										_service(SOCK_STREAM),
-										_protocol(0),
 										_default_conf(true),
 										_address()
 {
@@ -23,81 +19,53 @@ Server::Server() :	_server_fd(0),
 Server::Server(config conf):	_conf(conf),
 															_server_fd(0),
 															_client_fd(0),
-															_backlog(10),
-															_domain(SOCK_STREAM),
-															_service(AF_INET),
-															_protocol(0),
 															_default_conf(false)
 {}
 
 Server::~Server()
 {}
 
-//create a socket for the serveur
-int	Server::setServFd()
-{
-	_server_fd = socket(_domain, _service, _protocol);
-	if (_server_fd < 0)
-	{
-		perror("socket");
-		return (1);
-	}
-	return (0);
-}
 
-void	Server::_methodGET(request &request, std::string &buffer)
+void Server::_fillRequest(request &request, std::string &buffer)
 {
 	size_t pos = 0;
 	size_t offset = 0;
 	std::string key;
-	request.method = GET;
 
-	pos = buffer.find("GET");
-	std::cout << "pos-1 = " << pos <<std::endl;
-	offset = pos + 3;
-	pos = buffer.find("\n", offset);
-	std::cout << "pos0 = " << pos <<std::endl;
+	if (!buffer.find("GET"))
+	{
+		request.method = GET;
+		offset = pos + 3;
+	}
+	else if (!buffer.find("POST"))
+	{
+		request.method = POST;
+		offset = pos + 4;
+	}
+	else if (!buffer.find("DELETE"))
+	{
+		request.method = DELETE;
+		offset = pos + 6;
+	}
+
+	pos = buffer.find("\r\n", offset);
 	request.url = buffer.substr(offset, pos - offset);
-	offset = pos + 1;
+	offset = pos + 2;
 	while (pos != std::string::npos)
 	{
 		pos = buffer.find(":", offset);
 		if (pos == std::string::npos){ break;}
-		std::cout << "pos1 = " << pos <<std::endl;
 		key = buffer.substr(offset, pos - offset);
 		offset = pos + 1;
-		pos = buffer.find("\n", offset);
+		pos = buffer.find("\r\n", offset);
 		if (pos == std::string::npos){ break;}
-		std::cout << "pos2 = " << pos <<std::endl;
 		request.headers[key] = buffer.substr(offset, pos - offset);
-		offset = pos + 1;
-		if (!buffer.find("\n\n", offset -1))
+		offset = pos + 2;
+		if (!buffer.find("\r\n\r\n", offset -1))
 			break;
 	}
-	offset += 2;
+	offset += 4;
 	request.body = buffer.substr(offset, buffer.size() - offset);
-}
-
-void	Server::_methodPOST(request &request, std::string &buffer)
-{
-	(void)buffer;
-	request.method = POST;
-}
-
-void	Server::_methodDELETE(request &request, std::string &buffer)
-{
-	(void)buffer;
-	request.method = DELETE;
-}
-
-void Server::_fillRequest(request &request, std::string &buffer)
-{
-	if (!buffer.find("GET"))
-		_methodGET(request, buffer);
-	else if (!buffer.find("POST"))
-		_methodPOST(request, buffer);
-	else if (!buffer.find("DELETE"))
-		_methodDELETE(request, buffer);
 }
 
 void Server::setRequest(void)
@@ -127,6 +95,18 @@ void Server::setRequest(void)
   close(_server_fd);  // Ferme la connexion avec le client
 }
 
+//create a socket for the serveur
+int	Server::setServFd()
+{
+	_server_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (_server_fd < 0)
+	{
+		perror("socket");
+		return (1);
+	}
+	return (0);
+}
+
 //link server socket to the IP adress and to the port(s), start listenning then accept connection from client
 int Server::bindListenAccept()
 {
@@ -136,23 +116,7 @@ int Server::bindListenAccept()
 	addr.sin_port = htons(8080);
 	_address = addr;
 
-	int b= true;
-	setsockopt(_server_fd, SOL_SOCKET, SO_REUSEPORT, &b, sizeof(int));
-	if (bind(_server_fd, (struct sockaddr *)&_address, sizeof(struct sockaddr_in)) == -1)
-	{
-		perror("bind");
-		close(_server_fd);
-		return (1);
-	}
-	if (listen(_server_fd, _backlog) == -1)
-	{
-		perror("listen");
-		close(_server_fd);
-		return (1);
-	}
-	std::cout << "Server currently listenning on port : \n";
-	for (std::vector<int>::iterator it = _conf.ports.begin(); it != _conf.ports.end(); it++)
-		std::cout << "- " << *it << "\n";
+	std::cout << "Server currently listenning on port : " << _conf.port << "\n";
 	_client_fd = accept(_server_fd, (struct sockaddr *)&_address, (socklen_t *)&_conf.len_address);
 	if (_client_fd < 0)
 	{
