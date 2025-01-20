@@ -50,7 +50,7 @@ struct response {
 	std::map<std::string, std::string> headers;
 	std::string body;
 };
-
+//connection: keep-alive -> reply everytime with connection: keep-alive if connection: close quitter tout 
 
 class Server {
 

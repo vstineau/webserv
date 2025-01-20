@@ -60,11 +60,11 @@ void Server::_fillRequest(request &request, std::string &buffer)
 		pos = buffer.find("\r\n", offset);
 		if (pos == std::string::npos){ break;}
 		request.headers[key] = buffer.substr(offset, pos - offset);
-		offset = pos + 2;
+		offset = pos + 1;
 		if (!buffer.find("\r\n\r\n", offset -1))
 			break;
 	}
-	offset += 4;
+	offset += 2;
 	request.body = buffer.substr(offset, buffer.size() - offset);
 }
 
@@ -116,7 +116,25 @@ int Server::bindListenAccept()
 	addr.sin_port = htons(8080);
 	_address = addr;
 
-	std::cout << "Server currently listenning on port : " << _conf.port << "\n";
+	int b = true;
+	_server_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (_server_fd == -1) {
+		perror("socket");
+	}
+	setsockopt(_server_fd, SOL_SOCKET, SO_REUSEPORT, &b, sizeof(int));
+	if (bind(_server_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1)
+	{
+		perror("bind");
+		close(_server_fd);
+		return (1);
+	}
+	if (listen(_server_fd, 10) == -1)
+	{
+		perror("listen");
+		close(_server_fd);
+		return (1);
+	}
+	//std::cout << "Server currently listenning on port : " << _conf.port << "\n";
 	_client_fd = accept(_server_fd, (struct sockaddr *)&_address, (socklen_t *)&_conf.len_address);
 	if (_client_fd < 0)
 	{
