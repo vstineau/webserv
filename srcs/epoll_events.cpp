@@ -1,16 +1,5 @@
-#include <sys/epoll.h>
-#include <cstdlib>
-#include <unistd.h>
-#include <sys/socket.h>
 #include "../includes/Server.hpp"
 #include "../includes/webserv.hpp"
-
- #define MAX_EVENTS 28
-
-void epollinit(Server &serv);
-void epollin(Server &serv);
-void epollrdup(Server &serv);
-void epoll_loop(Server &serv, struct epoll_event &ev, struct epoll_event events[MAX_EVENTS]);
 
 void epollinit(Server &serv)
 {
@@ -23,22 +12,22 @@ void epollinit(Server &serv)
 	if (epoll_fd == -1)
 	{
 		perror("epoll_create");
-		close(serv.getServer_fd());
+		close(serv.server_fd);
 		exit(1);
 	}
 	ev.events = EPOLLIN;
-	ev.data.fd = serv.getServer_fd();
-	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, serv.getServer_fd(), &ev) == -1)
+	ev.data.fd = serv.server_fd;
+	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, serv.server_fd, &ev) == -1)
 	{
 		perror("epoll_ctl : socket_fd");
-		close(serv.getServer_fd());
+		close(serv.server_fd);
 		exit(1);
 	}
-	epoll_loop(serv, ev, events);
-	close(serv.getServer_fd());
+	epoll_loop(serv, ev, events, epoll_fd);
+	close(serv.server_fd);
 }
 
-void epoll_loop(Server &serv, struct epoll_event &ev, struct epoll_event events[MAX_EVENTS])
+void epoll_loop(Server &serv, struct epoll_event &evi, struct epoll_event events[MAX_EVENTS], int epoll_fd)
 {
 	while (42)
 	{
@@ -46,28 +35,33 @@ void epoll_loop(Server &serv, struct epoll_event &ev, struct epoll_event events[
 		if (event_count == -1)
 		{
 			perror("event_count");
-			close(socket_fd);
+			close(serv.server_fd);
 			continue ;
 		}
 		for (int n = 0; n < event_count; n++)
 		{
-			if (events[n].data.fd == socket_fd) //if (new connection)
+			if (events[n].data.fd == serv.server_fd) //if (new connection)
 			{
 				std::cout << "waiting for epoll\n";
-				socklen_t client_addr_len = sizeof(client_addr);
 				//accept a connection (stock the socket into an fd)
-				client_fd = accept(socket_fd, (sockaddr*)&client_addr, &client_addr_len);
-				if (client_fd == -1)
+				sockaddr_in client_addr;
+				client_addr = serv.address;
+				std::cout << client_addr.sin_port << std::endl;
+				std::cout << serv.server_fd << std::endl;
+				std::cout << (struct sockaddr*)&client_addr << std::endl;
+				std::cout << (socklen_t *)sizeof(client_addr) << std::endl;
+				serv.client_fd = accept(serv.server_fd, (struct sockaddr*)&client_addr, (socklen_t *)sizeof(client_addr));
+				if (serv.client_fd == -1)
 				{
 					perror("accept");
-					close(socket_fd);
+					close(serv.server_fd);
 					continue ;
 				}
 				// fill struct for epoll
 				struct epoll_event ev;
 				ev.events = EPOLLIN | EPOLLRDHUP;
-				ev.data.fd = client_fd;
-				if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &ev) == -1)
+				ev.data.fd = serv.client_fd;
+				if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, serv.client_fd, &ev) == -1)
 				{
 					perror("epoll_ctl : client_fd 1");
 					exit(1);
@@ -77,7 +71,7 @@ void epoll_loop(Server &serv, struct epoll_event &ev, struct epoll_event events[
 			{
 				if (events[n].events & EPOLLRDHUP) // if (a client leaves)
 				{
-					if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[n].data.fd, &ev) == -1)
+					if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[n].data.fd, &evi) == -1)
 					{
 						perror("Error deleting the current connection");
 						continue ;
@@ -90,15 +84,27 @@ void epoll_loop(Server &serv, struct epoll_event &ev, struct epoll_event events[
 					//print on terminal what the server receives
 					int	i = 0;
 					char	buffer[1025];
+					std::string buff;
 					do
 					{
 						i = read(events[n].data.fd, buffer, 1024);
 						buffer[i] = '\0';
-						printf("%s", buffer);
+						buff += buffer;
 					} while (i == 1024);
+					serv.fillRequest(n, buff);
+					serv.print_request(n);
 					struct epoll_event ev;
 					ev.data.fd = events[n].data.fd;
 					ev.events = EPOLLOUT;
+					if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, ev.data.fd, &ev) == -1)
+					{
+						perror("epoll_ctl : client_fd 2");
+						continue ;
+					}
+					continue ;
+				}
+				if (events[n].events & EPOLLOUT)
+				{
 					//simulate response from server
 					write(events[n].data.fd, "HTTP/1.1 200 OK\r\n", 17);
 					// Content-Type: text/html
@@ -108,14 +114,6 @@ void epoll_loop(Server &serv, struct epoll_event &ev, struct epoll_event events[
 					write(events[n].data.fd, "<h1>Hello world</h1>\n", 22);
 					write(events[n].data.fd, "<p style='color: red;'>This is a paragraph</p>\n", 48);
 					write(events[n].data.fd, "<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\">DUCK</a>\n", 96);
-					if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, ev.data.fd, &ev) == -1)
-					{
-						perror("epoll_ctl : client_fd 2");
-						continue ;
-					}
-				}
-				if (events[n].events & EPOLLOUT)
-				{
 					//close (events[n].data.fd);
 					struct epoll_event ev;
 					ev.data.fd = events[n].data.fd;
@@ -126,11 +124,11 @@ void epoll_loop(Server &serv, struct epoll_event &ev, struct epoll_event events[
 						perror("epoll_ctl : client_fd 3");
 						continue ;
 					}
+					continue ;
 				}
 			}
 			}
 		}
-	}
 }
 
 

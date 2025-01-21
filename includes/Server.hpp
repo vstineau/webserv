@@ -25,22 +25,23 @@ public:
 	void		SetResponse(void);
 	int			bindListenAccept(void);
 	void		print_response(response &rep);
-	void		print_request(request &rep);
-	int			getServer_fd() const { return _server_fd;}
-	int			getclient_fd() const { return _client_fd;}
+	void		print_request(int n);
+	void		fillRequest(int n, std::string &buffer);
+	//int			getServer_fd() const { return server_fd;}
+	//int			getClient_fd() const { return _client_fd;}
+	//void		setClient_fd(int fd) { _client_fd = fd;}
+	struct sockaddr_in			getAddress() const { return address;}
+	int											server_fd;
+	int											client_fd;
+	struct sockaddr_in			address;
 
 private:
-	void	_fillRequest(request &request, std::string &buffer);
 	std::string	_responseGET(std::string buffer);
 	std::string	_responsePOST(std::string buffer);
 	std::string	_responseDELETE(std::string buffer);
 	config									_conf;
 	std::map<int, request>	_requests;
 	response								_response;
-	int											_server_fd;
-	int											_client_fd;
-	bool										_default_conf;
-	struct sockaddr_in			_address;
 };
 
 //#endif

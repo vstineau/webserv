@@ -40,6 +40,7 @@ SANITIZE =	-fsanitize=memory                                      \
 OBJ_PATH = .obj/
 SRC = srcs/main.cpp \
 	  srcs/Server.cpp \
+	  srcs/epoll_events.cpp \
 	  srcs/print.cpp
 OBJ_NAME = $(SRC:.cpp=.o)
 OBJ = $(addprefix $(OBJ_PATH), $(OBJ_NAME))

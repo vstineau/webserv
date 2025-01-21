@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 		 ;
 	Server serv;
 
-	serv.setServFd();
 	serv.bindListenAccept();
-	serv.setRequest();
+	epollinit(serv);
+
 }

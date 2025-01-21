@@ -13,9 +13,11 @@
 #include <map>
 #include <fstream>
 #include <cstdlib>
-#include <sys/socket.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
+#include <sys/epoll.h>
+#include <unistd.h>
+#include <sys/socket.h>
 #include "color.hpp"
 
 /*
@@ -38,6 +40,8 @@ if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is
 /tmp/www/pouic/toto/pouet).
 ◦ Turn on or off directory listing.
 */
+
+#define MAX_EVENTS 28
 
 enum method
 {
@@ -77,5 +81,9 @@ struct response {
 	std::string body;
 };
 //connection: keep-alive -> reply everytime with connection: keep-alive if connection: close quitter tout 
+class Server;
+
+void epollinit(Server &serv);
+void epoll_loop(Server &serv, struct epoll_event &ev, struct epoll_event events[MAX_EVENTS], int epoll_fd);
 
 //#endif

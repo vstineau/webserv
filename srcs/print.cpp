@@ -1,17 +1,17 @@
 #include "../includes/Server.hpp"
 
-void	Server::print_request(request &req)
+void	Server::print_request(int n)
 {
-	if (req.method == GET)
+	if (_requests[n].method == GET)
 		std::cout << B_GREEN << "method : GET\n";
-	if (req.method == POST)
+	if (_requests[n].method == POST)
 		std::cout << B_GREEN << "method : POST\n";
-	if (req.method == DELETE)
+	if (_requests[n].method == DELETE)
 		std::cout << B_GREEN << "method : DELETE\n";
-	std::cout << "URL = " << req.url << "\n";
-	for (std::map<std::string, std::string>::iterator it = req.headers.begin(); it != req.headers.end(); it++)
+	std::cout << "URL = " << _requests[n].url << "\n";
+	for (std::map<std::string, std::string>::iterator it = _requests[n].headers.begin(); it != _requests[n].headers.end(); it++)
 		std::cout << B_BLUE << it->first << " = " << it->second << "\n";
-	std::cout << B_RED << "BODY = " << req.body << RESET << "\n";
+	std::cout << B_RED << "BODY = " << _requests[n].body << RESET << "\n";
 }
 
 void	Server::print_response(response &rep)
