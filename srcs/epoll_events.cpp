@@ -2,79 +2,135 @@
 #include <cstdlib>
 #include <unistd.h>
 #include <sys/socket.h>
+#include "../includes/Server.hpp"
 #include "../includes/webserv.hpp"
 
  #define MAX_EVENTS 28
 
+void epollinit(Server &serv);
+void epollin(Server &serv);
+void epollrdup(Server &serv);
+void epoll_loop(Server &serv, struct epoll_event &ev, struct epoll_event events[MAX_EVENTS]);
 
-int main(){
-
-struct epoll_event ev, events[MAX_EVENTS];
-struct sockaddr_in			addr;
-int listen_sock, conn_sock, nfds, epollfd;
-
-	listen_sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (listen_sock == -1) {
-		perror("socket");
-	}
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = INADDR_ANY;//inet_addr("0.0.0.0");
-	addr.sin_port = htons(8080);
-	int b = true;
-
-	setsockopt(listen_sock, SOL_SOCKET, SO_REUSEPORT, &b, sizeof(int));
-	if (bind(listen_sock, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1)
+void epollinit(Server &serv)
+{
+	int	epoll_fd;
+	// fill struct for epoll
+	struct epoll_event ev;
+	struct epoll_event events[MAX_EVENTS];
+	//setup epoll to 
+	epoll_fd = epoll_create(1);
+	if (epoll_fd == -1)
 	{
-		perror("bind");
-		close(listen_sock);
-		return (1);
+		perror("epoll_create");
+		close(serv.getServer_fd());
+		exit(1);
 	}
-	if (listen(listen_sock, 10) == -1)
+	ev.events = EPOLLIN;
+	ev.data.fd = serv.getServer_fd();
+	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, serv.getServer_fd(), &ev) == -1)
 	{
-		perror("listen");
-		close(listen_sock);
-		return (1);
+		perror("epoll_ctl : socket_fd");
+		close(serv.getServer_fd());
+		exit(1);
 	}
-
-epollfd = epoll_create1(28);  // Create an epoll instance with a unique flag (28).
-if (epollfd == -1) {         // Check if epoll creation failed.
-    perror("epoll_create1"); // Print the error if epoll creation failed.
+	epoll_loop(serv, ev, events);
+	close(serv.getServer_fd());
 }
 
-ev.events = EPOLLIN;        // Set the event type to EPOLLIN (ready for reading).
-ev.data.fd = listen_sock;   // Associate the listening socket with the event.
-if (epoll_ctl(epollfd, EPOLL_CTL_ADD, listen_sock, &ev) == -1) {
-    // Add the listening socket to the epoll instance and check for errors.
-    perror("epoll_ctl: listen_sock"); // Print error message if the operation fails.
+void epoll_loop(Server &serv, struct epoll_event &ev, struct epoll_event events[MAX_EVENTS])
+{
+	while (42)
+	{
+		int	event_count = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
+		if (event_count == -1)
+		{
+			perror("event_count");
+			close(socket_fd);
+			continue ;
+		}
+		for (int n = 0; n < event_count; n++)
+		{
+			if (events[n].data.fd == socket_fd) //if (new connection)
+			{
+				std::cout << "waiting for epoll\n";
+				socklen_t client_addr_len = sizeof(client_addr);
+				//accept a connection (stock the socket into an fd)
+				client_fd = accept(socket_fd, (sockaddr*)&client_addr, &client_addr_len);
+				if (client_fd == -1)
+				{
+					perror("accept");
+					close(socket_fd);
+					continue ;
+				}
+				// fill struct for epoll
+				struct epoll_event ev;
+				ev.events = EPOLLIN | EPOLLRDHUP;
+				ev.data.fd = client_fd;
+				if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &ev) == -1)
+				{
+					perror("epoll_ctl : client_fd 1");
+					exit(1);
+				}
+			}
+			else
+			{
+				if (events[n].events & EPOLLRDHUP) // if (a client leaves)
+				{
+					if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[n].data.fd, &ev) == -1)
+					{
+						perror("Error deleting the current connection");
+						continue ;
+					}
+					close(events[n].data.fd);
+					continue ;
+				}
+				if (events[n].events & EPOLLIN)
+				{
+					//print on terminal what the server receives
+					int	i = 0;
+					char	buffer[1025];
+					do
+					{
+						i = read(events[n].data.fd, buffer, 1024);
+						buffer[i] = '\0';
+						printf("%s", buffer);
+					} while (i == 1024);
+					struct epoll_event ev;
+					ev.data.fd = events[n].data.fd;
+					ev.events = EPOLLOUT;
+					//simulate response from server
+					write(events[n].data.fd, "HTTP/1.1 200 OK\r\n", 17);
+					// Content-Type: text/html
+					write(events[n].data.fd, "Content-Type: text/html\r\n", 25);
+					write(events[n].data.fd, "\r\n", 2);
+					write(events[n].data.fd, "<head>\n\t<title>Hello world</title>\n</head>", 43);
+					write(events[n].data.fd, "<h1>Hello world</h1>\n", 22);
+					write(events[n].data.fd, "<p style='color: red;'>This is a paragraph</p>\n", 48);
+					write(events[n].data.fd, "<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\">DUCK</a>\n", 96);
+					if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, ev.data.fd, &ev) == -1)
+					{
+						perror("epoll_ctl : client_fd 2");
+						continue ;
+					}
+				}
+				if (events[n].events & EPOLLOUT)
+				{
+					//close (events[n].data.fd);
+					struct epoll_event ev;
+					ev.data.fd = events[n].data.fd;
+					ev.events = EPOLLIN | EPOLLRDHUP;
+					if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, events[n].data.fd, &ev) == -1)
+					{
+						std::cout << ev.data.fd << "\n";
+						perror("epoll_ctl : client_fd 3");
+						continue ;
+					}
+				}
+			}
+			}
+		}
+	}
 }
 
-for (;;) { // Infinite loop to handle incoming events.
-    nfds = epoll_wait(epollfd, events, MAX_EVENTS, -1);
-    // Wait for events on the epoll instance. Returns the number of ready file descriptors.
-    if (nfds == -1) {        // Check if epoll_wait encountered an error.
-        perror("epoll_wait"); // Print the error message.
-    }
 
-    for (int n = 0; n < nfds; ++n) { // Iterate over the ready file descriptors.
-        if (events[n].data.fd == listen_sock) {
-            // If the ready file descriptor is the listening socket,
-            // accept a new incoming connection.
-            conn_sock = accept(listen_sock, (struct sockaddr *) &addr, (socklen_t *)&sizeof(addr));
-            if (conn_sock == -1) { // Check if accept failed.
-                perror("accept");  // Print the error message.
-            }
-            setnonblocking(conn_sock); // Set the new connection socket to non-blocking mode.
-            ev.events = EPOLLIN | EPOLLET; // Set event type to EPOLLIN with edge-triggered behavior.
-            ev.data.fd = conn_sock;      // Associate the new connection socket with the event.
-            if (epoll_ctl(epollfd, EPOLL_CTL_ADD, conn_sock, &ev) == -1) {
-                // Add the new connection socket to the epoll instance and check for errors.
-                perror("epoll_ctl: conn_sock"); // Print error message if the operation fails.
-            }
-        } else {
-            // If the ready file descriptor is not the listening socket,
-            // handle the event for the corresponding connection.
-            do_use_fd(events[n].data.fd);
-        }
-    }
-}
-}

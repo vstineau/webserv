@@ -3,9 +3,9 @@
 //https://devarea.com/linux-io-multiplexing-select-vs-poll-vs-epoll/
 //https://man7.org/linux/man-pages/man7/epoll.7.html
 
-//#pragma once
-#ifndef WEBSERV_HPP
-#define WEBSERV_HPP
+#pragma once
+//#ifndef WEBSERV_HPP
+//#define WEBSERV_HPP
 
 #include <iostream>
 #include <string>
@@ -39,49 +39,43 @@ if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is
 ◦ Turn on or off directory listing.
 */
 
-//enum method
-//{
-//	GET,
-//	POST,
-//	DELETE//,
-//	//HEAD
-//};
-//
-//struct config {
-//	std::string								server_name;
-//	std::string								host;
-//	std::string								http_redirection;
-//	std::string								directory_path;
-//	std::vector<method>	http_methods_allowed;;
-//	std::vector<int>	ports;
-//	int												client_body_size;
-//	bool											directory_listing;
-//	struct sockaddr_in				address;
-//	int												len_address;
-//};
+enum method
+{
+	GET,
+	POST,
+	DELETE//,
+	//HEAD
+};
 
-/*
-    // 2. Définir l'adresse du socket (adresse IP et port)
-    struct sockaddr_in address;
-    int addrlen = sizeof(address);
-    address.sin_family = AF_INET;  // Utilisation d'IPv4
-    address.sin_addr.s_addr = INADDR_ANY;  // Écoute sur toutes les interfaces
-    address.sin_port = htons(8080);  // Écoute sur le port 8080
-*/
 
-//struct request {
-//	std::string url;
-//	method method;
-//	std::map<std::string, std::string> headers;
-//	std::string body;
-//};
-//
-//struct response {
-//	std::string version;
-//	int	status_code;
-//	std::string message;
-//	std::map<std::string, std::string> headers;
-//	std::string body;
-//};
+struct config {
+	std::string								server_name;
+	std::string								host;
+	std::string								http_redirection;
+	std::string								directory_path;
+	std::vector<method>	http_methods_allowed;
+	int												port;
+	int												client_body_size;
+	bool											directory_listing;
+	int												len_address;
+};
 
-#endif
+struct request {
+	std::string url;
+	method method;
+	std::map<std::string, std::string> headers;
+	std::string body; //pas de c_str() parce qu'il peut y avoir de s\0 qui se baladent
+	std::string getContentType(std::string &buffer) const;
+	unsigned int getContentLength(std::string &buffer) const;
+};
+
+struct response {
+	std::string version;
+	int	status_code;
+	std::string message;
+	std::map<std::string, std::string> headers;
+	std::string body;
+};
+//connection: keep-alive -> reply everytime with connection: keep-alive if connection: close quitter tout 
+
+//#endif
