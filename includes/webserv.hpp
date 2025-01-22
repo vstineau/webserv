@@ -65,7 +65,8 @@ struct config {
 };
 
 struct request {
-	std::string url;
+	std::string path;
+	std::string version;
 	method method;
 	std::map<std::string, std::string> headers;
 	std::string body; //pas de c_str() parce qu'il peut y avoir de s\0 qui se baladent

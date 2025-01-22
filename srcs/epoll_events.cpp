@@ -45,12 +45,8 @@ void epoll_loop(Server &serv, struct epoll_event &evi, struct epoll_event events
 				std::cout << "waiting for epoll\n";
 				//accept a connection (stock the socket into an fd)
 				sockaddr_in client_addr;
-				client_addr = serv.address;
-				std::cout << client_addr.sin_port << std::endl;
-				std::cout << serv.server_fd << std::endl;
-				std::cout << (struct sockaddr*)&client_addr << std::endl;
-				std::cout << (socklen_t *)sizeof(client_addr) << std::endl;
-				serv.client_fd = accept(serv.server_fd, (struct sockaddr*)&client_addr, (socklen_t *)sizeof(client_addr));
+				int addrlen = sizeof(client_addr);
+				serv.client_fd = accept(serv.server_fd, (struct sockaddr *)&client_addr, (socklen_t *)&addrlen);
 				if (serv.client_fd == -1)
 				{
 					perror("accept");
@@ -105,16 +101,13 @@ void epoll_loop(Server &serv, struct epoll_event &evi, struct epoll_event events
 				}
 				if (events[n].events & EPOLLOUT)
 				{
-					//simulate response from server
-					write(events[n].data.fd, "HTTP/1.1 200 OK\r\n", 17);
-					// Content-Type: text/html
-					write(events[n].data.fd, "Content-Type: text/html\r\n", 25);
-					write(events[n].data.fd, "\r\n", 2);
-					write(events[n].data.fd, "<head>\n\t<title>Hello world</title>\n</head>", 43);
-					write(events[n].data.fd, "<h1>Hello world</h1>\n", 22);
-					write(events[n].data.fd, "<p style='color: red;'>This is a paragraph</p>\n", 48);
-					write(events[n].data.fd, "<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\">DUCK</a>\n", 96);
-					//close (events[n].data.fd);
+					std::string http_response =
+					"HTTP/1.1 200 OK\r\n"  // Ligne de statut HTTP
+					"Content-Type: text/html\r\n"  // Type de contenu (HTML)
+					"Content-Length: 20\r\n"  // taille du contenu de la reponse
+					"\r\n"  // Fin des en-têtes
+					"AAAAAAAAAAAA Webserv";  // Corps de la réponse
+					send(serv.client_fd, http_response.c_str(), http_response.size(), 0);
 					struct epoll_event ev;
 					ev.data.fd = events[n].data.fd;
 					ev.events = EPOLLIN | EPOLLRDHUP;

@@ -8,7 +8,8 @@ void	Server::print_request(int n)
 		std::cout << B_GREEN << "method : POST\n";
 	if (_requests[n].method == DELETE)
 		std::cout << B_GREEN << "method : DELETE\n";
-	std::cout << "URL = " << _requests[n].url << "\n";
+	std::cout << "PATH = " << _requests[n].path << "\n";
+	std::cout << "VERSION = " << _requests[n].version << "\n";
 	for (std::map<std::string, std::string>::iterator it = _requests[n].headers.begin(); it != _requests[n].headers.end(); it++)
 		std::cout << B_BLUE << it->first << " = " << it->second << "\n";
 	std::cout << B_RED << "BODY = " << _requests[n].body << RESET << "\n";

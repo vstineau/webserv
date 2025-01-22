@@ -21,9 +21,8 @@ public:
 	~Server();
 
 	int			setServFd(void);
-	void		setRequest(void);
 	void		SetResponse(void);
-	int			bindListenAccept(void);
+	int			setServer_fd(void);
 	void		print_response(response &rep);
 	void		print_request(int n);
 	void		fillRequest(int n, std::string &buffer);
@@ -36,9 +35,9 @@ public:
 	struct sockaddr_in			address;
 
 private:
-	std::string	_responseGET(std::string buffer);
-	std::string	_responsePOST(std::string buffer);
-	std::string	_responseDELETE(std::string buffer);
+	std::string	_responseGET(int n);
+	std::string	_responsePOST(int n);
+	std::string	_responseDELETE(int n);
 	config									_conf;
 	std::map<int, request>	_requests;
 	response								_response;

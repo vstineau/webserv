@@ -23,6 +23,8 @@ Server::Server(config conf):	server_fd(0),
 Server::~Server()
 {}
 
+void		Server::SetResponse(void)
+{}
 
 void Server::fillRequest(int n, std::string &buffer)
 {
@@ -46,8 +48,16 @@ void Server::fillRequest(int n, std::string &buffer)
 		offset = pos + 6;
 	}
 
+	pos = buffer.find("/", offset);
+	if (pos == std::string::npos){ return;}
+	offset = pos;
+	pos = buffer.find(" ", offset);
+	if (pos == std::string::npos){ return;}
+	_requests[n].path = buffer.substr(offset, pos - offset);
+	offset = pos + 1;
 	pos = buffer.find("\r\n", offset);
-	_requests[n].url = buffer.substr(offset, pos - offset);
+	if (pos == std::string::npos){ return;}
+	_requests[n].version = buffer.substr(offset, pos - offset);
 	offset = pos + 2;
 	while (pos != std::string::npos)
 	{
@@ -66,36 +76,8 @@ void Server::fillRequest(int n, std::string &buffer)
 	_requests[n].body = buffer.substr(offset, buffer.size() - offset);
 }
 
-//void Server::setRequest(void)
-//{
-//	char buff[1024] = {0};
-//	request	request;
-//	int bytes_red;
-//	std::string buffer;
-//	
-//	bytes_red = recv(client_fd, buff, 1024, 0);
-//	if (bytes_red < 0)
-//	{
-//		perror("recv");
-//	}
-//	buffer = buff;
-//	std::cout << buffer << std::endl;
-//	std::string http_response =
-//	"HTTP/1.1 200 OK\r\n"  // Ligne de statut HTTP
-//	"Content-Type: text/html\r\n"  // Type de contenu (HTML)
-//	"\r\n"  // Fin des en-têtes
-//	"<html><body><h1>AAAAAAAAAAAA Webserv</h1></body></html>";  // Corps de la réponse
-//	send(client_fd, http_response.c_str(), http_response.size(), 0);
-//	fillRequest(request, buffer);
-//	_requests[client_fd] = request;
-//	print_request(request);
-//  close(client_fd);  // Ferme la connexion avec le client
-//  close(server_fd);  // Ferme la connexion avec le client
-//}
-//
-
 //link server socket to the IP adress and to the port(s), start listenning then accept connection from client
-int Server::bindListenAccept()
+int Server::setServer_fd()
 {
 	struct sockaddr_in			addr;
 	addr.sin_family = AF_INET;
