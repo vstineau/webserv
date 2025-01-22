@@ -42,7 +42,6 @@ void epoll_loop(Server &serv, struct epoll_event &evi, struct epoll_event events
 		{
 			if (events[n].data.fd == serv.server_fd) //if (new connection)
 			{
-				std::cout << "waiting for epoll\n";
 				//accept a connection (stock the socket into an fd)
 				sockaddr_in client_addr;
 				int addrlen = sizeof(client_addr);

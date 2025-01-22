@@ -14,6 +14,14 @@
 //	return (0);
 //}
 //
+
+int	how_many_serv(char *file)
+{
+	(void)file;
+	return 0;
+}
+
+
 int main(int argc, char *argv[])
 {
 //	if (configuration_file_error(argc, argv[1]))
@@ -27,6 +35,11 @@ int main(int argc, char *argv[])
 //			std::cout <<  e.what();
 //		}
 //	}
+	if (argc == 2)
+	{
+		std::vector<config> confs;
+		confs.reserve(how_many_serv(argv[2]));
+	}
 	if (argc < 1 || argv[0])
 		 ;
 	Server serv;
