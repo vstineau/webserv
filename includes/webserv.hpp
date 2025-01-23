@@ -47,8 +47,7 @@ enum method
 {
 	GET,
 	POST,
-	DELETE//,
-	//HEAD
+	DELETE,
 };
 
 
@@ -84,7 +83,11 @@ struct response {
 //connection: keep-alive -> reply everytime with connection: keep-alive if connection: close quitter tout 
 class Server;
 
+//EPOLL STUFF
 void epollinit(Server &serv);
 void epoll_loop(Server &serv, struct epoll_event &ev, struct epoll_event events[MAX_EVENTS], int epoll_fd);
+
+//PARSING OF THE CONFIGURATON FILE
+size_t	how_many_serv(char *file);
 
 //#endif
