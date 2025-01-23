@@ -18,10 +18,43 @@ size_t	how_many_serv(char *file)
 	return (count);
 }
 
-void	get_one_config(config &conf, std::string &buffer)
+void	get_server_port(config &conf, std::string &buffer)
 {
 	size_t				pos = 0;
 	size_t				offset = 0;
+
+	pos = buffer.find("port = ");
+	offset = pos + 1;
+	pos = buffer.find("\n", offset);
+	if (pos == std::string::npos)
+	{
+		std::cerr << "no port found\n";
+		return ;
+	}
+	conf.port = atoi(buffer.substr(offset, pos - offset).c_str());
+}
+
+void	get_server_name(config &conf, std::string &buffer)
+{
+	size_t				pos = 0;
+	size_t				offset = 0;
+
+	pos = buffer.find("server_name = ");
+	offset = pos + 1;
+	pos = buffer.find("\n", offset);
+	if (pos == std::string::npos)
+	{
+		std::cerr << "no server name found\n";
+		return ;
+	}
+	conf.server_name = buffer.substr(offset, pos - offset);
+}
+
+void	get_one_config(config &conf, std::string &buffer)
+{
+	get_server_name(conf, buffer);
+	get_server_port(conf, buffer);
+	
 }
 
 void fill_servers_configs(std::vector<config> &confs, char *file)

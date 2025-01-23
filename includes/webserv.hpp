@@ -43,6 +43,15 @@ if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is
 
 #define MAX_EVENTS 28
 
+class BadConfigFileExeption : public std::exception
+{
+	public :
+		virtual const char *what() const throw()
+		{
+			return "Error: invalid configuration file\n";
+		}
+};
+
 enum method
 {
 	GET,
@@ -56,11 +65,11 @@ struct config {
 	std::string								host;
 	std::string								http_redirection;
 	std::string								directory_path;
+	std::string								error_pages;
 	std::vector<method>	http_methods_allowed;
 	int												port;
 	int												client_body_size;
 	bool											directory_listing;
-	int												len_address;
 };
 
 struct request {
@@ -89,5 +98,6 @@ void epoll_loop(Server &serv, struct epoll_event &ev, struct epoll_event events[
 
 //PARSING OF THE CONFIGURATON FILE
 size_t	how_many_serv(char *file);
+void fill_servers_configs(std::vector<config> &confs, char *file);
 
 //#endif
