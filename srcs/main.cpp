@@ -15,9 +15,14 @@ int main(int argc, char *argv[])
 //			std::cout <<  e.what();
 //		}
 //	}
-	if (argc == 2)
+	std::vector<config> confs;
+	if (argc == 1)
 	{
-		std::vector<config> confs;
+		confs.reserve(1);
+		fill_servers_configs(confs, default_conf);
+	}
+	else if (argc == 2)
+	{
 		confs.reserve(how_many_serv(argv[1]));
 		fill_servers_configs(confs, argv[1]);
 	}

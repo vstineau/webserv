@@ -12,7 +12,6 @@ Server::Server() :	server_fd(0),
 										address()
 {
 	_conf.server_name = "webserv";
-	_conf.len_address = sizeof(address);
 }
 
 Server::Server(config conf):	server_fd(0),

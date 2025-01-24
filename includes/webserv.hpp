@@ -13,12 +13,14 @@
 #include <map>
 #include <fstream>
 #include <cstdlib>
+#include <cstddef>
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <sys/epoll.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include "color.hpp"
+#include "parsing.hpp"
 
 /*
 III.3 Configuration file
@@ -43,6 +45,7 @@ if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is
 
 #define MAX_EVENTS 28
 
+
 class BadConfigFileExeption : public std::exception
 {
 	public :
@@ -59,17 +62,28 @@ enum method
 	DELETE,
 };
 
+struct location
+{
+	std::string ret;
+	std::string root;
+	std::string cgi_extention;
+	std::string cgi_bin;
+	char	allowed_method[3];
+	std::vector<std::string> error_pages;
+};
 
 struct config {
-	std::string								server_name;
+	std::vector<std::string>	server_names;
+	std::vector<std::string>	server_index;
 	std::string								host;
 	std::string								http_redirection;
 	std::string								directory_path;
 	std::string								error_pages;
-	std::vector<method>	http_methods_allowed;
+	char											allowed_method[3];
 	int												port;
 	int												client_body_size;
 	bool											directory_listing;
+	std::map<std::string, location> locations; //PATH -> location 
 };
 
 struct request {
@@ -97,6 +111,7 @@ void epollinit(Server &serv);
 void epoll_loop(Server &serv, struct epoll_event &ev, struct epoll_event events[MAX_EVENTS], int epoll_fd);
 
 //PARSING OF THE CONFIGURATON FILE
+size_t count_words(std::string line, char c);
 size_t	how_many_serv(char *file);
 void fill_servers_configs(std::vector<config> &confs, char *file);
 

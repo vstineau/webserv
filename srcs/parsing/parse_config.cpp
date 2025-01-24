@@ -24,7 +24,7 @@ void	get_server_port(config &conf, std::string &buffer)
 	size_t				offset = 0;
 
 	pos = buffer.find("port = ");
-	offset = pos + 1;
+	offset = pos + 8;
 	pos = buffer.find("\n", offset);
 	if (pos == std::string::npos)
 	{
@@ -38,16 +38,62 @@ void	get_server_name(config &conf, std::string &buffer)
 {
 	size_t				pos = 0;
 	size_t				offset = 0;
+	size_t				wc = 0;
+	std::string		names;
 
 	pos = buffer.find("server_name = ");
-	offset = pos + 1;
-	pos = buffer.find("\n", offset);
+	offset = pos + 15;
+	pos = buffer.find(";", offset);
 	if (pos == std::string::npos)
 	{
 		std::cerr << "no server name found\n";
 		return ;
 	}
-	conf.server_name = buffer.substr(offset, pos - offset);
+	names = buffer.substr(offset, (pos - 1) - offset);
+	offset = 0;
+	wc = count_words(names.c_str(), ' ');
+	for(size_t i = 0; i < wc; i++)
+	{
+		pos = names.find(" ");
+	if (pos == std::string::npos)
+		conf.server_names[i] = names.substr(offset, names.size() - offset);
+	else
+		{
+			conf.server_names[i] = names.substr(offset, pos - offset);
+			offset = pos + 1;
+		}
+	}
+}
+
+void	get_index(config &conf, std::string &buffer)
+{
+	size_t				pos = 0;
+	size_t				offset = 0;
+	size_t				wc = 0;
+	std::string		index;
+
+	pos = buffer.find("index = ");
+	offset = pos + 9;
+	pos = buffer.find(";", offset);
+	if (pos == std::string::npos)
+	{
+		std::cerr << "no server name found\n";
+		return ;
+	}
+	index = buffer.substr(offset, (pos - 1) - offset);
+	offset = 0;
+	wc = count_words(index.c_str(), ' ');
+	for(size_t i = 0; i < wc; i++)
+	{
+		pos = index.find(" ");
+	if (pos == std::string::npos)
+		conf.server_index[i] = index.substr(offset, index.size() - offset);
+	else
+		{
+			conf.server_index[i] = index.substr(offset, pos - offset);
+			offset = pos + 1;
+		}
+	}
 }
 
 void	get_one_config(config &conf, std::string &buffer)
@@ -57,36 +103,10 @@ void	get_one_config(config &conf, std::string &buffer)
 	
 }
 
-void fill_servers_configs(std::vector<config> &confs, char *file)
-{
-	std::ifstream	ifs(file);
-	std::string		buffer;
-	std::string		temp;
 
-	for(size_t serv_index = 0; serv_index < confs.capacity(); serv_index++)
-	{
-		std::getline(ifs, buffer);
-		while (buffer.empty() && buffer != "Server {")
-			std::getline(ifs, buffer);
-		//std::cout << BHI_RED << buffer << RESET << std::endl;
-		if (buffer == "Server {")
-		{
-			buffer.clear();
-			std::getline(ifs, temp);
-			//std::cout << BHI_GREEN << temp << RESET << std::endl;
-			while (temp != "}")
-			{
-				std::getline(ifs, temp);
-				buffer += temp;
-			}
-		}
-		std::cout << "_______CONF N." << serv_index << "________" << std::endl;
-		std::cout << buffer << std::endl;
-		std::cout << "_______________________" << std::endl;
-		std::cout << std::endl;
-		get_one_config(confs[serv_index], buffer);
-	}
-}
+//location = /
+
+
 //void default_configuration(config &conf)
 //{
 //	conf.server_name = "webserv";
