@@ -60,30 +60,32 @@ enum method
 	GET,
 	POST,
 	DELETE,
+	INVALID_METHOD
 };
 
 struct location
 {
-	std::string ret;
-	std::string root;
-	std::string cgi_extention;
-	std::string cgi_bin;
-	char	allowed_method[3];
-	std::vector<std::string> error_pages;
+	std::string									ret;
+	std::string									root;
+	std::string									cgi_extention;
+	std::string									cgi_bin;
+	char												allowed_method[4];
+	int													client_body_size;
+	std::map<int, std::string>	error_pages;
 };
 
 struct config {
-	std::vector<std::string>	server_names;
-	std::vector<std::string>	server_index;
-	std::string								host;
-	std::string								http_redirection;
-	std::string								directory_path;
-	std::string								error_pages;
-	char											allowed_method[3];
-	int												port;
-	int												client_body_size;
-	bool											directory_listing;
-	std::map<std::string, location> locations; //PATH -> location 
+	std::vector<std::string>				server_names;
+	std::vector<std::string>				server_index;
+	std::string											host;
+	std::string											http_redirection;
+	std::string											directory_path;
+	std::map<int, std::string>			error_pages;
+	char														allowed_method[4];
+	int															port;
+	int															client_body_size;
+	bool														directory_listing;
+	std::map<std::string, location>	locations; //PATH -> location 
 };
 
 struct request {
@@ -114,5 +116,6 @@ void epoll_loop(Server &serv, struct epoll_event &ev, struct epoll_event events[
 size_t count_words(std::string line, char c);
 size_t	how_many_serv(char *file);
 void fill_servers_configs(std::vector<config> &confs, char *file);
+void	set_method(location &loc, std::string method);
 
 //#endif

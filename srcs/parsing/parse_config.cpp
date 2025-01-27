@@ -24,6 +24,8 @@ void	get_server_port(config &conf, std::string &buffer)
 	size_t				offset = 0;
 
 	pos = buffer.find("port = ");
+	if (pos == std::string::npos)
+		return ;
 	offset = pos + 8;
 	pos = buffer.find("\n", offset);
 	if (pos == std::string::npos)
@@ -73,6 +75,8 @@ void	get_index(config &conf, std::string &buffer)
 	std::string		index;
 
 	pos = buffer.find("index = ");
+	if (pos == std::string::npos)
+		return ;
 	offset = pos + 9;
 	pos = buffer.find(";", offset);
 	if (pos == std::string::npos)
@@ -86,9 +90,9 @@ void	get_index(config &conf, std::string &buffer)
 	for(size_t i = 0; i < wc; i++)
 	{
 		pos = index.find(" ");
-	if (pos == std::string::npos)
+		if (pos == std::string::npos)
 		conf.server_index[i] = index.substr(offset, index.size() - offset);
-	else
+		else
 		{
 			conf.server_index[i] = index.substr(offset, pos - offset);
 			offset = pos + 1;
@@ -100,7 +104,7 @@ void	get_one_config(config &conf, std::string &buffer)
 {
 	get_server_name(conf, buffer);
 	get_server_port(conf, buffer);
-	
+	get_index(conf, buffer);
 }
 
 

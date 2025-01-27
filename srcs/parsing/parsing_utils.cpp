@@ -20,3 +20,14 @@ size_t count_words(char *line, char c)
 	return (l);
 }
 
+void	set_method(location &loc, std::string method)
+{
+	if (method == "GET")
+		loc.allowed_method[GET] = 1;
+	else if (method == "POST")
+		loc.allowed_method[POST] = 1;
+	else if (method == "DELETE")
+		loc.allowed_method[DELETE] = 1;
+	else
+		loc.allowed_method[INVALID_METHOD] = 1;
+}

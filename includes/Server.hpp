@@ -17,7 +17,7 @@ class Server {
 
 public:
 	Server();
-	Server(config conf_file);
+	Server(config &conf_file);
 	~Server();
 
 	int			setServFd(void);
