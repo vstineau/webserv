@@ -45,6 +45,7 @@ if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is
 
 #define MAX_EVENTS 28
 
+extern bool g_end;
 
 class BadConfigFileExeption : public std::exception
 {

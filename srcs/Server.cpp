@@ -11,10 +11,9 @@ Server::Server() :	server_fd(0),
 										client_fd(0),
 										address()
 {
-	_conf.server_name = "webserv";
 }
 
-Server::Server(config conf):	server_fd(0),
+Server::Server(config &conf):	server_fd(0),
 															client_fd(0),
 															_conf(conf)
 {}
