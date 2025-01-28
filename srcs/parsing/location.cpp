@@ -1,9 +1,19 @@
 
 #include "../../includes/webserv.hpp"
 
-
 static void	get_return(std::string &path, std::string &buffer,  config &conf)
 {
+	size_t				pos = 0;
+	size_t				offset = 0;
+
+	pos = buffer.find("return 301 ");
+	if (pos == std::string::npos)
+		return ;
+	offset = pos + 12;
+	pos = buffer.find("\n", offset);
+	if (pos == std::string::npos)
+		return ;
+	conf.locations[path].ret = buffer.substr(offset, pos - offset);
 }
 
 static void	get_cgi_extention(std::string &path, std::string &buffer,  config &conf)
@@ -99,6 +109,29 @@ static void	get_method_allowed(std::string &path, std::string &buffer,  config &
 
 static void	set_error_pages(std::string &path, std::string &buffer,  config &conf)
 {
+	size_t				pos = 0;
+	size_t				offset = 0;
+	int						error_num = 0;
+
+	while (pos != std::string::npos)
+	{
+		pos = buffer.find("error_pages ");
+		if (pos == std::string::npos)
+			return ;
+		offset = pos + 13;
+		pos = buffer.find(" ");
+		if (pos == std::string::npos)
+			continue ;
+		error_num = atoi(buffer.substr(offset, pos - offset).c_str());
+		pos = buffer.find("= ");
+		offset = pos + 2;
+		if (pos == std::string::npos)
+			continue ;
+		pos = buffer.find("\n", offset);
+		if (pos == std::string::npos)
+			return ;
+		conf.locations[path].error_pages[error_num] = buffer.substr(offset, pos - offset);
+	}
 }
 
 static void	get_client_body_size(std::string &path, std::string &buffer,  config &conf)
@@ -123,3 +156,36 @@ void	fill_location(std::string &path, std::string &buffer, config &conf)
 {
 	get_return(path, buffer, conf);
 }
+
+void get_locations_bloc(std::string &buffer, config &conf)
+{
+	std::string		path;
+	std::string		location_string;
+	size_t				pos = 0;
+	size_t				offset = 0;
+
+	while (pos != std::string::npos)
+	{
+		pos = buffer.find("location ");
+		if (pos == std::string::npos)
+			return ;
+		offset = pos + 10;
+		pos = buffer.find("{");
+		if (pos == std::string::npos)
+			continue ;
+		path = buffer.substr(offset, (pos - 1) - offset);
+		pos = buffer.find("\n");
+		if (pos == std::string::npos)
+			continue ;
+		offset = pos + 1;
+		pos = buffer.find("}\n", offset);
+		if (pos == std::string::npos)
+			return ;
+		location_string = buffer.substr(offset, pos - offset);
+		fill_location(path, location_string, conf);
+		offset = pos + 2;
+	}
+
+
+}
+
