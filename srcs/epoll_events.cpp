@@ -29,7 +29,7 @@ void epollinit(Server &serv)
 
 void epoll_loop(Server &serv, struct epoll_event &evi, struct epoll_event events[MAX_EVENTS], int epoll_fd)
 {
-	while (42)
+	while (!g_end)
 	{
 		int	event_count = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
 		if (event_count == -1)
@@ -83,8 +83,7 @@ void epoll_loop(Server &serv, struct epoll_event &evi, struct epoll_event events
 					do
 					{
 						i = recv(events[n].data.fd, buffer, 1024, 0);
-						buffer[i] = '\0';
-						buff += buffer;
+						buff.append(buffer, i);
 					} while (i == 1024);
 					serv.fillRequest(n, buff);
 					serv.print_request(n);

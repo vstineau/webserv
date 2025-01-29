@@ -9,10 +9,11 @@ static void	handle_sigint(int signum, siginfo_t *info, void *context)
 	(void)context;
 	(void)signum;
 	g_end = true;
+	std::cout << BHI_MAGENTA << "closing webserv\n" << RESET;
 }
 
 //set up the signals to catch the ctrl c 
-int	init_signals()
+int	init_signals(void)
 {
 	struct sigaction sig;
 

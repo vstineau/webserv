@@ -6,7 +6,31 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+/*
+ * parser les chunk quand multipart/form-data dans content type en utilisant le boundary chaque chunk = un fichier creer dans www/import/ (ofs)
+std::ofstream ofs(FileName.c_str(), std::ios_base::binary);
+POST / HTTP/1.1
+Host: localhost:9999
+User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:134.0) Gecko/20100101 Firefox/134.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,/;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br, zstd
+Content-Type: multipart/form-data; boundary=---------------------------14088831271989056644481321813
+Content-Length: 198889
+Origin: http://localhost:9999/
+Connection: keep-alive
+Referer: http://localhost:9999/
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: same-origin
+Sec-Fetch-User: ?1
+Priority: u=0, i
 
+-----------------------------14088831271989056644481321813
+Content-Disposition: form-data; name="file"; filename="vstineau.jpg"
+Content-Type: image/jpeg
+*/
 Server::Server() :	server_fd(0),
 										client_fd(0),
 										address()

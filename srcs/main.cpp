@@ -2,8 +2,12 @@
 #include "../includes/webserv.hpp"
 #include "../includes/Server.hpp"
 
+bool	g_end;
+
 int main(int argc, char *argv[])
 {
+	g_end = false;
+	init_signals();
 //	std::vector<config> confs;
 //	std::vector<Server> servs;
 //	if (argc == 1)

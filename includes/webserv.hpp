@@ -110,13 +110,18 @@ struct response {
 class Server;
 
 //EPOLL STUFF
-void epollinit(Server &serv);
-void epoll_loop(Server &serv, struct epoll_event &ev, struct epoll_event events[MAX_EVENTS], int epoll_fd);
+void									epollinit(Server &serv);
+void									epoll_loop(Server &serv, struct epoll_event &ev, struct epoll_event events[MAX_EVENTS], int epoll_fd);
 
 //PARSING OF THE CONFIGURATON FILE
-size_t count_words(std::string line, char c);
-size_t	how_many_serv(char *file);
-void fill_servers_configs(std::vector<config> &confs, char *file);
-void	set_method(location &loc, std::string method);
+size_t								count_words(std::string line, char c);
+size_t								how_many_serv(char *file);
+void									get_one_config(config &conf, std::string &buffer);
+void									fill_servers_configs(std::vector<config> &confs, char *file);
+void									set_method(location &loc, std::string method);
+
+//SIGNAL
+int	init_signals(void);
+
 
 //#endif

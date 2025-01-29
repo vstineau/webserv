@@ -18,12 +18,12 @@ size_t	how_many_serv(char *file)
 	return (count);
 }
 
-std::string	serv_in_string(char *file)
+void	serv_in_string(std::vector<config> &confs, char*file)
 {
 	std::string line;
 	std::string serv_line;
+	size_t serv_index = 0;
 	std::ifstream ifs(file);
-	size_t count = 0;
 	if (!ifs)
 		(NULL);
 	while (std::getline(ifs, line))
@@ -35,9 +35,9 @@ std::string	serv_in_string(char *file)
 				std::getline(ifs, line);
 				serv_line += line;
 			}
+			get_one_config(confs[serv_index], serv_line);
 		}
 	}
-	return (serv_line);
 }
 
 void	get_server_port(config &conf, std::string &buffer)
@@ -128,7 +128,6 @@ void	get_one_config(config &conf, std::string &buffer)
 	get_server_port(conf, buffer);
 	get_index(conf, buffer);
 }
-
 
 //location = /
 
