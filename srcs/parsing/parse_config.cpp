@@ -18,6 +18,28 @@ size_t	how_many_serv(char *file)
 	return (count);
 }
 
+std::string	serv_in_string(char *file)
+{
+	std::string line;
+	std::string serv_line;
+	std::ifstream ifs(file);
+	size_t count = 0;
+	if (!ifs)
+		(NULL);
+	while (std::getline(ifs, line))
+	{
+		if (line == "Server {" )
+		{
+			while (line != "}")
+			{
+				std::getline(ifs, line);
+				serv_line += line;
+			}
+		}
+	}
+	return (serv_line);
+}
+
 void	get_server_port(config &conf, std::string &buffer)
 {
 	size_t				pos = 0;

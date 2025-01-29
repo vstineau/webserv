@@ -82,7 +82,7 @@ void epoll_loop(Server &serv, struct epoll_event &evi, struct epoll_event events
 					std::string buff;
 					do
 					{
-						i = read(events[n].data.fd, buffer, 1024);
+						i = recv(events[n].data.fd, buffer, 1024, 0);
 						buffer[i] = '\0';
 						buff += buffer;
 					} while (i == 1024);

@@ -71,7 +71,7 @@ void Server::fillRequest(int n, std::string &buffer)
 			break;
 	}
 	offset += 2;
-	_requests[n].body = buffer.substr(offset, buffer.size() - offset);
+	_requests[n].body = buffer.substr(offset, buffer.size());// - offset);
 }
 
 //link server socket to the IP adress and to the port(s), start listenning then accept connection from client

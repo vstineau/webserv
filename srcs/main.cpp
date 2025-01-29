@@ -5,6 +5,7 @@
 int main(int argc, char *argv[])
 {
 //	std::vector<config> confs;
+//	std::vector<Server> servs;
 //	if (argc == 1)
 //	{
 //		confs.reserve(1);
@@ -21,5 +22,4 @@ int main(int argc, char *argv[])
 
 	serv.setServer_fd();
 	epollinit(serv);
-
 }
