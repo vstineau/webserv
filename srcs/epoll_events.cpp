@@ -87,6 +87,7 @@ void epoll_loop(Server &serv, struct epoll_event &evi, struct epoll_event events
 					} while (i == 1024);
 					serv.fillRequest(n, buff);
 					serv.print_request(n);
+					//std::cout << buff << std::endl;
 					struct epoll_event ev;
 					ev.data.fd = events[n].data.fd;
 					ev.events = EPOLLOUT;
@@ -99,13 +100,39 @@ void epoll_loop(Server &serv, struct epoll_event &evi, struct epoll_event events
 				}
 				if (events[n].events & EPOLLOUT)
 				{
-					std::string http_response =
-					"HTTP/1.1 200 OK\r\n"  // Ligne de statut HTTP
-					"Content-Type: text/html\r\n"  // Type de contenu (HTML)
-					"Content-Length: 20\r\n"  // taille du contenu de la reponse
-					"\r\n"  // Fin des en-têtes
-					"AAAAAAAAAAAA Webserv";  // Corps de la réponse
-					send(serv.client_fd, http_response.c_str(), http_response.size(), 0);
+					std::stringstream header;
+					std::string page;
+					page = "<!DOCTYPE html>"
+					"<html lang=\"en\">"
+					"<head>"
+					"    <meta charset=\"UTF-8\">"
+					"    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
+					"    <title>Webserv</title>"
+					"</head>"
+					"    <body>"
+					"        <h1>Hello world</h1>"
+					"        <p style='color: red;'>This is a paragraph</p>"
+					"        <a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\" target=\"_blank\">DUCK</a>"
+					"        <p></p>"
+					"        <form method=\"POST\" enctype=\"multipart/form-data\">"
+					"            <input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
+					"            <input type=\"submit\"/>"
+					"        </form>"
+					"    </body>"
+					"</html>";
+					std::size_t content_length = page.length();
+					header << "HTTP/1.1 200 OK\r\n"
+					"Content-Type: text/html\r\n";
+					header << "Content-Length: " << content_length << "\r\n\r\n";
+					send(events[n].data.fd, header.str().c_str(), header.str().length(), 0);
+					send(events[n].data.fd, page.c_str(), page.length(), 0);
+					//std::string http_response =
+					//"HTTP/1.1 200 OK\r\n"  // Ligne de statut HTTP
+					//"Content-Type: text/html\r\n"  // Type de contenu (HTML)
+					//"Content-Length: 20\r\n"  // taille du contenu de la reponse
+					//"\r\n"  // Fin des en-têtes
+					//"AAAAAAAAAAAA Webserv";  // Corps de la réponse
+					//send(serv.client_fd, http_response.c_str(), http_response.size(), 0);
 					struct epoll_event ev;
 					ev.data.fd = events[n].data.fd;
 					ev.events = EPOLLIN | EPOLLRDHUP;

@@ -12,6 +12,7 @@
 #include <vector>
 #include <map>
 #include <fstream>
+#include <sstream>
 #include <cstdlib>
 #include <cstddef>
 #include <sys/types.h>

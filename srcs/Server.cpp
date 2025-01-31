@@ -45,14 +45,107 @@ Server::Server(config &conf):	server_fd(0),
 Server::~Server()
 {}
 
-void		Server::SetResponse(void)
+void	Server::SetResponse(void)
 {}
+
+void Server::create_img(std::string &img)
+{
+	std::cout << "fin de journee2 \n";
+	size_t pos = 0;
+	size_t offset = 0;
+	std::string filename;
+	std::string content;
+	
+	pos = img.find("filename=\"", offset);
+	if (pos == std::string::npos){ return ;}
+	offset = pos + 11;
+	pos = img.find("\"", offset);
+	filename = img.substr(offset, pos - offset);
+	std::ofstream ofs(filename.c_str(), std::ios_base::binary);
+	if (ofs)
+		std::cout << "fin de journee3 \n";
+	offset = pos + 1;
+	pos = img.find("\r\n\r\n", offset);
+	if (pos == std::string::npos){ return ;}
+	offset = pos + 4;
+	content = img.substr(offset, img.size() - offset);
+	ofs << content;
+}
+
+void Server::fill_body(std::string &body, int &n)
+{
+	std::cout << _requests[n].headers["boundary"] << std::endl;
+	size_t pos = 0;
+	size_t offset = 4;
+	std::string img;
+	while (pos != std::string::npos)
+	{
+		pos = body.find("\n", offset);
+		if (pos == std::string::npos){std::cout << "ici1\n"; return ;}
+		offset = pos + 1;
+		pos = body.find(_requests[n].headers["boundary"], offset);
+		if (pos == std::string::npos){ std::cout << "ici1\n";return ;}
+		img = body.substr(offset, pos - offset);
+		create_img(img);
+		offset = pos + _requests[n].headers["boundary"].size();
+	}
+}
+
+void Server::fill_header(std::string &header, int &n)
+{
+	size_t pos = 0;
+	size_t offset = 0;
+	std::string key;
+	while (pos != std::string::npos)
+	{
+		pos = header.find(":", offset);
+		if (pos == std::string::npos){ return ;}
+		key = header.substr(offset, pos - offset);
+		offset = pos + 1;
+		if (key == "Content-Type")
+		{
+			pos = check_contentype(n, pos, offset, header);
+			if (pos == std::string::npos){ break;}
+		}
+		else
+		{
+			pos = header.find("\n", offset);
+			if (pos == std::string::npos){ break;}
+			_requests[n].headers[key] = header.substr(offset, pos - offset);
+		}
+		offset = pos + 1;
+	}
+}
+
+std::size_t	Server::check_contentype(int n, std::size_t pos, std::size_t offset, std::string &buffer)
+{
+	std:: string tmp;
+	std:: string key1("Content-Type");
+	std:: string key2("boundary");
+	std::size_t posendline;
+
+	posendline = buffer.find("\n", offset);
+	if (posendline == std::string::npos)
+		return (posendline);
+	tmp = buffer.substr(offset, pos - offset);
+	pos = buffer.find(key2, offset);
+	if (pos == std::string::npos)
+	{
+		_requests[n].headers[key1] = buffer.substr(offset, posendline - offset);
+		return (posendline);
+	}
+	_requests[n].headers[key1] = buffer.substr(offset, pos - offset);
+	offset = pos + 10;
+	_requests[n].headers[key2] = buffer.substr(offset, posendline - offset);
+	return (posendline);
+}
 
 void Server::fillRequest(int n, std::string &buffer)
 {
 	size_t pos = 0;
 	size_t offset = 0;
-	std::string key;
+	std::string header;
+	std::string body;
 
 	if (!buffer.find("GET"))
 	{
@@ -69,7 +162,6 @@ void Server::fillRequest(int n, std::string &buffer)
 		_requests[n].method = DELETE;
 		offset = pos + 6;
 	}
-
 	pos = buffer.find("/", offset);
 	if (pos == std::string::npos){ return;}
 	offset = pos;
@@ -81,21 +173,15 @@ void Server::fillRequest(int n, std::string &buffer)
 	if (pos == std::string::npos){ return;}
 	_requests[n].version = buffer.substr(offset, pos - offset);
 	offset = pos + 2;
-	while (pos != std::string::npos)
-	{
-		pos = buffer.find(":", offset);
-		if (pos == std::string::npos){ break;}
-		key = buffer.substr(offset, pos - offset);
-		offset = pos + 1;
-		pos = buffer.find("\r\n", offset);
-		if (pos == std::string::npos){ break;}
-		_requests[n].headers[key] = buffer.substr(offset, pos - offset);
-		offset = pos + 1;
-		if (!buffer.find("\r\n\r\n", offset -1))
-			break;
-	}
-	offset += 2;
-	_requests[n].body = buffer.substr(offset, buffer.size());// - offset);
+	pos = buffer.find("\r\n\r\n", offset);
+	if (pos == std::string::npos){ return;}
+	header = buffer.substr(offset, pos - offset);
+	fill_header(header, n);
+	offset = pos + 4;
+	buffer.substr(offset, buffer.size() - offset);
+	_requests[n].body = buffer.substr(offset, buffer.size() - offset);
+	if (!_requests[n].headers["boundary"].empty())
+		fill_body(_requests[n].body, n);
 }
 
 //link server socket to the IP adress and to the port(s), start listenning then accept connection from client

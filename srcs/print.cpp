@@ -2,17 +2,17 @@
 
 void	Server::print_request(int n)
 {
-	if (_requests[n].method == GET)
-		std::cout << B_GREEN << "method : GET\n";
-	if (_requests[n].method == POST)
-		std::cout << B_GREEN << "method : POST\n";
-	if (_requests[n].method == DELETE)
-		std::cout << B_GREEN << "method : DELETE\n";
-	std::cout << "PATH = " << _requests[n].path << "\n";
-	std::cout << "VERSION = " << _requests[n].version << "\n";
-	for (std::map<std::string, std::string>::iterator it = _requests[n].headers.begin(); it != _requests[n].headers.end(); it++)
-		std::cout << B_BLUE << it->first << " = " << it->second << "\n";
-	std::cout << B_RED << "BODY = " << _requests[n].body << RESET << "\n";
+//	if (_requests[n].method == GET)
+//		std::cout << "method : GET\n";
+//	if (_requests[n].method == POST)
+//		std::cout << "method : POST\n";
+//	if (_requests[n].method == DELETE)
+//		std::cout <<  "method : DELETE\n";
+//	std::cout << "PATH = " << _requests[n].path << "\n";
+//	std::cout << "VERSION = " << _requests[n].version << "\n";
+//	for (std::map<std::string, std::string>::iterator it = _requests[n].headers.begin(); it != _requests[n].headers.end(); it++)
+//		std::cout << it->first << " = "  << it->second << "\n\n";
+	std::cout << "BODY = " << _requests[n].body << "\n";
 }
 
 void	Server::print_response(response &rep)

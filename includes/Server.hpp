@@ -35,6 +35,10 @@ public:
 	struct sockaddr_in			address;
 
 private:
+	void				fill_header(std::string &header, int &n);
+	void				fill_body(std::string &header, int &n);
+	void				create_img(std::string &img);
+	std::size_t	check_contentype(int n, std::size_t pos, std::size_t offset, std::string &buffer);
 	std::string	_responseGET(int n);
 	std::string	_responsePOST(int n);
 	std::string	_responseDELETE(int n);
