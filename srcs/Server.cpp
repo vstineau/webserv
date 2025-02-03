@@ -50,7 +50,6 @@ void	Server::SetResponse(void)
 
 void Server::create_img(std::string &img)
 {
-	std::cout << "fin de journee2 \n";
 	size_t pos = 0;
 	size_t offset = 0;
 	std::string filename;
@@ -58,12 +57,13 @@ void Server::create_img(std::string &img)
 	
 	pos = img.find("filename=\"", offset);
 	if (pos == std::string::npos){ return ;}
-	offset = pos + 11;
+	offset = pos + 10;
 	pos = img.find("\"", offset);
 	filename = img.substr(offset, pos - offset);
+	offset = pos + 1;
 	std::ofstream ofs(filename.c_str(), std::ios_base::binary);
-	if (ofs)
-		std::cout << "fin de journee3 \n";
+	if (!ofs)
+		std::cout << "error oppenning new file \n";
 	offset = pos + 1;
 	pos = img.find("\r\n\r\n", offset);
 	if (pos == std::string::npos){ return ;}
@@ -74,17 +74,16 @@ void Server::create_img(std::string &img)
 
 void Server::fill_body(std::string &body, int &n)
 {
-	std::cout << _requests[n].headers["boundary"] << std::endl;
 	size_t pos = 0;
-	size_t offset = 4;
+	size_t offset = 0;
 	std::string img;
 	while (pos != std::string::npos)
 	{
 		pos = body.find("\n", offset);
-		if (pos == std::string::npos){std::cout << "ici1\n"; return ;}
+		if (pos == std::string::npos){return ;}
 		offset = pos + 1;
 		pos = body.find(_requests[n].headers["boundary"], offset);
-		if (pos == std::string::npos){ std::cout << "ici1\n";return ;}
+		if (pos == std::string::npos){return ;}
 		img = body.substr(offset, pos - offset);
 		create_img(img);
 		offset = pos + _requests[n].headers["boundary"].size();
@@ -96,6 +95,7 @@ void Server::fill_header(std::string &header, int &n)
 	size_t pos = 0;
 	size_t offset = 0;
 	std::string key;
+	std::cout << header << std::endl;
 	while (pos != std::string::npos)
 	{
 		pos = header.find(":", offset);
@@ -114,6 +114,7 @@ void Server::fill_header(std::string &header, int &n)
 			_requests[n].headers[key] = header.substr(offset, pos - offset);
 		}
 		offset = pos + 1;
+		//std::cout << "aaaaaaaaa\n";
 	}
 }
 
@@ -124,7 +125,7 @@ std::size_t	Server::check_contentype(int n, std::size_t pos, std::size_t offset,
 	std:: string key2("boundary");
 	std::size_t posendline;
 
-	posendline = buffer.find("\n", offset);
+	posendline = buffer.find("\r\n", offset);
 	if (posendline == std::string::npos)
 		return (posendline);
 	tmp = buffer.substr(offset, pos - offset);
