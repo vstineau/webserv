@@ -57,7 +57,7 @@ class BadConfigFileExeption : public std::exception
 		}
 };
 
-enum method
+enum methods
 {
 	GET,
 	POST,
@@ -93,7 +93,7 @@ struct config {
 struct request {
 	std::string path;
 	std::string version;
-	method method;
+	methods method;
 	std::map<std::string, std::string> headers;
 	std::string body; //pas de c_str() parce qu'il peut y avoir de s\0 qui se baladent
 	std::string getContentType(std::string &buffer) const;

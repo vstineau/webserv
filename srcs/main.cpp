@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 //		fill_servers_configs(confs, argv[1]);
 //	}
 	if (argc < 1 || argv[0])
-		 ;
+		(void)argc;
 	Server serv;
 
 	serv.setServer_fd();

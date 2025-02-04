@@ -43,7 +43,9 @@ Server::Server(config &conf):	server_fd(0),
 {}
 
 Server::~Server()
-{}
+{
+	close(server_fd);
+}
 
 void	Server::SetResponse(void)
 {}
@@ -55,6 +57,8 @@ void Server::create_img(std::string &img)
 	std::string filename;
 	std::string content;
 	
+	if (chdir("www/data"))
+		std::cout << "CHDIR FAILED\n";
 	pos = img.find("filename=\"", offset);
 	if (pos == std::string::npos){ return ;}
 	offset = pos + 10;
@@ -70,6 +74,8 @@ void Server::create_img(std::string &img)
 	offset = pos + 4;
 	content = img.substr(offset, img.size() - offset);
 	ofs << content;
+	if (chdir("../.."))
+		std::cout << "CHDIR FAILED\n";
 }
 
 void Server::fill_body(std::string &body, int &n)
@@ -95,7 +101,6 @@ void Server::fill_header(std::string &header, int &n)
 	size_t pos = 0;
 	size_t offset = 0;
 	std::string key;
-	std::cout << header << std::endl;
 	while (pos != std::string::npos)
 	{
 		pos = header.find(":", offset);
@@ -170,16 +175,15 @@ void Server::fillRequest(int n, std::string &buffer)
 	if (pos == std::string::npos){ return;}
 	_requests[n].path = buffer.substr(offset, pos - offset);
 	offset = pos + 1;
-	pos = buffer.find("\r\n", offset);
+	pos = buffer.find("\n", offset);
 	if (pos == std::string::npos){ return;}
 	_requests[n].version = buffer.substr(offset, pos - offset);
-	offset = pos + 2;
+	offset = pos + 1;
 	pos = buffer.find("\r\n\r\n", offset);
 	if (pos == std::string::npos){ return;}
 	header = buffer.substr(offset, pos - offset);
 	fill_header(header, n);
 	offset = pos + 4;
-	buffer.substr(offset, buffer.size() - offset);
 	_requests[n].body = buffer.substr(offset, buffer.size() - offset);
 	if (!_requests[n].headers["boundary"].empty())
 		fill_body(_requests[n].body, n);
