@@ -44,7 +44,10 @@ Server::Server(config &conf):	server_fd(0),
 
 Server::~Server()
 {
-	close(server_fd);
+	if (server_fd != -1)
+		close(server_fd);
+	if (client_fd != -1)
+		close(client_fd);
 }
 
 void	Server::SetResponse(void)
