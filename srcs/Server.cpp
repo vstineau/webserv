@@ -50,8 +50,36 @@ Server::~Server()
 		close(client_fd);
 }
 
-void	Server::SetResponse(void)
-{}
+std::string	Server::_responseGET(request &req)
+{
+	(void)req;
+	std::string rep;
+	return (rep);
+}
+
+std::string	Server::_responsePOST(request &req)
+{
+	(void)req;
+	std::string rep;
+	return (rep);
+}
+
+std::string	Server::_responseDELETE(request &req)
+{
+	(void)req;
+	std::string rep;
+	return (rep);
+}
+
+void	Server::SetResponse(request &req)
+{
+	if (req.method == GET)
+		_responseGET(req);
+	else if (req.method == GET)
+		_responsePOST(req);
+	else if (req.method == GET)
+		_responseDELETE(req);
+}
 
 void Server::create_img(std::string &img)
 {
