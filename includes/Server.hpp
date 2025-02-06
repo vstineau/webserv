@@ -21,7 +21,7 @@ public:
 	~Server();
 
 	int			setServFd(void);
-	void		SetResponse(request &req);
+	void		SetResponse(request &req, std::string &rep);
 	int			setServer_fd(void);
 	void		print_response(response &rep);
 	void		print_request(int n);
