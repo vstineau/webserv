@@ -23,27 +23,6 @@
 #include "color.hpp"
 #include "parsing.hpp"
 
-/*
-III.3 Configuration file
-You can get some inspiration from the ’server’ part of NGINX
-configuration file.
-In the configuration file, you should be able to:
-• Choose the port and host of each ’server’.
-• Setup the server_names or not.
-• The first server for a host:port will be the default for this host:port (that means
-it will answer to all the requests that don’t belong to an other server).
-• Setup default error pages.
-• Limit client body size.
-• Setup routes with one or multiple of the following rules/configuration (routes wont
-be using regexp):
-◦ Define a list of accepted HTTP methods for the route.
-◦ Define a HTTP redirection.
-◦ Define a directory or a file from where the file should be searched (for example,
-if url /kapouet is rooted to /tmp/www, url /kapouet/pouic/toto/pouet is
-/tmp/www/pouic/toto/pouet).
-◦ Turn on or off directory listing.
-*/
-
 #define MAX_EVENTS 28
 
 extern bool g_end;
@@ -90,6 +69,13 @@ struct config {
 	std::map<std::string, location>	locations; //PATH -> location 
 };
 
+struct response {
+	std::string version;
+	std::string	status_code;
+	std::string headers;
+	std::string body;
+};
+
 struct request {
 	std::string path;
 	std::string version;
@@ -99,30 +85,22 @@ struct request {
 	std::string getContentType(std::string &buffer) const;
 	unsigned int getContentLength(std::string &buffer) const;
 };
-
-struct response {
-	std::string version;
-	int	status_code;
-	std::string message;
-	std::map<std::string, std::string> headers;
-	std::string body;
-};
 //connection: keep-alive -> reply everytime with connection: keep-alive if connection: close quitter tout 
 class Server;
 
 //EPOLL STUFF
-void									epollinit(Server &serv);
-void									epoll_loop(Server &serv, struct epoll_event &ev, struct epoll_event events[MAX_EVENTS], int epoll_fd);
+void			epollinit(Server &serv);
+void			epoll_loop(Server &serv, struct epoll_event &ev, struct epoll_event events[MAX_EVENTS], int epoll_fd);
 
 //PARSING OF THE CONFIGURATON FILE
-size_t								count_words(std::string line, char c);
-size_t								how_many_serv(char *file);
-void									get_one_config(config &conf, std::string &buffer);
-void									fill_servers_configs(std::vector<config> &confs, char *file);
-void									set_method(location &loc, std::string method);
+size_t		count_words(std::string line, char c);
+size_t		how_many_serv(char *file);
+void			get_one_config(config &conf, std::string &buffer);
+void			fill_servers_configs(std::vector<config> &confs, char *file);
+void			set_method(location &loc, std::string method);
 
 //SIGNAL
-int	init_signals(void);
+int				init_signals(void);
 
 
 //#endif
