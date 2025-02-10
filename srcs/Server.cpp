@@ -26,35 +26,41 @@ Server::~Server()
 		close(client_fd);
 }
 
-std::string	Server::_responseGET(request &req)
+void	Server::_responseGET(request &req)
 {
+	_response.version = "HTTP/1.1 ";
 	(void)req;
-	std::string rep;
-	return (rep);
+	return ;
 }
 
-std::string	Server::_responsePOST(request &req)
+void	Server::_responsePOST(request &req)
 {
+	_response.version = "HTTP/1.1 ";
 	(void)req;
-	std::string rep;
-	return (rep);
+	//gnegnegne POSTfailed
+	//_response.status_code = "403 Forbidden";
+	//gnegnegne POSTsuccessfull
+	_response.status_code = "200 OK";
+	return ;
 }
 
-std::string	Server::_responseDELETE(request &req)
+void	Server::_responseDELETE(request &req)
 {
+	_response.version = "HTTP/1.1 ";
 	(void)req;
-	std::string rep;
-	return (rep);
+	//gnegnegne deletesucessfull
+	_response.status_code = "200 OK";
+	return ;
 }
 
-void	Server::SetResponse(request &req, std::string &rep)
+void	Server::SetResponse(int n)
 {
-	if (req.method == GET)
-		rep = _responseGET(req);
-	else if (req.method == GET)
-		rep = _responsePOST(req);
-	else if (req.method == GET)
-		rep = _responseDELETE(req);
+	if (_requests[n].method == GET)
+		 _responseGET(_requests[n]);
+	else if (_requests[n].method == POST)
+		 _responsePOST(_requests[n]);
+	else if (_requests[n].method == DELETE)
+		_responseDELETE(_requests[n]);
 }
 
 void Server::create_img(std::string &img)
@@ -74,7 +80,10 @@ void Server::create_img(std::string &img)
 	offset = pos + 1;
 	std::ofstream ofs(filename.c_str(), std::ios_base::binary);
 	if (!ofs)
+	{
 		std::cout << "error oppenning new file \n";
+		_response.status_code = "403 Forbidden";
+	}
 	offset = pos + 1;
 	pos = img.find("\r\n\r\n", offset);
 	if (pos == std::string::npos){ return ;}
@@ -126,7 +135,6 @@ void Server::fill_header(std::string &header, int &n)
 			_requests[n].headers[key] = header.substr(offset, pos - offset);
 		}
 		offset = pos + 1;
-		//std::cout << "aaaaaaaaa\n";
 	}
 }
 
@@ -223,5 +231,5 @@ int Server::setServer_fd()
 		close(server_fd);
 		return (1);
 	}
-	return (0);
+	return (server_fd);
 }

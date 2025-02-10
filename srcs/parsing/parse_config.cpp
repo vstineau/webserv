@@ -18,7 +18,7 @@ size_t	how_many_serv(char *file)
 	return (count);
 }
 
-void	serv_in_string(std::vector<config> &confs, char*file)
+void	serv_in_string(std::vector<config> &confs, char *file)
 {
 	std::string line;
 	std::string serv_line;

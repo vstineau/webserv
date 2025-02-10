@@ -1,6 +1,22 @@
 
 #include "../../includes/webserv.hpp"
 
+void	file_in_string(std::string &sfile, char *file)
+{
+	std::string line;
+	std::ifstream ifs(file);
+	if (!ifs)
+	{
+		std::cout << "code mieux fdp\n";
+		(NULL);
+	}
+	while (std::getline(ifs, line))
+	{
+		sfile += line;
+		sfile += "\n";
+	}
+}
+
 size_t count_words(char *line, char c)
 {
 	size_t	l;

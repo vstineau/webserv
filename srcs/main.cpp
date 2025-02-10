@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
 	g_end = false;
 	init_signals();
 //	std::vector<config> confs;
-//	std::vector<Server> servs;
+//	std::map<int ,Server> map_serv;
 //	if (argc == 1)
 //	{
 //		confs.reserve(1);

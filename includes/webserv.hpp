@@ -21,7 +21,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include "color.hpp"
-#include "parsing.hpp"
+#include "template_utils.hpp"
 
 #define MAX_EVENTS 28
 
@@ -72,7 +72,7 @@ struct config {
 struct response {
 	std::string version;
 	std::string	status_code;
-	std::string headers;
+	std::map<std::string, std::string> headers;
 	std::string body;
 };
 
@@ -90,7 +90,7 @@ class Server;
 
 //EPOLL STUFF
 void			epollinit(Server &serv);
-void			epoll_loop(Server &serv, struct epoll_event &ev, struct epoll_event events[MAX_EVENTS], int epoll_fd);
+void			epoll_loop(Server &serv, struct epoll_event events[MAX_EVENTS], int epoll_fd);
 
 //PARSING OF THE CONFIGURATON FILE
 size_t		count_words(std::string line, char c);
@@ -98,6 +98,9 @@ size_t		how_many_serv(char *file);
 void			get_one_config(config &conf, std::string &buffer);
 void			fill_servers_configs(std::vector<config> &confs, char *file);
 void			set_method(location &loc, std::string method);
+
+//RESPONSES
+void	file_in_string(std::string &sfile, char *file);
 
 //SIGNAL
 int				init_signals(void);

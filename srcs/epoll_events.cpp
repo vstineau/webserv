@@ -23,11 +23,11 @@ void epollinit(Server &serv)
 		close(serv.server_fd);
 		exit(1);
 	}
-	epoll_loop(serv, ev, events, epoll_fd);
+	epoll_loop(serv, events, epoll_fd);
 	close(serv.server_fd);
 }
 
-void epoll_loop(Server &serv, struct epoll_event &evi, struct epoll_event events[MAX_EVENTS], int epoll_fd)
+void epoll_loop(Server &serv, struct epoll_event events[MAX_EVENTS], int epoll_fd)
 {
 	while (!g_end)
 	{
@@ -40,6 +40,7 @@ void epoll_loop(Server &serv, struct epoll_event &evi, struct epoll_event events
 		}
 		for (int n = 0; n < event_count; n++)
 		{
+			//if (map_serv.count(event[n].data.fd) > 0)
 			if (events[n].data.fd == serv.server_fd) //if (new connection)
 			{
 				//accept a connection (stock the socket into an fd)
@@ -66,7 +67,8 @@ void epoll_loop(Server &serv, struct epoll_event &evi, struct epoll_event events
 			{
 				if (events[n].events & EPOLLRDHUP) // if (a client leaves)
 				{
-					if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[n].data.fd, &evi) == -1)
+					struct epoll_event ev;
+					if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[n].data.fd, &ev) == -1)
 					{
 						perror("Error deleting the current connection");
 						continue ;
@@ -87,6 +89,7 @@ void epoll_loop(Server &serv, struct epoll_event &evi, struct epoll_event events
 					} while (i == 1024);
 					serv.fillRequest(n, buff);
 					serv.print_request(n);
+					serv.SetResponse(n);
 					//std::cout << buff << std::endl;
 					struct epoll_event ev;
 					ev.data.fd = events[n].data.fd;

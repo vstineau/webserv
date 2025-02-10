@@ -21,7 +21,7 @@ public:
 	~Server();
 
 	int			setServFd(void);
-	void		SetResponse(request &req, std::string &rep);
+	void		SetResponse(int n);
 	int			setServer_fd(void);
 	void		print_response(response &rep);
 	void		print_request(int n);
@@ -39,9 +39,9 @@ private:
 	void				fill_body(std::string &header, int &n);
 	void				create_img(std::string &img);
 	std::size_t	check_contentype(int n, std::size_t pos, std::size_t offset, std::string &buffer);
-	std::string	_responseGET(request &rep);
-	std::string	_responsePOST(request &rep);
-	std::string	_responseDELETE(request &rep);
+	void				_responseGET(request &rep);
+	void				_responsePOST(request &rep);
+	void				_responseDELETE(request &rep);
 	config									_conf;
 	std::map<int, request>	_requests;
 	response								_response;

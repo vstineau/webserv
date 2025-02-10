@@ -3,6 +3,7 @@
 #include "webserv.hpp"
 
 const char default_conf[] = "srcs/default.conf";
+const char rep_200[] = "HTTP/1.1 200 OK\r\n";
 
 template <typename V, typename F>
 void fill_servers_configs(V &confs, F *file)
@@ -34,4 +35,12 @@ void fill_servers_configs(V &confs, F *file)
 		std::cout << std::endl;
 		get_one_config(confs[serv_index], buffer);
 	}
+}
+
+template<typename T>
+std::string to_string(const T & value)
+{
+    std::ostringstream oss;
+    oss << value;
+    return oss.str();
 }
