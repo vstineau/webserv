@@ -74,6 +74,7 @@ void epoll_loop(Server &serv, struct epoll_event events[MAX_EVENTS], int epoll_f
 						continue ;
 					}
 					close(events[n].data.fd);
+					//aussi enlever la requete de la map
 					continue ;
 				}
 				if (events[n].events & EPOLLIN)
@@ -87,9 +88,9 @@ void epoll_loop(Server &serv, struct epoll_event events[MAX_EVENTS], int epoll_f
 						i = recv(events[n].data.fd, buffer, 1024, 0);
 						buff.append(buffer, i);
 					} while (i == 1024);
-					serv.fillRequest(n, buff);
-					serv.print_request(n);
-					serv.SetResponse(n);
+					serv.fillRequest(serv.client_fd, buff);
+					serv.print_request(serv.client_fd);
+					serv.SetResponse(serv.client_fd);
 					//std::cout << buff << std::endl;
 					struct epoll_event ev;
 					ev.data.fd = events[n].data.fd;

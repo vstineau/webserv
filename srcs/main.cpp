@@ -20,6 +20,7 @@ int main(int argc, char *argv[])
 //		confs.reserve(how_many_serv(argv[1]));
 //		fill_servers_configs(confs, argv[1]);
 //	}
+//	init_server(map_serv, confs);
 	if (argc < 1 || argv[0])
 		(void)argc;
 	Server serv;

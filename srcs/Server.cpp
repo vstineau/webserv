@@ -168,6 +168,7 @@ void Server::fillRequest(int n, std::string &buffer)
 	std::string header;
 	std::string body;
 
+	//probablement ajouter un truc qui clear la requete si deja remplie avant de la remplir
 	if (!buffer.find("GET"))
 	{
 		_requests[n].method = GET;
