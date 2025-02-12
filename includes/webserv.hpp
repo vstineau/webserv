@@ -24,6 +24,7 @@
 #include "template_utils.hpp"
 
 #define MAX_EVENTS 28
+#define ENDL "\r\n"
 
 extern bool g_end;
 
@@ -100,7 +101,8 @@ void			fill_servers_configs(std::vector<config> &confs, char *file);
 void			set_method(location &loc, std::string method);
 
 //RESPONSES
-void	file_in_string(std::string &sfile, char *file);
+void				file_in_string(std::string &sfile, char *file);
+std::string	get_body_error(int status_code);
 
 //SIGNAL
 int				init_signals(void);

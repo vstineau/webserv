@@ -124,12 +124,12 @@ void epoll_loop(Server &serv, struct epoll_event events[MAX_EVENTS], int epoll_f
 					"        </form>"
 					"    </body>"
 					"</html>";
-					std::size_t content_length = page.length();
+					std::size_t content_length = error_body.length();
 					header << "HTTP/1.1 200 OK\r\n"
 					"Content-Type: text/html\r\n";
 					header << "Content-Length: " << content_length << "\r\n\r\n";
 					send(events[n].data.fd, header.str().c_str(), header.str().length(), 0);
-					send(events[n].data.fd, page.c_str(), page.length(), 0);
+					send(events[n].data.fd, error_body.c_str(), error_body.length(), 0);
 					//std::string http_response =
 					//"HTTP/1.1 200 OK\r\n"  // Ligne de statut HTTP
 					//"Content-Type: text/html\r\n"  // Type de contenu (HTML)

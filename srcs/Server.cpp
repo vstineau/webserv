@@ -71,7 +71,7 @@ void Server::create_img(std::string &img)
 	std::string content;
 	
 	if (chdir("www/data"))
-		std::cout << "CHDIR FAILED\n";
+		std::cerr << "CHDIR FAILED\n";
 	pos = img.find("filename=\"", offset);
 	if (pos == std::string::npos){ return ;}
 	offset = pos + 10;
@@ -81,8 +81,9 @@ void Server::create_img(std::string &img)
 	std::ofstream ofs(filename.c_str(), std::ios_base::binary);
 	if (!ofs)
 	{
-		std::cout << "error oppenning new file \n";
+		std::cerr << "error oppenning new file \n";
 		_response.status_code = "403 Forbidden";
+		_response.body = get_body_error(403);
 	}
 	offset = pos + 1;
 	pos = img.find("\r\n\r\n", offset);
@@ -91,7 +92,7 @@ void Server::create_img(std::string &img)
 	content = img.substr(offset, img.size() - offset);
 	ofs << content;
 	if (chdir("../.."))
-		std::cout << "CHDIR FAILED\n";
+		std::cerr << "CHDIR FAILED\n";
 }
 
 void Server::fill_body(std::string &body, int &n)
