@@ -25,6 +25,6 @@ int main(int argc, char *argv[])
 		(void)argc;
 	Server serv;
 
-	serv.setServer_fd();
+	std::cout << directory_listing("www/upload");
 	epollinit(serv);
 }

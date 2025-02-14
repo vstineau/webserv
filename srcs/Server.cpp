@@ -7,16 +7,61 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-Server::Server() :	server_fd(0),
-										client_fd(0),
+Server::Server() :	server_fd(-1),
+										client_fd(-1),
 										address()
 {
+	struct sockaddr_in			addr;
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = INADDR_ANY;//inet_addr("0.0.0.0");
+	addr.sin_port = htons(8080);
+	address = addr;
+
+	int b = true;
+	server_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (server_fd == -1) {
+		perror("socket");
+	}
+	setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &b, sizeof(int));
+	if (bind(server_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1)
+	{
+		perror("bind");
+		close(server_fd);
+	}
+	if (listen(server_fd, 10) == -1)
+	{
+		perror("listen");
+		close(server_fd);
+	}
 }
 
-Server::Server(config &conf):	server_fd(0),
-															client_fd(0),
+Server::Server(config &conf):	server_fd(-1),
+															client_fd(-1),
 															_conf(conf)
-{}
+{
+	struct sockaddr_in			addr;
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = INADDR_ANY;//inet_addr("0.0.0.0");
+	addr.sin_port = htons(8080);
+	address = addr;
+
+	int b = true;
+	server_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (server_fd == -1) {
+		perror("socket");
+	}
+	setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &b, sizeof(int));
+	if (bind(server_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1)
+	{
+		perror("bind");
+		close(server_fd);
+	}
+	if (listen(server_fd, 10) == -1)
+	{
+		perror("listen");
+		close(server_fd);
+	}
+}
 
 Server::~Server()
 {
@@ -204,34 +249,4 @@ void Server::fillRequest(int n, std::string &buffer)
 	_requests[n].body = buffer.substr(offset, buffer.size() - offset);
 	if (!_requests[n].headers["boundary"].empty())
 		fill_body(_requests[n].body, n);
-}
-
-//link server socket to the IP adress and to the port(s), start listenning then accept connection from client
-int Server::setServer_fd()
-{
-	struct sockaddr_in			addr;
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = INADDR_ANY;//inet_addr("0.0.0.0");
-	addr.sin_port = htons(8080);
-	address = addr;
-
-	int b = true;
-	server_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (server_fd == -1) {
-		perror("socket");
-	}
-	setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &b, sizeof(int));
-	if (bind(server_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1)
-	{
-		perror("bind");
-		close(server_fd);
-		return (1);
-	}
-	if (listen(server_fd, 10) == -1)
-	{
-		perror("listen");
-		close(server_fd);
-		return (1);
-	}
-	return (server_fd);
 }

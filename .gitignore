@@ -2,3 +2,5 @@ file.log
 a.out
 .obj
 webserv
+test*
+temp*

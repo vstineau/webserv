@@ -105,25 +105,6 @@ void epoll_loop(Server &serv, struct epoll_event events[MAX_EVENTS], int epoll_f
 				if (events[n].events & EPOLLOUT)
 				{
 					std::stringstream header;
-					std::string page;
-					page = "<!DOCTYPE html>"
-					"<html lang=\"en\">"
-					"<head>"
-					"    <meta charset=\"UTF-8\">"
-					"    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-					"    <title>Webserv</title>"
-					"</head>"
-					"    <body>"
-					"        <h1>Hello world</h1>"
-					"        <p style='color: red;'>This is a paragraph</p>"
-					"        <a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\" target=\"_blank\">DUCK</a>"
-					"        <p></p>"
-					"        <form method=\"POST\" enctype=\"multipart/form-data\">"
-					"            <input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
-					"            <input type=\"submit\"/>"
-					"        </form>"
-					"    </body>"
-					"</html>";
 					std::size_t content_length = error_body.length();
 					header << "HTTP/1.1 200 OK\r\n"
 					"Content-Type: text/html\r\n";

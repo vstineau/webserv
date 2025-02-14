@@ -107,5 +107,9 @@ std::string	get_body_error(int status_code);
 //SIGNAL
 int				init_signals(void);
 
+//DIRECTORY LISTING
+std::string directory_listing(std::string path);
+std::string upload(std::string path);
+
 
 //#endif

@@ -9,7 +9,6 @@
 #include <vector>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <sys/types.h>
 #include <arpa/inet.h>
 
 //%{code error}%
@@ -30,7 +29,7 @@ static std::string error_body = "<!DOCTYPE html>" ENDL
 "		</style>" ENDL
 "</head>" ENDL
 "<body>" ENDL
-"		<img src=https://http.cat/400.jpg /> " ENDL
+"		<img src=https://http.cat/%{code error}%.jpg /> " ENDL
 "</body>" ENDL; 
 
 
@@ -43,7 +42,6 @@ public:
 
 	int			setServFd(void);
 	void		SetResponse(int n);
-	int			setServer_fd(void);
 	void		print_response(response &rep);
 	void		print_request(int n);
 	void		fillRequest(int n, std::string &buffer);

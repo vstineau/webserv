@@ -43,7 +43,10 @@ SRC = srcs/main.cpp \
 	  srcs/epoll_events.cpp \
 	  srcs/print.cpp \
 		srcs/signals/signals.cpp \
-		srcs/parsing/parsing_utils.cpp
+		srcs/parsing/parsing_utils.cpp \
+		srcs/init_server.cpp \
+		srcs/error.cpp \
+		srcs/directory_listing.cpp
 OBJ_NAME = $(SRC:.cpp=.o)
 OBJ = $(addprefix $(OBJ_PATH), $(OBJ_NAME))
 
