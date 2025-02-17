@@ -31,7 +31,7 @@ static std::string error_body = "<!DOCTYPE html>" ENDL
 "</head>" ENDL
 "<body>" ENDL
 "		<img src=https://http.cat/%{code error}%.jpg /> " ENDL
-"</body>" ENDL; 
+"</body>" ENDL;
 
 
 class Server {
@@ -41,7 +41,8 @@ public:
 	Server(config &conf);
 	~Server();
 
-	int			setServFd(void);
+	void		setErrorCodes(void);
+	void		add_root(void);
 	void		SetResponse(int n);
 	void		SetResponseStatus(int n);
 	void		print_response(response &rep);
@@ -62,6 +63,7 @@ private:
 	void				_responseDELETE(request &rep);
 	config									_conf;
 	std::map<int, request>	_requests;
+	std::map<int, std::string>	_error_codes;
 	response								_response;
 };
 

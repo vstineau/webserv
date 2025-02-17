@@ -24,7 +24,5 @@ int main(int argc, char *argv[])
 	if (argc < 1 || argv[0])
 		(void)argc;
 	Server serv;
-
-	std::cout << directory_listing("www/upload");
 	epollinit(serv);
 }
