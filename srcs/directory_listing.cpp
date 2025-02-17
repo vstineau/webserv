@@ -13,7 +13,7 @@ std:: string get_directory_line(std::string thing)
 	pos = line.find("%{img}%", offset);
 	while (pos != std::string::npos)
 	{
-		line.erase(pos, 8);
+		line.erase(pos, 7);
 		line.insert(pos, thing);
 		offset = pos + thing.length();
 		pos = line.find("%{img}%", offset);
@@ -32,10 +32,7 @@ std::string directory_listing(std::string path)
 	while ((entry = readdir(dir)) != NULL)
 	{
 		if(strcmp(entry->d_name, "."))
-		{
 			list += get_directory_line(entry->d_name);
-			list += "\n";
-		}
 	}
 	if (closedir(dir) == -1)
 		perror("closerdir failed");
@@ -53,10 +50,7 @@ std::string upload(std::string path)
 	while ((entry = readdir(dir)) != NULL)
 	{
 		if(strcmp(entry->d_name, ".") && strcmp(entry->d_name, ".."))
-		{
 			list += get_directory_line(entry->d_name);
-			list += "\n";
-		}
 	}
 	if (closedir(dir) == -1)
 		perror("closerdir failed");
