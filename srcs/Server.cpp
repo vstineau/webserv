@@ -2,6 +2,7 @@
 #include "../includes/Server.hpp"
 #include "../includes/color.hpp"
 #include <iostream>
+#include <unistd.h>
 #include <cstdlib>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -73,29 +74,37 @@ Server::~Server()
 
 void	Server::_responseGET(request &req)
 {
-	_response.version = "HTTP/1.1 ";
+	_response.status_line = "HTTP/1.1 ";
 	(void)req;
 	return ;
 }
 
 void	Server::_responsePOST(request &req)
 {
-	_response.version = "HTTP/1.1 ";
+	_response.status_line = "HTTP/1.1 ";
 	(void)req;
 	//gnegnegne POSTfailed
 	//_response.status_code = "403 Forbidden";
 	//gnegnegne POSTsuccessfull
-	_response.status_code = "200 OK";
+	_response.status_line += "200 OK";
 	return ;
 }
 
 void	Server::_responseDELETE(request &req)
 {
-	_response.version = "HTTP/1.1 ";
+	_response.status_line = "HTTP/1.1 ";
 	(void)req;
+	if (unlink(req.path.c_str()) == -1)
+		SetResponseStatus(404);
+
 	//gnegnegne deletesucessfull
-	_response.status_code = "200 OK";
+	_response.status_line += "200 OK";
 	return ;
+}
+
+void	Server::SetResponseStatus(int n)
+{
+	_response.body = get_body_error(n);
 }
 
 void	Server::SetResponse(int n)
@@ -127,7 +136,7 @@ void Server::create_img(std::string &img)
 	if (!ofs)
 	{
 		std::cerr << "error oppenning new file \n";
-		_response.status_code = "403 Forbidden";
+		_response.status_line = "HTTP/1.1 403 Forbidden";
 		_response.body = get_body_error(403);
 	}
 	offset = pos + 1;

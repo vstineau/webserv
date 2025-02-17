@@ -58,6 +58,27 @@ void	get_server_port(config &conf, std::string &buffer)
 	conf.port = atoi(buffer.substr(offset, pos - offset).c_str());
 }
 
+void	is_directory_listing_allowed(config &conf, std::string &buffer)
+{
+	size_t				pos = 0;
+	size_t				offset = 0;
+
+	pos = buffer.find("directory-listing: ");
+	if (pos == std::string::npos)
+		return ;
+	offset = pos + 20;
+	pos = buffer.find("\n", offset);
+	if (pos == std::string::npos)
+	{
+		std::cerr << "unvalid config line found\n";
+		return ;
+	}
+	if (buffer.substr(offset, pos - offset) == "on")
+		conf.directory_listing = true;
+	else
+		conf.directory_listing = false;
+}
+
 void	get_server_name(config &conf, std::string &buffer)
 {
 	size_t				pos = 0;

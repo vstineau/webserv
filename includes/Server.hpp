@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 
 //%{code error}%
 static std::string error_body = "<!DOCTYPE html>" ENDL
@@ -42,11 +43,13 @@ public:
 
 	int			setServFd(void);
 	void		SetResponse(int n);
+	void		SetResponseStatus(int n);
 	void		print_response(response &rep);
 	void		print_request(int n);
 	void		fillRequest(int n, std::string &buffer);
 	int											server_fd;
 	int											client_fd;
+	int											status_code;
 	struct sockaddr_in			address;
 
 private:

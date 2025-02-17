@@ -5,6 +5,21 @@
 #include <dirent.h>
 #include <string.h>
 
+std:: string get_directory_line(std::string thing)
+{
+	std::string line("      <p><a href=\"http://127.0.0.1:8080/%{img}%\" target=\"_blank\">%{img}%</a></p>\n");
+	size_t pos;
+	size_t offset = 0;
+	pos = line.find("%{img}%", offset);
+	while (pos != std::string::npos)
+	{
+		line.erase(pos, 8);
+		line.insert(pos, thing);
+		offset = pos + thing.length();
+		pos = line.find("%{img}%", offset);
+	}
+	return (line);
+}
 
 std::string directory_listing(std::string path)
 {
@@ -18,7 +33,7 @@ std::string directory_listing(std::string path)
 	{
 		if(strcmp(entry->d_name, "."))
 		{
-			list += entry->d_name;
+			list += get_directory_line(entry->d_name);
 			list += "\n";
 		}
 	}
@@ -39,7 +54,7 @@ std::string upload(std::string path)
 	{
 		if(strcmp(entry->d_name, ".") && strcmp(entry->d_name, ".."))
 		{
-			list += entry->d_name;
+			list += get_directory_line(entry->d_name);
 			list += "\n";
 		}
 	}

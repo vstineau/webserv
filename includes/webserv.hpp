@@ -53,6 +53,7 @@ struct location
 	std::string									cgi_bin;
 	char												allowed_method[4];
 	int													client_body_size;
+	bool														directory_listing;
 	std::map<int, std::string>	error_pages;
 };
 
@@ -71,8 +72,7 @@ struct config {
 };
 
 struct response {
-	std::string version;
-	std::string	status_code;
+	std::string	status_line;
 	std::map<std::string, std::string> headers;
 	std::string body;
 };
