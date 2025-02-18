@@ -94,8 +94,7 @@ struct request {
 class Server;
 
 //EPOLL STUFF
-void			epollinit(Server &serv);
-void			epoll_loop(Server &serv, struct epoll_event events[MAX_EVENTS], int epoll_fd);
+void epoll_loop(Server &serv);
 
 //PARSING OF THE CONFIGURATON FILE
 size_t		count_words(const char *line, char c);
@@ -115,6 +114,8 @@ int				init_signals(void);
 //DIRECTORY LISTING
 std::string directory_listing(std::string path);
 std::string upload(std::string path);
+int send_response(std::string message, int fd);
+std::string fillDirectoryListing(std::string listing);
 
 //DEBUG
 void	print_config(std::vector<config> &confs);

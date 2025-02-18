@@ -9,7 +9,6 @@
 #include <sys/types.h>
 
 Server::Server() :	server_fd(-1),
-										client_fd(-1),
 										address()
 {
 	struct sockaddr_in			addr;

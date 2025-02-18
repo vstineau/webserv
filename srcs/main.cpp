@@ -25,5 +25,5 @@ int main(int argc, char *argv[])
 	if (argc < 1 || argv[0])
 		(void)argc;
 	Server serv;
-	epollinit(serv);
+	epoll_loop(serv);
 }

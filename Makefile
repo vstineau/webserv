@@ -50,7 +50,8 @@ SRC = srcs/main.cpp \
 		srcs/error.cpp \
 		srcs/location.cpp \
 		srcs/config.cpp \
-		srcs/directory_listing.cpp
+		srcs/directory_listing.cpp \
+		srcs/response.cpp 
 OBJ_NAME = $(SRC:.cpp=.o)
 OBJ = $(addprefix $(OBJ_PATH), $(OBJ_NAME))
 
