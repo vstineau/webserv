@@ -127,18 +127,15 @@ void	Server::_responseGET(request &req)
 
 void	Server::_responsePOST(request &req)
 {
-	_response.status_line = "HTTP/1.1 ";
 	(void)req;
-	//gnegnegne POSTfailed
+	//gnegnegne POSTfailedap
 	//_response.status_code = "403 Forbidden";
 	//gnegnegne POSTsuccessfull
-	_response.status_line += "200 OK";
 	return ;
 }
 
 void	Server::_responseDELETE(request &req)
 {
-	(void)req;
 	if (unlink(req.path.c_str()) == -1)
 	{
 		SetResponseStatus(404);

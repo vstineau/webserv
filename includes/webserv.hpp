@@ -47,6 +47,8 @@ enum methods
 
 struct location
 {
+	location();
+	~location();
 	std::string									ret;
 	std::string									root;
 	std::string									cgi_extention;
@@ -58,6 +60,8 @@ struct location
 };
 
 struct config {
+	config();
+	~config();
 	std::vector<std::string>				server_names;
 	std::vector<std::string>				server_index;
 	std::string											host;
@@ -94,11 +98,12 @@ void			epollinit(Server &serv);
 void			epoll_loop(Server &serv, struct epoll_event events[MAX_EVENTS], int epoll_fd);
 
 //PARSING OF THE CONFIGURATON FILE
-size_t		count_words(std::string line, char c);
+size_t		count_words(const char *line, char c);
 size_t		how_many_serv(char *file);
 void			get_one_config(config &conf, std::string &buffer);
 void			fill_servers_configs(std::vector<config> &confs, char *file);
 void			set_method(location &loc, std::string method);
+void			get_locations_bloc(config &conf, std::string &buffer);
 
 //RESPONSES
 void				file_in_string(std::string &sfile, char *file);
@@ -110,6 +115,9 @@ int				init_signals(void);
 //DIRECTORY LISTING
 std::string directory_listing(std::string path);
 std::string upload(std::string path);
+
+//DEBUG
+void	print_config(std::vector<config> &confs);
 
 
 //#endif

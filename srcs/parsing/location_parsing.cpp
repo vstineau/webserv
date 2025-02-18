@@ -21,14 +21,14 @@ static void	get_cgi_extention(std::string &path, std::string &buffer,  config &c
 	size_t				pos = 0;
 	size_t				offset = 0;
 
-	pos = buffer.find("cgi_extention = ");
+	pos = buffer.find("cgi-extention = ");
 	if (pos == std::string::npos)
 		return ;
 	offset = pos + 17;
 	pos = buffer.find("\n", offset);
 	if (pos == std::string::npos)
 	{
-		std::cerr << "no cgi_extention found\n";
+		std::cerr << "no cgi-extention found\n";
 		return ;
 	}
 	conf.locations[path].cgi_extention = buffer.substr(offset, pos - offset);
@@ -39,14 +39,14 @@ static void	get_cgi_bin(std::string &path, std::string &buffer,  config &conf)
 	size_t				pos = 0;
 	size_t				offset = 0;
 
-	pos = buffer.find("cgi_bin = ");
+	pos = buffer.find("cgi-bin = ");
 	if (pos == std::string::npos)
 		return ;
 	offset = pos + 11;
 	pos = buffer.find("\n", offset);
 	if (pos == std::string::npos)
 	{
-		std::cerr << "no cgi_bin found\n";
+		std::cerr << "no cgi-bin found\n";
 		return ;
 	}
 	conf.locations[path].cgi_bin = buffer.substr(offset, pos - offset);
@@ -107,46 +107,46 @@ static void	get_method_allowed(std::string &path, std::string &buffer,  config &
 	}
 }
 
-static void	set_error_pages(std::string &path, std::string &buffer,  config &conf)
-{
-	size_t				pos = 0;
-	size_t				offset = 0;
-	int						error_num = 0;
-
-	while (pos != std::string::npos)
-	{
-		pos = buffer.find("error_pages ");
-		if (pos == std::string::npos)
-			return ;
-		offset = pos + 13;
-		pos = buffer.find(" ");
-		if (pos == std::string::npos)
-			continue ;
-		error_num = atoi(buffer.substr(offset, pos - offset).c_str());
-		pos = buffer.find("= ");
-		offset = pos + 2;
-		if (pos == std::string::npos)
-			continue ;
-		pos = buffer.find("\n", offset);
-		if (pos == std::string::npos)
-			return ;
-		conf.locations[path].error_pages[error_num] = buffer.substr(offset, pos - offset);
-	}
-}
+//static void	set_error_pages(std::string &path, std::string &buffer,  config &conf)
+//{
+//	size_t				pos = 0;
+//	size_t				offset = 0;
+//	int						error_num = 0;
+//
+//	while (pos != std::string::npos)
+//	{
+//		pos = buffer.find("error_pages ");
+//		if (pos == std::string::npos)
+//			return ;
+//		offset = pos + 13;
+//		pos = buffer.find(" ");
+//		if (pos == std::string::npos)
+//			continue ;
+//		error_num = atoi(buffer.substr(offset, pos - offset).c_str());
+//		pos = buffer.find("= ");
+//		offset = pos + 2;
+//		if (pos == std::string::npos)
+//			continue ;
+//		pos = buffer.find("\n", offset);
+//		if (pos == std::string::npos)
+//			return ;
+//		conf.locations[path].error_pages[error_num] = buffer.substr(offset, pos - offset);
+//	}
+//}
 
 static void	get_client_body_size(std::string &path, std::string &buffer,  config &conf)
 {
 	size_t				pos = 0;
 	size_t				offset = 0;
 
-	pos = buffer.find("client_body_size = ");
+	pos = buffer.find("client-body-size = ");
 	if (pos == std::string::npos)
 		return ;
 	offset = pos + 20;
 	pos = buffer.find("\n", offset);
 	if (pos == std::string::npos)
 	{
-		std::cerr << "no client_body_size found\n";
+		std::cerr << "no client-body-size found\n";
 		return ;
 	}
 	conf.locations[path].client_body_size = atoi(buffer.substr(offset, pos - offset).c_str());
@@ -155,9 +155,14 @@ static void	get_client_body_size(std::string &path, std::string &buffer,  config
 void	fill_location(std::string &path, std::string &buffer, config &conf)
 {
 	get_return(path, buffer, conf);
+	get_client_body_size(path, buffer, conf);
+	get_root(path, buffer, conf);
+	get_cgi_bin(path, buffer, conf);
+	get_cgi_extention(path, buffer, conf);
+	get_method_allowed(path, buffer, conf);
 }
 
-void get_locations_bloc(std::string &buffer, config &conf)
+void get_locations_bloc(config &conf, std::string &buffer)
 {
 	std::string		path;
 	std::string		location_string;
@@ -184,6 +189,7 @@ void get_locations_bloc(std::string &buffer, config &conf)
 		location_string = buffer.substr(offset, pos - offset);
 		fill_location(path, location_string, conf);
 		offset = pos + 2;
+		//std::cout << RED << "ICI WHILE 1" << RESET << std::endl;
 	}
 
 

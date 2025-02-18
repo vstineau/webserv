@@ -18,11 +18,11 @@ size_t	how_many_serv(char *file)
 	return (count);
 }
 
-void	serv_in_string(std::vector<config> &confs, char *file)
+void	fill_servers_configs(std::vector<config> &confs, char *file)
 {
 	std::string line;
 	std::string serv_line;
-	size_t serv_index = 0;
+//	size_t serv_index = 0;
 	std::ifstream ifs(file);
 	if (!ifs)
 		(NULL);
@@ -30,12 +30,14 @@ void	serv_in_string(std::vector<config> &confs, char *file)
 	{
 		if (line == "Server {" )
 		{
+			config temp;
 			while (line != "}")
 			{
 				std::getline(ifs, line);
 				serv_line += line;
 			}
-			get_one_config(confs[serv_index], serv_line);
+			get_one_config(temp, serv_line);
+			confs.push_back(temp);
 		}
 	}
 }
@@ -86,7 +88,7 @@ void	get_server_name(config &conf, std::string &buffer)
 	size_t				wc = 0;
 	std::string		names;
 
-	pos = buffer.find("server_name = ");
+	pos = buffer.find("server-name = ");
 	offset = pos + 15;
 	pos = buffer.find(";", offset);
 	if (pos == std::string::npos)
@@ -101,12 +103,12 @@ void	get_server_name(config &conf, std::string &buffer)
 	{
 		pos = names.find(" ");
 	if (pos == std::string::npos)
-		conf.server_names[i] = names.substr(offset, names.size() - offset);
+		conf.server_names.push_back(names.substr(offset, names.size() - offset));
 	else
-		{
-			conf.server_names[i] = names.substr(offset, pos - offset);
-			offset = pos + 1;
-		}
+	{
+		conf.server_names.push_back(names.substr(offset, names.size() - offset));
+		offset = pos + 1;
+	}
 	}
 }
 
@@ -124,7 +126,7 @@ void	get_index(config &conf, std::string &buffer)
 	pos = buffer.find(";", offset);
 	if (pos == std::string::npos)
 	{
-		std::cerr << "no server name found\n";
+		std::cerr << "no server index found\n";
 		return ;
 	}
 	index = buffer.substr(offset, (pos - 1) - offset);
@@ -134,10 +136,10 @@ void	get_index(config &conf, std::string &buffer)
 	{
 		pos = index.find(" ");
 		if (pos == std::string::npos)
-		conf.server_index[i] = index.substr(offset, index.size() - offset);
+			conf.server_index.push_back(index.substr(offset, index.size() - offset));
 		else
 		{
-			conf.server_index[i] = index.substr(offset, pos - offset);
+			conf.server_index.push_back(index.substr(offset, index.size() - offset));
 			offset = pos + 1;
 		}
 	}
@@ -148,6 +150,8 @@ void	get_one_config(config &conf, std::string &buffer)
 	get_server_name(conf, buffer);
 	get_server_port(conf, buffer);
 	get_index(conf, buffer);
+	is_directory_listing_allowed(conf, buffer);
+	get_locations_bloc(conf, buffer);
 }
 
 //location = /

@@ -44,8 +44,12 @@ SRC = srcs/main.cpp \
 	  srcs/print.cpp \
 		srcs/signals/signals.cpp \
 		srcs/parsing/parsing_utils.cpp \
+		srcs/parsing/parse_config.cpp \
+		srcs/parsing/location_parsing.cpp \
 		srcs/init_server.cpp \
 		srcs/error.cpp \
+		srcs/location.cpp \
+		srcs/config.cpp \
 		srcs/directory_listing.cpp
 OBJ_NAME = $(SRC:.cpp=.o)
 OBJ = $(addprefix $(OBJ_PATH), $(OBJ_NAME))

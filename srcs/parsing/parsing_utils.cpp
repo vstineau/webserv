@@ -17,7 +17,7 @@ void	file_in_string(std::string &sfile, char *file)
 	}
 }
 
-size_t count_words(char *line, char c)
+size_t count_words(const char *line, char c)
 {
 	size_t	l;
 	size_t	i;
