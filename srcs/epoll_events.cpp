@@ -1,5 +1,6 @@
 #include "../includes/Server.hpp"
 #include "../includes/webserv.hpp"
+#include <algorithm>
 
 int handle_epollrdhup(Server &serv, struct epoll_event *events, int &n, int &epoll_fd) {
 	struct epoll_event ev;
