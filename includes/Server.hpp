@@ -49,7 +49,7 @@ public:
 	void		print_request(int n);
 	void		fillRequest(int n, std::string &buffer);
 	int											server_fd;
-	int											client_fd;
+	std::vector<int> client_fd;
 	int											status_code;
 	struct sockaddr_in			address;
 

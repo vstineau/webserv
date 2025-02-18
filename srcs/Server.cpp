@@ -115,8 +115,8 @@ Server::~Server()
 {
 	if (server_fd != -1)
 		close(server_fd);
-	if (client_fd != -1)
-		close(client_fd);
+	// if (client_fd != -1)
+	// 	close(client_fd);
 }
 
 void	Server::_responseGET(request &req)
