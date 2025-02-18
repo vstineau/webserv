@@ -65,6 +65,20 @@ Server::Server(config &conf):	server_fd(-1),
 	setErrorCodes();
 }
 
+std::string Server::getResponse(void) const {
+	std::string r;
+	r += i.status_line;
+	r += "\r\n";
+	for (std::map<std::string, std::string>::iterator it = i.headers.begin(); it != i.headers.end(); it++){
+		r += it->first;
+		r += it->second;
+		r += "\r\n";
+	}
+	r += "\r\n";
+	r += i.body;
+	return (r);
+}
+
 void	Server::setErrorCodes(void)
 {
 	_error_codes[100] = " Continue";
