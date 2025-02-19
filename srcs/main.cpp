@@ -7,7 +7,7 @@ bool	g_end;
 int main(int argc, char *argv[])
 {
 	g_end = false;
-	// init_signals();
+	init_signals();
 	// std::vector<config> confs;
 	// std::map<int ,Server> map_serv;
 	// if (argc == 1)
