@@ -39,6 +39,11 @@ std::ostream & operator<<(std::ostream & o, location & i)
 	if (i.allowed_method[DELETE])
 		o << "DELETE ";
 	o << "\n";
+	o << "		ERROR PAGES : \n";
+	for (std::map<int, std::string>::iterator im = i.error_pages.begin(); im != i.error_pages.end(); im++)
+	{
+		o << "		" << im->first << " " << im->second << "\n";
+	}
 	return (o);
 }
 
@@ -56,6 +61,11 @@ std::ostream & operator<<(std::ostream & o, config & i)
 	o << "PORT : " << i.port << "\n";
 	o << "CLIENT BODY SIZE : " << i.client_body_size << "\n";
 	o << "DIRECTORY LISTING : " << i.directory_listing << "\n";
+	o << "ERROR PAGES : \n";
+	for (std::map<int, std::string>::iterator im = i.error_pages.begin(); im != i.error_pages.end(); im++)
+	{
+		o << im->first << " " << im->second << "\n";
+	}
 	for (std::map<std::string, location>::iterator im = i.locations.begin(); im != i.locations.end(); im++)
 	{
 		o << "	LOCATION PATH : " << im->first << "\n" << "	LOCATION DETAILS :\n";

@@ -47,6 +47,34 @@ void	fill_servers_configs(std::vector<config> &confs, char *file)
 	}
 }
 
+static void	set_error_pages(config &conf, std::string &buffer)
+{
+	size_t				pos = 0;
+	size_t				offset = 0;
+	int						error_num = 0;
+	std::cout << buffer << std::endl;
+	while (pos != std::string::npos)
+	{
+		pos = buffer.find("error-page: ", offset);
+		if (pos == std::string::npos)
+			break ;
+		offset = pos + 12;
+		pos = buffer.find(" ", offset);
+		if (pos == std::string::npos)
+			break ;
+		error_num = atoi(buffer.substr(offset, pos - offset).c_str());
+		pos = buffer.find(" ", offset);
+		if (pos == std::string::npos)
+			break ;
+		offset = pos + 1;
+		pos = buffer.find(";", offset);
+		if (pos == std::string::npos)
+			break ;
+		conf.error_pages[error_num] = buffer.substr(offset, pos - offset);
+		std::cout << buffer.substr(offset, pos - offset) << std::endl;
+	}
+}
+
 static void	get_server_port(config &conf, std::string &buffer)
 {
 	size_t				pos = 0;
@@ -173,6 +201,7 @@ static void	get_index(config &conf, std::string &buffer)
 void	get_one_config(config &conf, std::string &buffer)
 {
 	get_server_name(conf, buffer);
+	set_error_pages(conf, buffer);
 	get_index(conf, buffer);
 	get_server_port(conf, buffer);
 	get_server_host(conf, buffer);
