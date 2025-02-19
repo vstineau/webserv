@@ -124,12 +124,11 @@ void	Server::setErrorCodes(void)
 }
 
 
-Server::~Server()
-{
-	if (server_fd != -1)
-		close(server_fd);
-	// if (client_fd != -1)
-	// 	close(client_fd);
+Server::~Server() {
+	for (std::vector<int>::iterator it = client_fd.begin(); it != client_fd.end(); it++)
+		if (*it != -1)
+			close(*it);
+	close(server_fd);
 }
 
 void	Server::_responseGET(request &req)
