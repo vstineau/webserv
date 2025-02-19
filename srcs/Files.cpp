@@ -1,5 +1,6 @@
 
 #include "../includes/webserv.hpp"
+#include <map>
 #include "../includes/Files.hpp"
 
 

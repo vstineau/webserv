@@ -1,6 +1,7 @@
 #include "../includes/Server.hpp"
 #include "../includes/webserv.hpp"
 #include <algorithm>
+#include <sys/socket.h>
 
 int handle_epollrdhup(Server &serv, struct epoll_event *events, int &n, int &epoll_fd) {
 	struct epoll_event ev;
@@ -42,8 +43,9 @@ int handle_epollin(Server &serv, struct epoll_event *events, int &n, int &epoll_
 		}
 		std::cout << HI_CYAN << "-----------REQUEST----------" << RESET << std::endl;
 		serv.fillRequest(n, buff);
-		//serv.identifyRequest(n);
+		// serv.identifyRequest(n);
 		serv.print_request(n);
+		serv.SetResponse(n);
 		std::cout << HI_CYAN << "-----------REQUEST----------" << RESET << std::endl;
 		// std::cout << buff << std::endl;
 		struct epoll_event ev;
@@ -58,9 +60,13 @@ int handle_epollin(Server &serv, struct epoll_event *events, int &n, int &epoll_
 	return 0;
 }
 
-int handle_epollout(struct epoll_event *events, int &n, int &epoll_fd) {
+int handle_epollout(Server &serv, struct epoll_event *events, int &n, int &epoll_fd) {
 	if (events[n].events & EPOLLOUT) {
-		if (send_response(fillDirectoryListing(directory_listing("www")), events[n].data.fd) == -1)
+		// if (send_response(fillDirectoryListing(directory_listing("www")), events[n].data.fd) ==
+		// -1) 	std::cerr << "Send error: " << std::endl;
+		std::cout << serv.getResponse() << RESET << std::endl;
+		if (send(events[n].data.fd, serv.getResponse().c_str(), serv.getResponse().size(),
+				 MSG_NOSIGNAL) == -1)
 			std::cerr << "Send error: " << std::endl;
 		struct epoll_event ev;
 		ev.data.fd = events[n].data.fd;
@@ -132,12 +138,10 @@ void epoll_loop(Server &serv) {
 					continue;
 				if (handle_epollin(serv, events, n, epoll_fd))
 					continue;
-				if (handle_epollout(events, n, epoll_fd))
+				if (handle_epollout(serv, events, n, epoll_fd))
 					continue;
 			}
 		}
 	}
 	close(epoll_fd);
 }
-
-

@@ -107,6 +107,7 @@ void			get_locations_bloc(config &conf, std::string &buffer);
 //RESPONSES
 void				file_in_string(std::string &sfile, char *file);
 std::string	get_body_error(int status_code);
+std::string getHtmlPage(std::string str);
 
 //SIGNAL
 int				init_signals(void);

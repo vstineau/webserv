@@ -14,7 +14,7 @@ std::string get_body_error(int status_code)
 		pos = errbody.find("%{code_error}%", offset);
 		while (pos != std::string::npos)
 		{
-			errbody.erase(pos, 15);
+			errbody.erase(pos, 14);
 			errbody.insert(pos, code);
 			offset = pos + code.length();
 			pos = errbody.find("%{code_error}%", offset);

@@ -17,7 +17,7 @@ static std::string error_body =
 	"<!DOCTYPE html>" ENDL "<html lang=\"en\"> " ENDL "<head>" ENDL
 	"	<meta charset=\"UTF-8\">" ENDL
 	"	<meta name=\"error\" content=\"width=device-width, initial-scale=1.0\">" ENDL
-	"		<title>%{code error}%</title>" ENDL
+	"		<title>%{code_error}%</title>" ENDL
 	"		<style> body{	background: content-box radial-gradient(#0664dc, #33b203);" ENDL
 	"									font-family: cursive;" ENDL
 	"									font-size: 3.2rem;" ENDL
@@ -26,7 +26,7 @@ static std::string error_body =
 	"								height: 100%;" ENDL
 	"								justify-content: center;" ENDL
 	"								}" ENDL "		</style>" ENDL "</head>" ENDL "<body>" ENDL
-	"		<img src=https://http.cat/%{code error}%.jpg /> " ENDL "</body>" ENDL;
+	"		<img src=https://http.cat/%{code_error}%.jpg /> " ENDL "</body>" ENDL;
 
 class Server {
 
