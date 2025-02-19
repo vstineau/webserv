@@ -67,15 +67,15 @@ Server::Server(config &conf):	server_fd(-1),
 
 std::string Server::getResponse(void) const {
 	std::string r;
-	r += i.status_line;
+	r += _response.status_line;
 	r += "\r\n";
-	for (std::map<std::string, std::string>::iterator it = i.headers.begin(); it != i.headers.end(); it++){
+	for (std::map<std::string, std::string>::const_iterator it = _response.headers.begin(); it != _response.headers.end(); it++){
 		r += it->first;
 		r += it->second;
 		r += "\r\n";
 	}
 	r += "\r\n";
-	r += i.body;
+	r += _response.body;
 	return (r);
 }
 
