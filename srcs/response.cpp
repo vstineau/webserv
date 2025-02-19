@@ -25,12 +25,6 @@ std::string to_string(long i) {
 	return s.str();
 }
 
-int send_response(std::string message, int fd) {
-	std::string head =
-		"HTTP/1.1 200 OK\r\nContent-Length: " + to_string(message.length()) + "\r\n\r\n" + message;
-	return send(fd, head.c_str(), head.size(), MSG_NOSIGNAL);
-}
-
 std::string fillDirectoryListing(std::string listing) {
 	std::string head =
 		"<!DOCTYPE html>\n"

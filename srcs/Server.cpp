@@ -75,6 +75,7 @@ std::string Server::getResponse(void) const {
 		r += "\r\n";
 	}
 	r += "\r\n";
+	std::cout << "this is r for now : " << r << "\n";
 	r += _response.body;
 	return (r);
 }
@@ -133,7 +134,64 @@ Server::~Server() {
 
 void	Server::_responseGET(request &req)
 {
-	(void)req;
+	// (void)req;
+	if (req.path == "www/")
+	{
+		std::string page;
+		page = "<!DOCTYPE html>"
+		"<html lang=\"en\">"
+		"<head>"
+		"	<meta charset=\"UTF-8\">"
+		"	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
+		"	<title>Webserv</title>"
+		"</head>"
+		"	<body>"
+		"		<h1>Hello world</h1>"
+		"		<p style='color: red;'>This is a paragraph</p>"
+		"		<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\" target=\"_blank\">DUCK</a>"
+		"		<p></p>"
+		"		<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"/></a>"
+		"		<img src=\"/200.gif\"/>"
+		"		<img src=\"/vstineau.jpg\"/>"
+		"		<form method=\"POST\" enctype=\"multipart/form-data\">"
+		"			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
+		"			<input type=\"submit\"/>"
+		"		</form>"
+		"	</body>"
+		"</html>";
+		_response.body = page;
+		SetResponseStatus(200);
+		_response.headers["Content-Type: "] = "text/html"; // hard-coded as well, need to check for mimes
+		_response.headers["Content-Length: "] = to_string(page.length());
+		page.clear();
+	}
+	else if (req.path.find(".jpg") || req.path.find(".gif"))
+	{
+		std::fstream	imgFile;
+		imgFile.open(req.path.c_str(), std::ios::in);
+		if (!imgFile)
+		{
+			std::cout << "file could not be opened\n";
+			SetResponseStatus(404);
+			_response.body = get_body_error(404);
+			return ;
+		}
+		else
+		{
+			std::cout << "file was opened\n";
+			std::string	imgStr;
+			std::istreambuf_iterator<char> begin(imgFile), end;
+			imgStr.assign(begin, end);
+			std::string FileName2 = "oui2";
+			std::ofstream ofs(FileName2.c_str(), std::ios_base::binary);  // Open output file in binary mode
+			ofs.write(imgStr.c_str(), imgStr.size());
+			_response.body = imgStr;
+			SetResponseStatus(200);
+			_response.headers["Content-Type: "] = "image/gif"; // hard-coded as well, need to check for mimes
+			_response.headers["Content-Length: "] = to_string(imgStr.length());
+			imgStr.clear();
+		}
+	}
 	return ;
 }
 
@@ -192,7 +250,7 @@ void Server::create_img(std::string &img)
 	std::ofstream ofs(filename.c_str(), std::ios_base::binary);
 	if (!ofs)
 	{
-		std::cerr << "error oppenning new file \n";
+		std::cerr << "error opening new file \n";
 		_response.status_line = "HTTP/1.1 403 Forbidden";
 		_response.body = get_body_error(403);
 	}
