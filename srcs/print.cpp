@@ -31,12 +31,12 @@ std::ostream & operator<<(std::ostream & o, location & i)
 	o << "		CGI BIN : " << i.cgi_bin << "\n";
 	o << "		CLIENT BODY SIZE : " << i.client_body_size << "\n";
 	o << "		DIRECTORY LISTING : " << i.directory_listing << "\n";
-	o << "		METHOD ALLOWED : ";
+	o << "		METHODS ALLOWED : ";
 	if (i.allowed_method[GET])
 		o << "GET ";
 	if (i.allowed_method[POST])
 		o << "POST ";
-	if (i.allowed_method[POST])
+	if (i.allowed_method[DELETE])
 		o << "DELETE ";
 	o << "\n";
 	return (o);
@@ -44,21 +44,21 @@ std::ostream & operator<<(std::ostream & o, location & i)
 
 std::ostream & operator<<(std::ostream & o, config & i)
 {
-	o << "SERVER NAMES :\n";
-	for (std::vector<std::string>::iterator it = i.server_names.begin(); it != i.server_names.end(); it++)
-		o << *it << " ";
+	o << "SERVER NAMES : " << i.server_names.size() << "\n";
+	for (std::size_t c = 0; c < i.server_names.size(); c++)
+		o << i.server_names[c] << " ";
 	o << "\n";
-	o << "SERVER INDEX :\n";
+	o << "SERVER INDEX : " << i.server_index.size() << "\n";
 	for (std::vector<std::string>::iterator it = i.server_index.begin(); it != i.server_index.end(); it++)
 		o << *it << " ";
 	o << "\n";
-//	o << "HOST : " << i.host << "\n";
+	o << "HOST : " << i.host << "\n";
 	o << "PORT : " << i.port << "\n";
 	o << "CLIENT BODY SIZE : " << i.client_body_size << "\n";
 	o << "DIRECTORY LISTING : " << i.directory_listing << "\n";
 	for (std::map<std::string, location>::iterator im = i.locations.begin(); im != i.locations.end(); im++)
 	{
-		o << "LOCATION PATH : " << im->first << "\n" << "	LOCATION DETAILS :\n";
+		o << "	LOCATION PATH : " << im->first << "\n" << "	LOCATION DETAILS :\n";
 		o << im->second;
 	}
 	return (o);

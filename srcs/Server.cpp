@@ -65,6 +65,7 @@ Server::Server(config &conf):	server_fd(-1),
 	setErrorCodes();
 }
 
+//return response in one string ready to get send to the client
 std::string Server::getResponse(void) const {
 	std::string r;
 	r += _response.status_line;
