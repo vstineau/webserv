@@ -44,6 +44,12 @@ void	set_method(location &loc, std::string method)
 		loc.allowed_method[POST] = 1;
 	else if (method == "DELETE")
 		loc.allowed_method[DELETE] = 1;
+	else if (method == "DEFAULT")
+	{
+		loc.allowed_method[GET] = 1;
+		loc.allowed_method[POST] = 1;
+		loc.allowed_method[DELETE] = 1;
+	}
 	else
 		loc.allowed_method[INVALID_METHOD] = 1;
 }

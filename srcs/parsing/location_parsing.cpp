@@ -9,7 +9,7 @@ static void	get_return(std::string &path, std::string &buffer,  config &conf)
 	pos = buffer.find("return 301 ");
 	if (pos == std::string::npos)
 		return ;
-	offset = pos + 12;
+	offset = pos + 11;
 	pos = buffer.find("\n", offset);
 	if (pos == std::string::npos)
 		return ;
@@ -79,7 +79,10 @@ static void	get_method_allowed(std::string &path, std::string &buffer,  config &
 
 	pos = buffer.find("methods: ");
 	if (pos == std::string::npos)
+	{
+		set_method(conf.locations[path], "DEFAULT");
 		return ;
+	}
 	offset = pos + 9;
 	pos = buffer.find(";", offset);
 	if (pos == std::string::npos)
