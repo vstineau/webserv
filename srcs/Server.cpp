@@ -160,7 +160,7 @@ void	Server::_responseGET(request &req)
 		"	</body>"
 		"</html>";
 		_response.body = page;
-		SetResponseStatus(200);
+		SetResponseStatus(status_code);
 		_response.headers["Content-Type: "] = "text/html"; // hard-coded as well, need to check for mimes
 		_response.headers["Content-Length: "] = to_string(page.length());
 		page.clear();
@@ -172,8 +172,11 @@ void	Server::_responseGET(request &req)
 		if (!imgFile)
 		{
 			std::cout << "file could not be opened\n";
-			SetResponseStatus(404);
+			status_code = 404;
+			SetResponseStatus(status_code);
 			_response.body = get_body_error(404);
+			_response.headers["Content-Type: "] = "text/html"; // hard-coded as well, need to check for mimes
+			_response.headers["Content-Length: "] = to_string(_response.body.length());
 			return ;
 		}
 		else
@@ -186,7 +189,7 @@ void	Server::_responseGET(request &req)
 			std::ofstream ofs(FileName2.c_str(), std::ios_base::binary);  // Open output file in binary mode
 			ofs.write(imgStr.c_str(), imgStr.size());
 			_response.body = imgStr;
-			SetResponseStatus(200);
+			SetResponseStatus(status_code);
 			_response.headers["Content-Type: "] = "image/gif"; // hard-coded as well, need to check for mimes
 			_response.headers["Content-Length: "] = to_string(imgStr.length());
 			imgStr.clear();
@@ -201,14 +204,18 @@ void	Server::_responsePOST(request &req)
 	//gnegnegne POSTfailedap
 	//_response.status_code = "403 Forbidden";
 	//gnegnegne POSTsuccessfull
-	return ;
+
+	create_img(_response.body);
+
+	return ; 
 }
 
 void	Server::_responseDELETE(request &req)
 {
 	if (unlink(req.path.c_str()) == -1)
 	{
-		SetResponseStatus(404);
+		status_code = 404;
+		SetResponseStatus(status_code);
 		_response.body = get_body_error(404);
 	}
 	SetResponseStatus(200);
@@ -239,7 +246,7 @@ void Server::create_img(std::string &img)
 	std::string filename;
 	std::string content;
 	
-	if (chdir("www/data"))
+	if (chdir("www/"))
 		std::cerr << "CHDIR FAILED\n";
 	pos = img.find("filename=\"", offset);
 	if (pos == std::string::npos){ return ;}

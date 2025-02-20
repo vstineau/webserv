@@ -74,6 +74,7 @@ int handle_epollout(Server &serv, struct epoll_event *events, int &n, int &epoll
 		std::string r;
 		r = serv.getResponse();
 		send(events[n].data.fd, r.c_str(), r.length(), 0);
+		serv.status_code = 200;
 
 		struct epoll_event ev;
 		ev.data.fd = events[n].data.fd;

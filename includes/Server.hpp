@@ -26,7 +26,7 @@ static std::string error_body =
 	"								height: 100%;" ENDL
 	"								justify-content: center;" ENDL
 	"								}" ENDL "		</style>" ENDL "</head>" ENDL "<body>" ENDL
-	"		<img src=https://http.cat/%{code error}%.jpg /> " ENDL "</body>" ENDL;
+	"		<img src=https://http.cat/%{code_error}%.jpg /> " ENDL "</body>" ENDL;
 
 class Server {
 
