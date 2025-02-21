@@ -12,13 +12,14 @@ enum File_type {
 	DIRECTORY
 };
 
-class FileHanler {
+class FileHandler {
 	
 	public: 
-		FileHanler();
-		~FileHanler();
+		FileHandler();
+		~FileHandler();
 		void setFileInfo(std::string path);
 		void setFile(std::string path);
+		void setMime();
 		std::map<std::string, std::string>	mimes;
 //		getContentType();
 //		execCgi();

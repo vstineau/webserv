@@ -61,7 +61,7 @@ class Server {
 	std::map<int, request> _requests;
 	std::map<int, std::string> _error_codes;
 	response _response;
-	FileHanler _file;
+	FileHandler _file;
 };
 
 // #endif
