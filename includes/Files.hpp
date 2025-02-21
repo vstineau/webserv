@@ -12,11 +12,11 @@ enum File_type {
 	DIRECTORY
 };
 
-class File {
+class FileHanler {
 	
 	public: 
-		File();
-		~File();
+		FileHanler();
+		~FileHanler();
 		void setFileInfo(std::string path);
 		void setFile(std::string path);
 		std::map<std::string, std::string>	mimes;
@@ -28,37 +28,23 @@ class File {
 		File_type		type;
 		std::string	extention;
 		bool				no_file;
+		std::string	Content_Type;
 };
 
-
-
-//int main(int argc, char *argv[])
-//{
-//    struct stat sb;
 //
-//    if (argc != 2) {
-//        fprintf(stderr, "Usage: %s <pathname>\n", argv[0]);
-//        exit(EXIT_FAILURE);
-//    }
+//POST /images/dumb HTTP/1.1
+//Host: hostname
+//Connection: close
+//Transfer-encoding: chunked
 //
-//    if (stat(argv[1], &sb) == -1) {
-//        perror("stat");
-//        exit(EXIT_SUCCESS);
-//    }
-//
-//	 std::cout << "Type de fichier :                ";
-//
-//    switch (sb.st_mode & S_IFMT) {
-//		 case S_IFBLK:  std::cout << "périphérique de bloc\n";      break;
-//    case S_IFCHR:  std::cout << "périphérique de caractère\n"; break;
-//    case S_IFDIR:  std::cout << "répertoire\n";                break;
-//    case S_IFIFO:  std::cout << "FIFO/tube\n";                 break;
-//    case S_IFLNK:  std::cout << "lien symbolique\n";           break;
-//    case S_IFREG:  std::cout << "fichier ordinaire\n";         break;
-//    case S_IFSOCK: std::cout << "socket\n";                    break;
-//    default:       std::cout << "inconnu ?\n";                 break;
-//    }
-//
-//	 std::cout << "Taille du fichier :                " << (long long)sb.st_size << " octets\n";
-//	 return 0;
-//}
+//15
+//Hi this is chunked !!
+//4
+//fewf
+//6
+//wefwef
+//3
+//wef
+//3
+//wef
+//0

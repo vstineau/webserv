@@ -4,6 +4,7 @@
 // #define SERVER_HPP
 
 #include "../includes/webserv.hpp"
+#include "../includes/Files.hpp"
 #include <arpa/inet.h>
 #include <map>
 #include <string>
@@ -60,6 +61,7 @@ class Server {
 	std::map<int, request> _requests;
 	std::map<int, std::string> _error_codes;
 	response _response;
+	FileHanler _file;
 };
 
 // #endif

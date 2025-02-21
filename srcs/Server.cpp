@@ -182,7 +182,7 @@ void Server::create_img(std::string &img)
 	std::string filename;
 	std::string content;
 	
-	if (chdir("www/data"))
+	if (chdir("www/upload"))
 		std::cerr << "CHDIR FAILED\n";
 	pos = img.find("filename=\"", offset);
 	if (pos == std::string::npos){ return ;}
