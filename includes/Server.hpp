@@ -4,6 +4,7 @@
 // #define SERVER_HPP
 
 #include "../includes/webserv.hpp"
+#include "../includes/Files.hpp"
 #include <arpa/inet.h>
 #include <map>
 #include <string>
@@ -12,12 +13,12 @@
 #include <unistd.h>
 #include <vector>
 
-//%{code error}%
+//%{code_error}%
 static std::string error_body =
 	"<!DOCTYPE html>" ENDL "<html lang=\"en\"> " ENDL "<head>" ENDL
 	"	<meta charset=\"UTF-8\">" ENDL
 	"	<meta name=\"error\" content=\"width=device-width, initial-scale=1.0\">" ENDL
-	"		<title>%{code error}%</title>" ENDL
+	"		<title>%{code_error}%</title>" ENDL
 	"		<style> body{	background: content-box radial-gradient(#0664dc, #33b203);" ENDL
 	"									font-family: cursive;" ENDL
 	"									font-size: 3.2rem;" ENDL
@@ -60,6 +61,7 @@ class Server {
 	std::map<int, request> _requests;
 	std::map<int, std::string> _error_codes;
 	response _response;
+	FileHanler _file;
 };
 
 // #endif
