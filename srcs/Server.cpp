@@ -57,6 +57,7 @@ Server::Server(config &conf) : server_fd(-1), client_fd(-1), _conf(conf) {
 	setErrorCodes();
 }
 
+//return response in one string ready to get send to the client
 std::string Server::getResponse(void) const {
 	std::string r;
 	r += _response.status_line;
@@ -183,8 +184,8 @@ void Server::create_img(std::string &img) {
 	size_t offset = 0;
 	std::string filename;
 	std::string content;
-
-	if (chdir("www/data"))
+	
+	if (chdir("www/upload"))
 		std::cerr << "CHDIR FAILED\n";
 	pos = img.find("filename=\"", offset);
 	if (pos == std::string::npos) {

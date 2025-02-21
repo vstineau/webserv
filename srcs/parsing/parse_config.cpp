@@ -34,24 +34,57 @@ void	fill_servers_configs(std::vector<config> &confs, char *file)
 			while (line != "}")
 			{
 				std::getline(ifs, line);
-				serv_line += line;
+				if (line != "}")
+				{
+					serv_line += line;
+					serv_line += "\n";
+				}
 			}
 			get_one_config(temp, serv_line);
 			confs.push_back(temp);
+			serv_line.clear();
 		}
 	}
 }
 
-void	get_server_port(config &conf, std::string &buffer)
+static void	set_error_pages(config &conf, std::string &buffer)
+{
+	size_t				pos = 0;
+	size_t				offset = 0;
+	int						error_num = 0;
+	std::cout << buffer << std::endl;
+	while (pos != std::string::npos)
+	{
+		pos = buffer.find("error-page: ", offset);
+		if (pos == std::string::npos)
+			break ;
+		offset = pos + 12;
+		pos = buffer.find(" ", offset);
+		if (pos == std::string::npos)
+			break ;
+		error_num = atoi(buffer.substr(offset, pos - offset).c_str());
+		pos = buffer.find(" ", offset);
+		if (pos == std::string::npos)
+			break ;
+		offset = pos + 1;
+		pos = buffer.find(";", offset);
+		if (pos == std::string::npos)
+			break ;
+		conf.error_pages[error_num] = buffer.substr(offset, pos - offset);
+		std::cout << buffer.substr(offset, pos - offset) << std::endl;
+	}
+}
+
+static void	get_server_port(config &conf, std::string &buffer)
 {
 	size_t				pos = 0;
 	size_t				offset = 0;
 
-	pos = buffer.find("port = ");
+	pos = buffer.find("port: ");
 	if (pos == std::string::npos)
 		return ;
-	offset = pos + 8;
-	pos = buffer.find("\n", offset);
+	offset = pos + 6;
+	pos = buffer.find(";", offset);
 	if (pos == std::string::npos)
 	{
 		std::cerr << "no port found\n";
@@ -60,7 +93,25 @@ void	get_server_port(config &conf, std::string &buffer)
 	conf.port = atoi(buffer.substr(offset, pos - offset).c_str());
 }
 
-void	is_directory_listing_allowed(config &conf, std::string &buffer)
+static void	get_server_host(config &conf, std::string &buffer)
+{
+	size_t				pos = 0;
+	size_t				offset = 0;
+
+	pos = buffer.find("host: ");
+	if (pos == std::string::npos)
+		return ;
+	offset = pos + 6;
+	pos = buffer.find(";", offset);
+	if (pos == std::string::npos)
+	{
+		std::cerr << "no host found\n";
+		return ;
+	}
+	conf.host = buffer.substr(offset, pos - offset);
+}
+
+static void	is_directory_listing_allowed(config &conf, std::string &buffer)
 {
 	size_t				pos = 0;
 	size_t				offset = 0;
@@ -68,8 +119,8 @@ void	is_directory_listing_allowed(config &conf, std::string &buffer)
 	pos = buffer.find("directory-listing: ");
 	if (pos == std::string::npos)
 		return ;
-	offset = pos + 20;
-	pos = buffer.find("\n", offset);
+	offset = pos + 19;
+	pos = buffer.find(";", offset);
 	if (pos == std::string::npos)
 	{
 		std::cerr << "unvalid config line found\n";
@@ -81,65 +132,67 @@ void	is_directory_listing_allowed(config &conf, std::string &buffer)
 		conf.directory_listing = false;
 }
 
-void	get_server_name(config &conf, std::string &buffer)
+static void	get_server_name(config &conf, std::string &buffer)
 {
 	size_t				pos = 0;
 	size_t				offset = 0;
 	size_t				wc = 0;
 	std::string		names;
-
-	pos = buffer.find("server-name = ");
-	offset = pos + 15;
+	
+	pos = buffer.find("server-names: ");
+	offset = pos + 14;
 	pos = buffer.find(";", offset);
 	if (pos == std::string::npos)
 	{
 		std::cerr << "no server name found\n";
 		return ;
 	}
-	names = buffer.substr(offset, (pos - 1) - offset);
+	names = buffer.substr(offset, pos - offset);
 	offset = 0;
 	wc = count_words(names.c_str(), ' ');
 	for(size_t i = 0; i < wc; i++)
 	{
-		pos = names.find(" ");
-	if (pos == std::string::npos)
-		conf.server_names.push_back(names.substr(offset, names.size() - offset));
-	else
-	{
-		conf.server_names.push_back(names.substr(offset, names.size() - offset));
-		offset = pos + 1;
-	}
+		pos = names.find(" ", offset);
+		if (pos == std::string::npos)
+		{
+			conf.server_names.push_back(names.substr(offset, names.size() - offset));
+		}
+		else
+		{
+			conf.server_names.push_back(names.substr(offset, pos - offset));
+			offset = pos + 1;
+		}
 	}
 }
 
-void	get_index(config &conf, std::string &buffer)
+static void	get_index(config &conf, std::string &buffer)
 {
 	size_t				pos = 0;
 	size_t				offset = 0;
 	size_t				wc = 0;
 	std::string		index;
 
-	pos = buffer.find("index = ");
+	pos = buffer.find("index: ");
 	if (pos == std::string::npos)
 		return ;
-	offset = pos + 9;
+	offset = pos + 7;
 	pos = buffer.find(";", offset);
 	if (pos == std::string::npos)
 	{
 		std::cerr << "no server index found\n";
 		return ;
 	}
-	index = buffer.substr(offset, (pos - 1) - offset);
+	index = buffer.substr(offset, pos - offset);
 	offset = 0;
 	wc = count_words(index.c_str(), ' ');
 	for(size_t i = 0; i < wc; i++)
 	{
-		pos = index.find(" ");
+		pos = index.find(" ", offset);
 		if (pos == std::string::npos)
 			conf.server_index.push_back(index.substr(offset, index.size() - offset));
 		else
 		{
-			conf.server_index.push_back(index.substr(offset, index.size() - offset));
+			conf.server_index.push_back(index.substr(offset, pos - offset));
 			offset = pos + 1;
 		}
 	}
@@ -148,8 +201,10 @@ void	get_index(config &conf, std::string &buffer)
 void	get_one_config(config &conf, std::string &buffer)
 {
 	get_server_name(conf, buffer);
-	get_server_port(conf, buffer);
+	set_error_pages(conf, buffer);
 	get_index(conf, buffer);
+	get_server_port(conf, buffer);
+	get_server_host(conf, buffer);
 	is_directory_listing_allowed(conf, buffer);
 	get_locations_bloc(conf, buffer);
 }
