@@ -132,9 +132,9 @@ void Server::_responseGET(request &req) {
 	if (_conf.locations.count(req.path)) {
 		std::string html = req.path;
 		SetResponseStatus(200);
-		_response.body = getHtmlPage("www/indexs/" + req.path);
+		_response.body = getContentGet(req.path);
 		_response.headers["Content-Length: "] = to_string(_response.body.length());
-		// _response.headers["Content-type: "]
+		_response.headers["Content-type: "] = "image/gif";
 	} else {
 		SetResponseStatus(404);
 		_response.body = get_body_error(404);
@@ -150,6 +150,7 @@ void Server::_responsePOST(request &req) {
 	// gnegnegne POSTfailedap
 	//_response.status_code = "403 Forbidden";
 	// gnegnegne POSTsuccessfull
+	// ajouter a la map de Locations
 	return;
 }
 
