@@ -1,5 +1,6 @@
 
 #include "../includes/Server.hpp"
+#include "../includes/webserv.hpp"
 #include "../includes/color.hpp"
 #include <cstdlib>
 #include <iostream>
@@ -133,7 +134,8 @@ void Server::_responseGET(request &req) {
 	if (_conf.locations.count(req.path)) {
 		std::string html = req.path;
 		SetResponseStatus(200);
-		_response.body = getContentGet(req.path);
+		file_in_string(_response.body, req.path.c_str());
+		fillBodyResponse(_response.body);
 		_response.headers["Content-Length: "] = to_string(_response.body.length());
 		_response.headers["Content-type: "] = "image/gif";
 	} else {

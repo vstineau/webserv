@@ -105,7 +105,7 @@ void			set_method(location &loc, std::string method);
 void			get_locations_bloc(config &conf, std::string &buffer);
 
 //RESPONSES
-void				file_in_string(std::string &sfile, char *file);
+void		file_in_string(std::string &sfile, const char *file);
 std::string	get_body_error(int status_code);
 std::string getContentGet(std::string str);
 
@@ -116,7 +116,7 @@ int				init_signals(void);
 std::string directory_listing(std::string path);
 std::string upload(std::string path);
 int send_response(std::string message, int fd);
-std::string fillDirectoryListing(std::string listing);
+void fillBodyResponse(std::string &content);
 
 //DEBUG
 void	print_config(std::vector<config> &confs);

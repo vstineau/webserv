@@ -31,7 +31,7 @@ int send_response(std::string message, int fd) {
 	return send(fd, head.c_str(), head.size(), MSG_NOSIGNAL);
 }
 
-std::string fillDirectoryListing(std::string listing) {
+void fillBodyResponse(std::string &content) {
 	std::string head =
 		"<!DOCTYPE html>\n"
 		"<html lang=\"fr\">\n"
@@ -81,13 +81,14 @@ std::string fillDirectoryListing(std::string listing) {
 		"    <header>\n"
 		"      <h1>Webserv</h1>\n"
 		"    </header>\n"
-		"    <main>\n"
-		"      <h2>Directory Listing</h2>\n";
+		"    <main>\n";
+		// "      <h2>"
+		// "</h2></h2>\n";
 	std::string tail = "    </main>\n"
 					   "    <footer>\n"
 					   "      <p>&copy; WeebServ UwU Baka Pro Max club</p>\n"
 					   "    </footer>\n"
 					   "  </body>\n"
 					   "</html>";
-	return head + listing + tail;
+	content = head + content + tail;
 }
