@@ -133,7 +133,6 @@ static void	set_error_pages(std::string &path, std::string &buffer,  config &con
 	size_t				pos = 0;
 	size_t				offset = 0;
 	int						error_num = 0;
-	std::cout << buffer << std::endl;
 	while (pos != std::string::npos)
 	{
 		pos = buffer.find("error-page: ", offset);
@@ -152,7 +151,6 @@ static void	set_error_pages(std::string &path, std::string &buffer,  config &con
 		if (pos == std::string::npos)
 			break ;
 		conf.locations[path].error_pages[error_num] = buffer.substr(offset, pos - offset);
-		std::cout << buffer.substr(offset, pos - offset) << std::endl;
 	}
 }
 

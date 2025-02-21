@@ -1,7 +1,7 @@
 
 #include "../../includes/webserv.hpp"
 
-void	file_in_string(std::string &sfile, char *file)
+void	file_in_string(std::string &sfile, const char *file)
 {
 	std::string line;
 	std::ifstream ifs(file);
