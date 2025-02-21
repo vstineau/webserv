@@ -49,7 +49,7 @@ int handle_epollin(Server &serv, struct epoll_event *events, int &n, int &epoll_
 		std::cout << HI_CYAN << "-----------REQUEST----------" << RESET << std::endl;
 		serv.fillRequest(n, buff);
 		//serv.identifyRequest(n);
-		serv.print_request(n);
+		// serv.print_request(n);
 		serv.SetResponse(n);
 		std::cout << HI_CYAN << "-----------REQUEST----------" << RESET << std::endl;
 		// std::cout << buff << std::endl;

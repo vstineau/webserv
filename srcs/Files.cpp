@@ -3,7 +3,7 @@
 #include "../includes/Files.hpp"
 #include <fstream>
 
-FileHanler::FileHanler()
+FileHandler::FileHandler()
 {
 	mimes["jpg"]	= "image/jpeg";
 	mimes["jpeg"]	= "image/jpeg";
@@ -22,10 +22,10 @@ FileHanler::FileHanler()
 	no_file = true;
 }
 
-FileHanler::~FileHanler()
+FileHandler::~FileHandler()
 {}
 
-void FileHanler::setFileInfo(std::string path)
+void FileHandler::setFileInfo(std::string path)
 {
 	struct stat sb;
 	if (path.empty())
@@ -51,7 +51,7 @@ void FileHanler::setFileInfo(std::string path)
 	file_size = (long long)sb.st_size;
 }
 
-void FileHanler::setFile(std::string path)
+void FileHandler::setFile(std::string path)
 {
 	std::string line;
 	std::ifstream ifs(path.c_str());

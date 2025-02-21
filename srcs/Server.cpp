@@ -1,6 +1,7 @@
 
 #include "../includes/Server.hpp"
 #include "../includes/color.hpp"
+#include <fstream>
 #include <iostream>
 #include <unistd.h>
 #include <cstdlib>
@@ -76,7 +77,6 @@ std::string Server::getResponse(void) const {
 		r += "\r\n";
 	}
 	r += "\r\n";
-	std::cout << "this is r for now : " << r << "\n";
 	r += _response.body;
 	return (r);
 }
@@ -136,7 +136,37 @@ Server::~Server() {
 void	Server::_responseGET(request &req)
 {
 	// (void)req;
-	if (req.path == "www/")
+	if (req.path.find(".jpg") != std::string::npos || req.path.find(".gif") != std::string::npos)
+	{
+		std::ifstream	imgFile(req.path.c_str());
+		if (!imgFile)
+		{
+			std::cout << "file could not be opened\n";
+			status_code = 404;
+			SetResponseStatus(status_code);
+			_response.body = get_body_error(404);
+			_response.headers["Content-Type: "] = "text/html"; // hard-coded as well, need to check for mimes
+			_response.headers["Content-Length: "] = to_string(_response.body.length());
+			return ;
+		}
+		else
+		{
+			std::cout << "file was opened\n";
+			std::string	imgStr;
+			std::istreambuf_iterator<char> begin(imgFile), end;
+			imgStr.assign(begin, end);
+			std::string FileName2 = "oui2";
+			std::ofstream ofs(FileName2.c_str(), std::ios_base::binary);  // Open output file in binary mode
+			ofs.write(imgStr.c_str(), imgStr.size());
+			_response.body = imgStr;
+			SetResponseStatus(status_code);
+			_response.headers["Content-Type: "] = "image/gif"; // hard-coded as well, need to check for mimes
+			_response.headers["Content-Length: "] = to_string(imgStr.length());
+			imgStr.clear();
+		}
+	}
+	// if (req.path == "www/")
+	else
 	{
 		std::string page;
 		page = "<!DOCTYPE html>"
@@ -165,36 +195,6 @@ void	Server::_responseGET(request &req)
 		_response.headers["Content-Type: "] = "text/html"; // hard-coded as well, need to check for mimes
 		_response.headers["Content-Length: "] = to_string(page.length());
 		page.clear();
-	}
-	else if (req.path.find(".jpg") || req.path.find(".gif"))
-	{
-		std::fstream	imgFile;
-		imgFile.open(req.path.c_str(), std::ios::in);
-		if (!imgFile)
-		{
-			std::cout << "file could not be opened\n";
-			status_code = 404;
-			SetResponseStatus(status_code);
-			_response.body = get_body_error(404);
-			_response.headers["Content-Type: "] = "text/html"; // hard-coded as well, need to check for mimes
-			_response.headers["Content-Length: "] = to_string(_response.body.length());
-			return ;
-		}
-		else
-		{
-			std::cout << "file was opened\n";
-			std::string	imgStr;
-			std::istreambuf_iterator<char> begin(imgFile), end;
-			imgStr.assign(begin, end);
-			std::string FileName2 = "oui2";
-			std::ofstream ofs(FileName2.c_str(), std::ios_base::binary);  // Open output file in binary mode
-			ofs.write(imgStr.c_str(), imgStr.size());
-			_response.body = imgStr;
-			SetResponseStatus(status_code);
-			_response.headers["Content-Type: "] = "image/gif"; // hard-coded as well, need to check for mimes
-			_response.headers["Content-Length: "] = to_string(imgStr.length());
-			imgStr.clear();
-		}
 	}
 	return ;
 }
@@ -298,11 +298,18 @@ void Server::create_img(std::string &img)
 	size_t offset = 0;
 	std::string filename;
 	std::string content;
+	std::string pwd;
 	
+	pwd = getcwd(0, 1000);
 	if (chdir("www/upload"))
-		std::cerr << "CHDIR FAILED\n";
+		std::cerr << "CHDIR 1 FAILED\n";
 	pos = img.find("filename=\"", offset);
-	if (pos == std::string::npos){ return ;}
+	if (pos == std::string::npos)
+	{
+		if (chdir(pwd.c_str()))
+			std::cerr << "CHDIR 2 FAILED\n";
+		return ;
+	}
 	offset = pos + 10;
 	pos = img.find("\"", offset);
 	filename = img.substr(offset, pos - offset);
@@ -316,12 +323,17 @@ void Server::create_img(std::string &img)
 	}
 	offset = pos + 1;
 	pos = img.find("\r\n\r\n", offset);
-	if (pos == std::string::npos){ return ;}
+	if (pos == std::string::npos)
+	{
+		if (chdir(pwd.c_str()))
+			std::cerr << "CHDIR 2 FAILED\n";
+		return ;
+	}
 	offset = pos + 4;
 	content = img.substr(offset, img.size() - offset);
 	ofs << content;
-	if (chdir("../.."))
-		std::cerr << "CHDIR FAILED\n";
+	if (chdir(pwd.c_str()))
+		std::cerr << "CHDIR 2 FAILED\n";
 }
 
 void Server::fill_body(std::string &body, int &n)
@@ -420,7 +432,7 @@ void Server::fillRequest(int n, std::string &buffer)
 	pos = buffer.find(" ", offset);
 	if (pos == std::string::npos){ return;}
 	_requests[n].path = buffer.substr(offset, pos - offset);
-	_requests[n].path.replace(0, 1, "www/"); //a remplacer par le rroot
+	_requests[n].path.replace(0, 1, "www/upload/"); //a remplacer par le rroot
 	offset = pos + 1;
 	pos = buffer.find("\n", offset);
 	if (pos == std::string::npos){ return;}
