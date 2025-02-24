@@ -59,6 +59,7 @@ std::ostream & operator<<(std::ostream & o, config & i)
 	o << "\n";
 	o << "HOST : " << i.host << "\n";
 	o << "PORT : " << i.port << "\n";
+	o << "ROOT : " << i.root << "\n";
 	o << "CLIENT BODY SIZE : " << i.client_body_size << "\n";
 	o << "DIRECTORY LISTING : " << i.directory_listing << "\n";
 	o << "ERROR PAGES : \n";

@@ -10,7 +10,7 @@ static void	get_return(std::string &path, std::string &buffer,  config &conf)
 	if (pos == std::string::npos)
 		return ;
 	offset = pos + 11;
-	pos = buffer.find("\n", offset);
+	pos = buffer.find(";", offset);
 	if (pos == std::string::npos)
 		return ;
 	conf.locations[path].ret = buffer.substr(offset, pos - offset);
@@ -133,7 +133,6 @@ static void	set_error_pages(std::string &path, std::string &buffer,  config &con
 	size_t				pos = 0;
 	size_t				offset = 0;
 	int						error_num = 0;
-	std::cout << buffer << std::endl;
 	while (pos != std::string::npos)
 	{
 		pos = buffer.find("error-page: ", offset);
@@ -152,7 +151,6 @@ static void	set_error_pages(std::string &path, std::string &buffer,  config &con
 		if (pos == std::string::npos)
 			break ;
 		conf.locations[path].error_pages[error_num] = buffer.substr(offset, pos - offset);
-		std::cout << buffer.substr(offset, pos - offset) << std::endl;
 	}
 }
 

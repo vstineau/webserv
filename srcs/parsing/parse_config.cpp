@@ -50,13 +50,17 @@ void	fill_servers_configs(std::vector<config> &confs, char *file)
 static void	set_error_pages(config &conf, std::string &buffer)
 {
 	size_t				pos = 0;
+	size_t				posloc = 0;
 	size_t				offset = 0;
 	int						error_num = 0;
-	std::cout << buffer << std::endl;
-	while (pos != std::string::npos)
+
+	posloc = buffer.find("location");
+	if (posloc == std::string::npos)
+		;
+	while (pos != std::string::npos && pos < posloc)
 	{
 		pos = buffer.find("error-page: ", offset);
-		if (pos == std::string::npos)
+		if (pos == std::string::npos || pos > posloc)
 			break ;
 		offset = pos + 12;
 		pos = buffer.find(" ", offset);
@@ -71,8 +75,29 @@ static void	set_error_pages(config &conf, std::string &buffer)
 		if (pos == std::string::npos)
 			break ;
 		conf.error_pages[error_num] = buffer.substr(offset, pos - offset);
-		std::cout << buffer.substr(offset, pos - offset) << std::endl;
 	}
+}
+
+static void	set_root(config &conf, std::string &buffer)
+{
+	size_t				pos = 0;
+	size_t				offset = 0;
+	size_t				posloc = 0;
+
+	posloc = buffer.find("location");
+	if (posloc == std::string::npos)
+		;
+	pos = buffer.find("root: ");
+	if (pos == std::string::npos || pos > posloc)
+		return ;
+	offset = pos + 6;
+	pos = buffer.find(";", offset);
+	if (pos == std::string::npos)
+	{
+		std::cerr << "no root found\n";
+		return ;
+	}
+	conf.root = buffer.substr(offset, pos - offset);
 }
 
 static void	get_server_port(config &conf, std::string &buffer)
@@ -202,6 +227,7 @@ void	get_one_config(config &conf, std::string &buffer)
 {
 	get_server_name(conf, buffer);
 	set_error_pages(conf, buffer);
+	set_root(conf, buffer);
 	get_index(conf, buffer);
 	get_server_port(conf, buffer);
 	get_server_host(conf, buffer);

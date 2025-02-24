@@ -55,7 +55,7 @@ struct location
 	std::string									cgi_bin;
 	char												allowed_method[4];
 	int													client_body_size;
-	bool														directory_listing;
+	bool												directory_listing;
 	std::map<int, std::string>	error_pages;
 };
 
@@ -64,6 +64,7 @@ struct config {
 	~config();
 	std::vector<std::string>				server_names;
 	std::vector<std::string>				server_index;
+	std::string											root;
 	std::string											host;
 	std::string											http_redirection;
 	std::string											directory_path;
@@ -94,9 +95,10 @@ struct request {
 class Server;
 
 //EPOLL STUFF
-void epoll_loop(Server &serv);
+void epoll_loop(std::map<int, Server> map_serv);
 
 //PARSING OF THE CONFIGURATON FILE
+void init_server(std::map<int, Server> &map_serv, std::vector<config> &confs);
 size_t		count_words(const char *line, char c);
 size_t		how_many_serv(char *file);
 void			get_one_config(config &conf, std::string &buffer);
@@ -105,7 +107,7 @@ void			set_method(location &loc, std::string method);
 void			get_locations_bloc(config &conf, std::string &buffer);
 
 //RESPONSES
-void		file_in_string(std::string &sfile, const char *file);
+void				file_in_string(std::string &sfile, const char *file);
 std::string	get_body_error(int status_code);
 std::string getContentGet(std::string str);
 

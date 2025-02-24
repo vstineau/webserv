@@ -10,7 +10,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-Server::Server() : server_fd(-1), address() {
+Server::Server() : server_fd(-1) {
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = INADDR_ANY; // inet_addr("0.0.0.0");
@@ -35,7 +35,7 @@ Server::Server() : server_fd(-1), address() {
 	// _conf.locations["www/"] = location;
 }
 
-Server::Server(config &conf) : server_fd(-1), client_fd(-1), _conf(conf) {
+Server::Server(config &conf) : server_fd(-1), _conf(conf){
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = INADDR_ANY; // inet_addr("0.0.0.0");
@@ -128,9 +128,10 @@ Server::~Server() {
 // std::string getHtmlPage(std::string str);
 
 void Server::_responseGET(request &req) {
-	// for (std::map<std::string, location>::iterator it = _conf.locations.begin();
-	// 	 it != _conf.locations.end(); it++)
-	// 	std::cout << it->first << RESET << std::endl;
+	for (std::map<std::string, location>::iterator it = _conf.locations.begin();
+		 it != _conf.locations.end(); it++) {
+		std::cout << RED << it->first << RESET << std::endl;
+	}
 	std::cout << "req.path = " << req.path << RESET << std::endl;
 	if (_conf.locations.count(req.path)) {
 		if (req.path == "www/")
