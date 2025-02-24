@@ -10,7 +10,7 @@ static void	get_return(std::string &path, std::string &buffer,  config &conf)
 	if (pos == std::string::npos)
 		return ;
 	offset = pos + 11;
-	pos = buffer.find("\n", offset);
+	pos = buffer.find(";", offset);
 	if (pos == std::string::npos)
 		return ;
 	conf.locations[path].ret = buffer.substr(offset, pos - offset);

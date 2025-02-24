@@ -14,7 +14,7 @@
 #include <vector>
 
 //%{code_error}%
-static std::string error_body =
+static const std::string error_body =
 	"<!DOCTYPE html>" ENDL "<html lang=\"en\"> " ENDL "<head>" ENDL
 	"	<meta charset=\"UTF-8\">" ENDL
 	"	<meta name=\"error\" content=\"width=device-width, initial-scale=1.0\">" ENDL

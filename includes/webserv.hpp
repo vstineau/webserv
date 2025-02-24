@@ -76,10 +76,19 @@ struct config {
 	std::map<std::string, location>	locations; //PATH -> location 
 };
 
+struct cookie{
+	std::string	name;
+	std::string	value;
+	std::string	expire_date;
+	std::string	max_age;
+	std::string	session;
+};
+
 struct response {
-	std::string	status_line;
-	std::map<std::string, std::string> headers;
-	std::string body;
+	std::string													status_line;
+	std::map<std::string, std::string>	headers;
+	std::vector<cookie>									cookies_headers;
+	std::string													body;
 };
 
 struct request {
