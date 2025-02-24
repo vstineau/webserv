@@ -100,7 +100,7 @@ void epoll_loop(Server &serv) {
 			continue;
 		}
 		for (int n = 0; n < event_count; n++) {
-			if (events[n].data.fd == serv.server_fd) { // if(std::count(servers[fd]))
+			if (events[n].data.fd == serv.server_fd) { // if(map_serv.count(servers[fd]))
 				sockaddr_in client_addr;
 				int addrlen = sizeof(client_addr);
 				new_connexion =
