@@ -1,7 +1,7 @@
 
 #include "../../includes/webserv.hpp"
 
-void	file_in_string(std::string &sfile, char *file)
+void	file_in_string(std::string &sfile, const char *file)
 {
 	std::string line;
 	std::ifstream ifs(file);
@@ -10,6 +10,8 @@ void	file_in_string(std::string &sfile, char *file)
 		std::cout << "code mieux fdp\n";
 		(NULL);
 	}
+	if(!sfile.empty())
+		sfile.clear();
 	while (std::getline(ifs, line))
 	{
 		sfile += line;

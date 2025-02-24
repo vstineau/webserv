@@ -1,7 +1,7 @@
 
 #include "../includes/Server.hpp"
-#include "../includes/webserv.hpp"
 #include "../includes/color.hpp"
+#include "../includes/webserv.hpp"
 #include <cstdlib>
 #include <iostream>
 #include <map>
@@ -32,6 +32,7 @@ Server::Server() : server_fd(-1), address() {
 		close(server_fd);
 	}
 	setErrorCodes();
+	// _conf.locations["www/"] = location;
 }
 
 Server::Server(config &conf) : server_fd(-1), client_fd(-1), _conf(conf) {
@@ -58,7 +59,7 @@ Server::Server(config &conf) : server_fd(-1), client_fd(-1), _conf(conf) {
 	setErrorCodes();
 }
 
-//return response in one string ready to get send to the client
+// return response in one string ready to get send to the client
 std::string Server::getResponse(void) const {
 	std::string r;
 	r += _response.status_line;
@@ -127,17 +128,21 @@ Server::~Server() {
 // std::string getHtmlPage(std::string str);
 
 void Server::_responseGET(request &req) {
-	for (std::map<std::string, location>::iterator it = _conf.locations.begin();
-		 it != _conf.locations.end(); it++)
-		std::cout << it->first << RESET << std::endl;
-	std::cout << req.path << RESET << std::endl;
+	// for (std::map<std::string, location>::iterator it = _conf.locations.begin();
+	// 	 it != _conf.locations.end(); it++)
+	// 	std::cout << it->first << RESET << std::endl;
+	std::cout << "req.path = " << req.path << RESET << std::endl;
 	if (_conf.locations.count(req.path)) {
+		if (req.path == "www/")
+			req.path += "indexs/index.html";
 		std::string html = req.path;
+		_file.setFileInfo(req.path);
+		_file.setFile(req.path);
 		SetResponseStatus(200);
 		file_in_string(_response.body, req.path.c_str());
-		fillBodyResponse(_response.body);
+		// fillBodyResponse(_response.body);
 		_response.headers["Content-Length: "] = to_string(_response.body.length());
-		_response.headers["Content-type: "] = "image/gif";
+		// _response.headers["Content-type: "] = _file.mimes[_file.extention];
 	} else {
 		SetResponseStatus(404);
 		_response.body = get_body_error(404);
@@ -163,7 +168,7 @@ void Server::_responseDELETE(request &req) {
 		_response.body = get_body_error(404);
 	}
 	SetResponseStatus(200);
-	return;
+	return; // je sais pas qui a code ca mais ca va mettre le code erreur a 200 quoi qu'il arrive
 }
 
 void Server::SetResponseStatus(int n) {
@@ -186,7 +191,7 @@ void Server::create_img(std::string &img) {
 	size_t offset = 0;
 	std::string filename;
 	std::string content;
-	
+
 	if (chdir("www/upload"))
 		std::cerr << "CHDIR FAILED\n";
 	pos = img.find("filename=\"", offset);
