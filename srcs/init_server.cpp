@@ -7,7 +7,7 @@ void init_server(std::map<int, Server> &map_serv, std::vector<config> &confs) {
 		Server temp(confs[i]);
 		if (temp.server_fd != -1) {
 			map_serv[temp.server_fd] = temp;
-			std::cout << temp.server_fd << RESET << std::endl;
+			// std::cout << temp.server_fd << RESET << std::endl;
 		}
 	}
 }

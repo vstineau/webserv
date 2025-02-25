@@ -128,10 +128,10 @@ Server::~Server() {
 // std::string getHtmlPage(std::string str);
 
 void Server::_responseGET(request &req) {
-	for (std::map<std::string, location>::iterator it = _conf.locations.begin();
-		 it != _conf.locations.end(); it++) {
-		std::cout << RED << it->first << RESET << std::endl;
-	}
+	// for (std::map<std::string, location>::iterator it = _conf.locations.begin();
+	// 	 it != _conf.locations.end(); it++) {
+	// 	std::cout << RED << it->first << RESET << std::endl;
+	// }
 	std::cout << "req.path = " << req.path << RESET << std::endl;
 	if (_conf.locations.count(req.path)) {
 		if (req.path == "www/")
