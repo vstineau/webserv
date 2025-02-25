@@ -95,7 +95,7 @@ struct request {
 class Server;
 
 //EPOLL STUFF
-void epoll_loop(std::map<int, Server> map_serv);
+void epoll_loop(std::map<int, Server> &map_serv);
 
 //PARSING OF THE CONFIGURATON FILE
 void init_server(std::map<int, Server> &map_serv, std::vector<config> &confs);

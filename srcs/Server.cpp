@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 Server::Server() : server_fd(-1) {
+	std::cout << "TG" << RESET << std::endl;
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = INADDR_ANY; // inet_addr("0.0.0.0");
@@ -35,7 +36,8 @@ Server::Server() : server_fd(-1) {
 	// _conf.locations["www/"] = location;
 }
 
-Server::Server(config &conf) : server_fd(-1), _conf(conf){
+Server::Server(config &conf) : server_fd(-1), _conf(conf) {
+	std::cout << "TG" << RESET << std::endl;
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = INADDR_ANY; // inet_addr("0.0.0.0");
@@ -119,6 +121,7 @@ void Server::setErrorCodes(void) {
 }
 
 Server::~Server() {
+	std::cout << "destruct" << RESET << std::endl;
 	for (std::vector<int>::iterator it = client_fd.begin(); it != client_fd.end(); it++)
 		if (*it != -1)
 			close(*it);
@@ -132,7 +135,7 @@ void Server::_responseGET(request &req) {
 	// 	 it != _conf.locations.end(); it++) {
 	// 	std::cout << RED << it->first << RESET << std::endl;
 	// }
-	std::cout << "req.path = " << req.path << RESET << std::endl;
+	// std::cout << "req.path = " << req.path << RESET << std::endl;
 	if (_conf.locations.count(req.path)) {
 		if (req.path == "www/")
 			req.path += "indexs/index.html";
@@ -268,8 +271,7 @@ void Server::fill_header(std::string &header, int &n) {
 	}
 }
 
-std::size_t Server::check_contentype(int n, std::size_t pos, std::size_t offset,
-									 std::string &buffer) {
+std::size_t Server::check_contentype(int n, std::size_t pos, std::size_t offset, std::string &buffer) {
 	std::string tmp;
 	std::string key1("Content-Type");
 	std::string key2("boundary");

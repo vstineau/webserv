@@ -1,6 +1,7 @@
 #include "../includes/Server.hpp"
 #include "../includes/webserv.hpp"
 #include <algorithm>
+#include <cerrno>
 #include <cstdlib>
 #include <sys/socket.h>
 
@@ -14,9 +15,8 @@ int handle_epollrdhup(Server &serv, struct epoll_event *events, int &n, int &epo
 			return 1;
 		}
 		// close(events[n].data.fd);
-		serv.client_fd.erase(
-			std::remove(serv.client_fd.begin(), serv.client_fd.end(), events[n].data.fd),
-			serv.client_fd.end());
+		serv.client_fd.erase(std::remove(serv.client_fd.begin(), serv.client_fd.end(), events[n].data.fd),
+							 serv.client_fd.end());
 		std::cout << RED << "fd poulet [" << events[n].data.fd << "] closed" << RESET << std::endl;
 		close(events[n].data.fd);
 		return 1;
@@ -40,17 +40,17 @@ int handle_epollin(Server &serv, struct epoll_event *events, int &n, int &epoll_
 		if (count == 0) {
 			std::cout << "client " << events[n].data.fd << " disconnected" << std::endl;
 			close(events[n].data.fd);
-			serv.client_fd.erase(
-				std::remove(serv.client_fd.begin(), serv.client_fd.end(), events[n].data.fd),
-				serv.client_fd.end());
+			serv.client_fd.erase(std::remove(serv.client_fd.begin(), serv.client_fd.end(), events[n].data.fd),
+								 serv.client_fd.end());
 			std::cout << RED << "fd [" << events[n].data.fd << "] closed" << RESET << std::endl;
 		}
-		std::cout << HI_CYAN << "-----------REQUEST----------" << RESET << std::endl;
+		// std::cout << HI_CYAN << "-----------REQUEST----------" << RESET << std::endl;
 		serv.fillRequest(n, buff);
 		// serv.identifyRequest(n);
-		serv.print_request(n);
+		// serv.print_request(n);
 		serv.SetResponse(n);
-		std::cout << HI_CYAN << "-----------REQUEST----------" << RESET << std::endl;
+		// std::cout << HI_CYAN << "-----------REQUEST----------" << RESET << std::endl;
+		// std::cout << serv.getResponse() << RESET << std::endl;
 		// std::cout << buff << std::endl;
 		struct epoll_event ev;
 		ev.data.fd = events[n].data.fd;
@@ -69,8 +69,7 @@ int handle_epollout(Server &serv, struct epoll_event *events, int &n, int &epoll
 		// if (send_response(fillDirectoryListing(directory_listing("www")), events[n].data.fd) ==
 		// -1) 	std::cerr << "Send error: " << std::endl;
 		std::cout << serv.getResponse() << RESET << std::endl;
-		if (send(events[n].data.fd, serv.getResponse().c_str(), serv.getResponse().size(),
-				 MSG_NOSIGNAL) == -1)
+		if (send(events[n].data.fd, serv.getResponse().c_str(), serv.getResponse().size(), MSG_NOSIGNAL) == -1)
 			std::cerr << "Send error: " << std::endl;
 		struct epoll_event ev;
 		ev.data.fd = events[n].data.fd;
@@ -85,12 +84,12 @@ int handle_epollout(Server &serv, struct epoll_event *events, int &n, int &epoll
 	return 0;
 }
 
-bool check_fd_in_events(std::map<int, Server> map_serv, int event_fd) {
+bool check_fd_in_events(std::map<int, Server> &map_serv, int event_fd) {
 	for (std::map<int, Server>::iterator it = map_serv.begin(); it != map_serv.end(); it++) {
-		std::cout << "event = " << event_fd << ", first = " << it->first
-				  << ", second = " << it->second.server_fd << RESET << std::endl;
 		if (it->second.server_fd == event_fd) {
-			std::cout << "FOUND" << RESET << std::endl;
+			// std::cout << "event = " << event_fd << ", first = " << it->first << ", second = " << it->second.server_fd
+			// 		  << RESET << std::endl;
+			// std::cout << "FOUND" << RESET << std::endl;
 			return true;
 		}
 	}
@@ -98,8 +97,28 @@ bool check_fd_in_events(std::map<int, Server> map_serv, int event_fd) {
 	return false;
 }
 
-void epoll_loop(std::map<int, Server> map_serv) {
-	int epoll_fd = epoll_create(1);
+int which_serv(std::map<int, Server> &map_serv, int event_fd) {
+	int i = 0;
+	std::map<int, Server>::iterator it = map_serv.begin();
+	while (it != map_serv.end()) {
+		if (it->second.server_fd == event_fd) {
+			// std::cout << "event = " << event_fd << ", first = " << it->first << ", second = " << it->second.server_fd
+			//   << RESET << std::endl;
+			// std::cout << "FOUND" << RESET << std::endl;
+			return i;
+		}
+		it++;
+		i++;
+	}
+	std::cout << "NO FOUND" << RESET << std::endl;
+	return 0;
+}
+
+void epoll_loop(std::map<int, Server> &map_serv) {
+	for (std::map<int, Server>::iterator it = map_serv.begin(); it != map_serv.end(); it++)
+		std::cout << "it.first = " << it->first << ", it.second = " << it->second.server_fd << RESET << std::endl;
+	int epoll_fd = epoll_create1(0);
+	std::cout << "epoll_fd = "<< epoll_fd << RESET << std::endl;
 	struct epoll_event evi;
 	struct epoll_event events[MAX_EVENTS];
 	int new_connexion = -1;
@@ -110,11 +129,13 @@ void epoll_loop(std::map<int, Server> map_serv) {
 		exit(1);
 	}
 	evi.events = EPOLLIN;
-	evi.data.fd = map_serv[0].server_fd;
+	evi.data.fd = it->first;
 	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, it->first, &evi) == -1) {
 		perror("epoll_ctl : socket_fd");
+		std::cout  << errno << RESET << std::endl;
+		std::cout << "it->second.server_fd = " << it->second.server_fd << RESET << std::endl;
 		// close(map_serv[0].server_fd);
-		exit(1);
+		// exit(1);
 	}
 	while (!g_end) {
 		int event_count = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
@@ -128,23 +149,27 @@ void epoll_loop(std::map<int, Server> map_serv) {
 		for (int n = 0; n < event_count; n++) {
 			// std::cout << events[n].data.fd << RESET << std::endl;
 			// exit(1)
-			// if(map_serv.count(events[n].data.fd)) { // if(std::count(servers[fd]))
-			if (check_fd_in_events(map_serv, events[n].data.fd)) {
+			// std::cout << "HERE" << RESET << std::endl;
+			// if (check_fd_in_events(map_serv, events[n].data.fd)) {
+			if (map_serv.count(events[n].data.fd) > 0) { // if(std::count(servers[fd]))
+				// std::cout << "HERE2" << RESET << std::endl;
 				std::cout << "events[n].data.fd = " << events[n].data.fd << RESET << std::endl;
-				std::cout << "map_serv[events[n].data.fd(" <<events[n].data.fd<< ")].server_fd = "
-						  << map_serv[events[n].data.fd].server_fd << RESET << std::endl;
+				std::cout << "map_serv[events[n].data.fd(" << events[n].data.fd
+						  << ")].server_fd = " << map_serv[events[n].data.fd].server_fd << RESET << std::endl;
 				sockaddr_in client_addr;
 				int addrlen = sizeof(client_addr);
-				new_connexion = accept(map_serv[events[n].data.fd].server_fd,
-									   (struct sockaddr *)&client_addr, (socklen_t *)&addrlen);
+				std::cout << GREEN << "trying to accept with: " << map_serv[events[n].data.fd].server_fd << RESET
+						  << std::endl;
+				new_connexion = accept(map_serv[events[n].data.fd].server_fd, (struct sockaddr *)&client_addr,
+									   (socklen_t *)&addrlen);
 				std::cout << "new_connexion = " << new_connexion << RESET << std::endl;
 				if (new_connexion == -1) {
 					perror("accept");
 					close(map_serv[events[n].data.fd].server_fd);
+					// exit(1);
 					continue;
 				}
-				std::cout << YELLOW << "Accepted new connection with fd: " << new_connexion
-						  << std::endl;
+				std::cout << YELLOW << "Accepted new connection with fd: " << new_connexion << std::endl;
 				if (!std::count(map_serv[events[n].data.fd].client_fd.begin(),
 								map_serv[events[n].data.fd].client_fd.end(), new_connexion)) {
 					std::cout << BLUE << "NEW CLIENT" << RESET << std::endl;
@@ -153,8 +178,7 @@ void epoll_loop(std::map<int, Server> map_serv) {
 					if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, evi.data.fd, &evi) == -1) {
 						std::cerr << "Failed to add new new_connexion to epoll: " << std::endl;
 						close(new_connexion);
-						std::cout << RED << "fd [" << new_connexion << "] closed" << RESET
-								  << std::endl;
+						std::cout << RED << "fd [" << new_connexion << "] closed" << RESET << std::endl;
 						continue;
 					}
 					map_serv[events[n].data.fd].client_fd.push_back(evi.data.fd);
