@@ -8,37 +8,27 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+Server::~Server() {
+	for (std::vector<int>::iterator it = client_fd.begin(); it != client_fd.end(); it++)
+		if (*it != -1)
+			close(*it);
+	if (server_fd != -1)
+		close(server_fd);
+}
+
 Server::Server() :	server_fd(-1),
 										address()
 {
-	struct sockaddr_in			addr;
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = INADDR_ANY;//inet_addr("0.0.0.0");
-	addr.sin_port = htons(8080);
-	address = addr;
-
-	int b = true;
-	server_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (server_fd == -1) {
-		perror("socket");
-	}
-	setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &b, sizeof(int));
-	if (bind(server_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1)
-	{
-		perror("bind");
-		close(server_fd);
-	}
-	if (listen(server_fd, 10) == -1)
-	{
-		perror("listen");
-		close(server_fd);
-	}
 	setErrorCodes();
 }
 
 Server::Server(config &conf):	server_fd(-1),
-															client_fd(-1),
 															_conf(conf)
+{
+	setErrorCodes();
+}
+
+void	Server::setSocket()
 {
 	struct sockaddr_in			addr;
 	addr.sin_family = AF_INET;
@@ -62,7 +52,6 @@ Server::Server(config &conf):	server_fd(-1),
 		perror("listen");
 		close(server_fd);
 	}
-	setErrorCodes();
 }
 
 //return response in one string ready to get send to the client
@@ -124,13 +113,6 @@ void	Server::setErrorCodes(void)
 	_error_codes[505] = " HTTP Version not supported";
 }
 
-
-Server::~Server() {
-	for (std::vector<int>::iterator it = client_fd.begin(); it != client_fd.end(); it++)
-		if (*it != -1)
-			close(*it);
-	close(server_fd);
-}
 
 void	Server::_responseGET(request &req)
 {
@@ -225,6 +207,32 @@ void Server::fill_body(std::string &body, int &n)
 	}
 }
 
+void Server::fill_cookie(std::string &header)
+{
+	size_t pos = 0;
+	size_t offset = 0;
+	cookie cook;
+
+	while (pos != std::string::npos)
+	{
+		pos = header.find("=", offset);
+		if (pos == std::string::npos)
+			return ;
+		cook.name = header.substr(offset, pos - offset);
+		offset = pos + 1;
+		pos = header.find(";", offset);
+		if (pos == std::string::npos)
+		{
+			cook.value = header.substr(offset, header.size() - offset);
+			return ;
+		}
+		cook.value = header.substr(offset, pos - offset);
+		_response.cookies_headers.push_back(cook);
+		offset = pos + 2;
+	}
+
+}
+
 void Server::fill_header(std::string &header, int &n)
 {
 	size_t pos = 0;
@@ -249,6 +257,8 @@ void Server::fill_header(std::string &header, int &n)
 		}
 		offset = pos + 1;
 	}
+	if (!_requests[n].headers["Cookie"].empty())
+		fill_cookie(_requests[n].headers["Cookie"]);
 }
 
 std::size_t	Server::check_contentype(int n, std::size_t pos, std::size_t offset, std::string &buffer)
@@ -274,6 +284,14 @@ std::size_t	Server::check_contentype(int n, std::size_t pos, std::size_t offset,
 	return (posendline);
 }
 
+
+void	Server::clear_request(int n)
+{
+	if (!_requests[n].body.empty())
+		_requests[n].body.clear();
+}
+
+
 void Server::fillRequest(int n, std::string &buffer)
 {
 	size_t pos = 0;
@@ -281,6 +299,7 @@ void Server::fillRequest(int n, std::string &buffer)
 	std::string header;
 	std::string body;
 
+	clear_request(n);
 	//probablement ajouter un truc qui clear la requete si deja remplie avant de la remplir
 	if (!buffer.find("GET"))
 	{

@@ -1,4 +1,5 @@
 #include "../includes/Server.hpp"
+#include "../includes/Init.hpp"
 #include "../includes/webserv.hpp"
 #include <algorithm>
 
@@ -22,7 +23,7 @@ int handle_epollrdhup(Server &serv, struct epoll_event *events, int &n, int &epo
 	return 0;
 }
 
-int handle_epollin(Server &serv, struct epoll_event *events, int &n, int &epoll_fd) {
+int handle_epollin(Server &serv, struct epoll_event *events, int &n, int &epoll_fd, int new_connexion) {
 	if (events[n].events & EPOLLIN) {
 		// print on terminal what the server receives
 		int count = 0;
@@ -35,15 +36,14 @@ int handle_epollin(Server &serv, struct epoll_event *events, int &n, int &epoll_
 		if (count == 0) {
 			std::cout << "client " << events[n].data.fd << " disconnected" << std::endl;
 			close(events[n].data.fd);
-			serv.client_fd.erase(
-				std::remove(serv.client_fd.begin(), serv.client_fd.end(), events[n].data.fd),
+			serv.client_fd.erase(std::remove(serv.client_fd.begin(), serv.client_fd.end(), events[n].data.fd),
 				serv.client_fd.end());
 			std::cout << RED << "fd [" << events[n].data.fd << "] closed" << RESET << std::endl;
 		}
 		std::cout << HI_CYAN << "-----------REQUEST----------" << RESET << std::endl;
-		serv.fillRequest(n, buff);
+		serv.fillRequest(new_connexion, buff);
 		//serv.identifyRequest(n);
-		serv.print_request(n);
+		serv.print_request(new_connexion);
 		std::cout << HI_CYAN << "-----------REQUEST----------" << RESET << std::endl;
 		// std::cout << buff << std::endl;
 		struct epoll_event ev;
@@ -75,44 +75,55 @@ int handle_epollout(struct epoll_event *events, int &n, int &epoll_fd) {
 	return 0;
 }
 
-void epoll_loop(Server &serv) {
+static int get_serv_index(std::vector<Server> &servs, int event_fd)
+{
+	int i = 0;
+	for (std::vector<Server>::iterator it = servs.begin(); it != servs.end(); it++)
+	{
+		//std::cout << "server fd = " << it->server_fd << " event fd = " << event_fd << std::endl;
+		if (it->server_fd == event_fd)
+			return i;
+		i++;
+	}
+	return (-1);
+}
+
+void Init::epoll_loop() {
 	int epoll_fd = epoll_create(1);
 	struct epoll_event evi;
 	struct epoll_event events[MAX_EVENTS];
 	int new_connexion = -1;
 	if (epoll_fd == -1) {
 		perror("epoll_create");
-		close(serv.server_fd);
-		exit(1);
 	}
 	evi.events = EPOLLIN;
-	evi.data.fd = serv.server_fd;
-	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, serv.server_fd, &evi) == -1) {
+	evi.data.fd = servs[0].server_fd;
+	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, servs[0].server_fd, &evi) == -1) {
 		perror("epoll_ctl : socket_fd");
-		close(serv.server_fd);
-		exit(1);
 	}
 	while (!g_end) {
 		int event_count = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
 		if (event_count == -1) {
-			perror("event_count");
-			close(serv.server_fd);
+			//perror("event_count");
 			continue;
 		}
-		for (int n = 0; n < event_count; n++) {
-			if (events[n].data.fd == serv.server_fd) { // if(map_serv.count(servers[fd]))
+		for (int i = 0; i < event_count; i++)
+		{
+			std::cout << events[i].data.fd;
+			int server_index = get_serv_index(servs, events[i].data.fd);
+			//std::cout << server_index << std::endl;
+			if (server_index != -1)
+			{ // if(map_serv.count(servers[fd]))
 				sockaddr_in client_addr;
 				int addrlen = sizeof(client_addr);
-				new_connexion =
-					accept(serv.server_fd, (struct sockaddr *)&client_addr, (socklen_t *)&addrlen);
+				new_connexion = accept(servs[server_index].server_fd, (struct sockaddr *)&client_addr, (socklen_t *)&addrlen);
 				if (new_connexion == -1) {
 					perror("accept");
-					close(serv.server_fd);
 					continue;
 				}
 				std::cout << YELLOW << "Accepted new connection with fd: " << new_connexion
 						  << std::endl;
-				if (!std::count(serv.client_fd.begin(), serv.client_fd.end(), new_connexion)) {
+				if (!std::count(servs[server_index].client_fd.begin(), servs[server_index].client_fd.end(), new_connexion)) {
 					std::cout << BLUE << "NEW CLIENT" << RESET << std::endl;
 					evi.data.fd = new_connexion;
 					evi.events = EPOLLIN | EPOLLERR | EPOLLRDHUP;
@@ -123,16 +134,18 @@ void epoll_loop(Server &serv) {
 								  << std::endl;
 						continue;
 					}
-					serv.client_fd.push_back(evi.data.fd);
+					servs[server_index].client_fd.push_back(evi.data.fd);
 					std::cout << GREEN << "CLIEND ADDED IN VECTOR" << RESET << std::endl;
 				}
-			} else {
+			}
+			else if(server_index != -1)
+			{
 				// struct epoll_event ev;
-				if (handle_epollrdhup(serv, events, n, epoll_fd))
+				if (handle_epollrdhup(servs[server_index], events, i, epoll_fd))
 					continue;
-				if (handle_epollin(serv, events, n, epoll_fd))
+				if (handle_epollin(servs[server_index], events, i, epoll_fd, new_connexion))
 					continue;
-				if (handle_epollout(events, n, epoll_fd))
+				if (handle_epollout(events, i, epoll_fd))
 					continue;
 			}
 		}

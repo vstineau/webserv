@@ -38,11 +38,13 @@ class Server {
 
 	void setErrorCodes(void);
 	void add_root(void);
+	void setSocket();
 	void SetResponse(int n);
 	std::string getResponse(void) const;
 	void SetResponseStatus(int n);
 	void print_response(response &rep);
 	void print_request(int n);
+	void clear_request(int n);
 	void fillRequest(int n, std::string &buffer);
 	int server_fd;
 	std::vector<int> client_fd;
@@ -51,6 +53,7 @@ class Server {
 
 	private:
 	void fill_header(std::string &header, int &n);
+	void fill_cookie(std::string &header);
 	void fill_body(std::string &header, int &n);
 	void create_img(std::string &img);
 	std::size_t check_contentype(int n, std::size_t pos, std::size_t offset, std::string &buffer);
