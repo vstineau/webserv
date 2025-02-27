@@ -1,7 +1,6 @@
 
-#include "../includes/webserv.hpp"
 #include "../includes/Server.hpp"
-
+#include "../includes/webserv.hpp"
 
 std::string get_body_error(int status_code)
 {
@@ -65,5 +64,3 @@ std::string get_body_error(int status_code)
 504 Gateway Time-out
 505 HTTP Version not supported
 */
-
-

@@ -55,7 +55,7 @@ struct location
 	std::string									cgi_bin;
 	char												allowed_method[4];
 	int													client_body_size;
-	bool														directory_listing;
+	bool												directory_listing;
 	std::map<int, std::string>	error_pages;
 };
 
@@ -64,6 +64,7 @@ struct config {
 	~config();
 	std::vector<std::string>				server_names;
 	std::vector<std::string>				server_index;
+	std::string											root;
 	std::string											host;
 	std::string											http_redirection;
 	std::string											directory_path;
@@ -75,18 +76,29 @@ struct config {
 	std::map<std::string, location>	locations; //PATH -> location 
 };
 
+struct cookie{
+	std::string	name;
+	std::string	value;
+	std::string	expire_date;
+	std::string	max_age;
+	std::string	session;
+};
+
 struct response {
-	std::string	status_line;
-	std::map<std::string, std::string> headers;
-	std::string body;
+	std::string													status_line;
+	std::map<std::string, std::string>	headers;
+	std::vector<cookie>									cookies_headers;
+	std::string													body;
 };
 
 struct request {
-	std::string path;
-	std::string version;
-	methods method;
-	std::map<std::string, std::string> headers;
-	std::string body; //pas de c_str() parce qu'il peut y avoir de s\0 qui se baladent
+	request();
+	~request();
+	std::string													path;
+	std::string													version;
+	methods															method;
+	std::map<std::string, std::string>	headers;
+	std::string													body; //pas de c_str() parce qu'il peut y avoir de s\0 qui se baladent
 	std::string getContentType(std::string &buffer) const;
 	unsigned int getContentLength(std::string &buffer) const;
 };
@@ -94,7 +106,7 @@ struct request {
 class Server;
 
 //EPOLL STUFF
-void epoll_loop(Server &serv);
+void epoll_loop(std::vector<Server> &servs);
 
 //PARSING OF THE CONFIGURATON FILE
 size_t		count_words(const char *line, char c);
@@ -105,7 +117,7 @@ void			set_method(location &loc, std::string method);
 void			get_locations_bloc(config &conf, std::string &buffer);
 
 //RESPONSES
-void				file_in_string(std::string &sfile, char *file);
+void				file_in_string(std::string &sfile, const char *file);
 std::string	get_body_error(int status_code);
 
 //SIGNAL
