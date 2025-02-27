@@ -135,8 +135,7 @@ Server::~Server() {
 
 void	Server::_responseGET(request &req)
 {
-	// (void)req;
-	if (req.path.find(".jpg") != std::string::npos || req.path.find(".gif") != std::string::npos)
+	if (req.path.find(".jpg") != std::string::npos || req.path.find(".gif") != std::string::npos || req.path.find(".ico") != std::string::npos)
 	{
 		std::ifstream	imgFile(req.path.c_str());
 		if (!imgFile)
@@ -202,10 +201,6 @@ void	Server::_responseGET(request &req)
 void	Server::_responsePOST(request &req)
 {
 	(void)req;
-	//gnegnegne POSTfailedap
-	//_response.status_code = "403 Forbidden";
-	//gnegnegne POSTsuccessfull
-
 	create_img(_response.body);
 	std::string page;
 	page = "<!DOCTYPE html>"
@@ -432,7 +427,7 @@ void Server::fillRequest(int n, std::string &buffer)
 	pos = buffer.find(" ", offset);
 	if (pos == std::string::npos){ return;}
 	_requests[n].path = buffer.substr(offset, pos - offset);
-	_requests[n].path.replace(0, 1, "www/upload/"); //a remplacer par le rroot
+	_requests[n].path.replace(0, 1, "www/upload/"); //a remplacer par le root
 	offset = pos + 1;
 	pos = buffer.find("\n", offset);
 	if (pos == std::string::npos){ return;}
