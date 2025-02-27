@@ -1,14 +1,14 @@
 
 #include "../includes/Server.hpp"
 #include "../includes/color.hpp"
-#include <iostream>
-#include <unistd.h>
 #include <cstdlib>
-#include <unistd.h>
+#include <iostream>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
 
-Server::~Server() {
+Server::~Server()
+{
 	for (std::vector<int>::iterator it = client_fd.begin(); it != client_fd.end(); it++)
 		if (*it != -1)
 			close(*it);
@@ -16,29 +16,28 @@ Server::~Server() {
 		close(server_fd);
 }
 
-Server::Server() :	server_fd(-1),
-										address()
+Server::Server() : server_fd(-1), address()
 {
 	setErrorCodes();
 }
 
-Server::Server(config &conf):	server_fd(-1),
-															_conf(conf)
+Server::Server(config &conf) : server_fd(-1), _conf(conf)
 {
 	setErrorCodes();
 }
 
-void	Server::setSocket()
+void Server::setSocket()
 {
-	struct sockaddr_in			addr;
+	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = INADDR_ANY;//inet_addr("0.0.0.0");
+	addr.sin_addr.s_addr = INADDR_ANY; // inet_addr("0.0.0.0");
 	addr.sin_port = htons(8080);
 	address = addr;
 
 	int b = true;
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (server_fd == -1) {
+	if (server_fd == -1)
+	{
 		perror("socket");
 	}
 	setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &b, sizeof(int));
@@ -54,12 +53,14 @@ void	Server::setSocket()
 	}
 }
 
-//return response in one string ready to get send to the client
-std::string Server::getResponse(void) const {
+// return response in one string ready to get send to the client
+std::string Server::getResponse(void) const
+{
 	std::string r;
 	r += _response.status_line;
 	r += "\r\n";
-	for (std::map<std::string, std::string>::const_iterator it = _response.headers.begin(); it != _response.headers.end(); it++){
+	for (std::map<std::string, std::string>::const_iterator it = _response.headers.begin(); it != _response.headers.end(); it++)
+	{
 		r += it->first;
 		r += it->second;
 		r += "\r\n";
@@ -69,7 +70,7 @@ std::string Server::getResponse(void) const {
 	return (r);
 }
 
-void	Server::setErrorCodes(void)
+void Server::setErrorCodes(void)
 {
 	_error_codes[100] = " Continue";
 	_error_codes[101] = " Switching Protocols";
@@ -113,23 +114,22 @@ void	Server::setErrorCodes(void)
 	_error_codes[505] = " HTTP Version not supported";
 }
 
-
-void	Server::_responseGET(request &req)
+void Server::_responseGET(request &req)
 {
 	(void)req;
-	return ;
+	return;
 }
 
-void	Server::_responsePOST(request &req)
+void Server::_responsePOST(request &req)
 {
 	(void)req;
-	//gnegnegne POSTfailedap
+	// gnegnegne POSTfailedap
 	//_response.status_code = "403 Forbidden";
-	//gnegnegne POSTsuccessfull
-	return ;
+	// gnegnegne POSTsuccessfull
+	return;
 }
 
-void	Server::_responseDELETE(request &req)
+void Server::_responseDELETE(request &req)
 {
 	if (unlink(req.path.c_str()) == -1)
 	{
@@ -137,22 +137,22 @@ void	Server::_responseDELETE(request &req)
 		_response.body = get_body_error(404);
 	}
 	SetResponseStatus(200);
-	return ;
+	return;
 }
 
-void	Server::SetResponseStatus(int n)
+void Server::SetResponseStatus(int n)
 {
 	_response.status_line = "HTTP/1.1 ";
 	_response.status_line += to_string(n);
 	_response.status_line += _error_codes[n];
 }
 
-void	Server::SetResponse(int n)
+void Server::SetResponse(int n)
 {
 	if (_requests[n].method == GET)
-		 _responseGET(_requests[n]);
+		_responseGET(_requests[n]);
 	else if (_requests[n].method == POST)
-		 _responsePOST(_requests[n]);
+		_responsePOST(_requests[n]);
 	else if (_requests[n].method == DELETE)
 		_responseDELETE(_requests[n]);
 }
@@ -163,11 +163,14 @@ void Server::create_img(std::string &img)
 	size_t offset = 0;
 	std::string filename;
 	std::string content;
-	
+
 	if (chdir("www/upload"))
 		std::cerr << "CHDIR FAILED\n";
 	pos = img.find("filename=\"", offset);
-	if (pos == std::string::npos){ return ;}
+	if (pos == std::string::npos)
+	{
+		return;
+	}
 	offset = pos + 10;
 	pos = img.find("\"", offset);
 	filename = img.substr(offset, pos - offset);
@@ -181,7 +184,10 @@ void Server::create_img(std::string &img)
 	}
 	offset = pos + 1;
 	pos = img.find("\r\n\r\n", offset);
-	if (pos == std::string::npos){ return ;}
+	if (pos == std::string::npos)
+	{
+		return;
+	}
 	offset = pos + 4;
 	content = img.substr(offset, img.size() - offset);
 	ofs << content;
@@ -197,10 +203,16 @@ void Server::fill_body(std::string &body, int &n)
 	while (pos != std::string::npos)
 	{
 		pos = body.find("\n", offset);
-		if (pos == std::string::npos){return ;}
+		if (pos == std::string::npos)
+		{
+			return;
+		}
 		offset = pos + 1;
 		pos = body.find(_requests[n].headers["boundary"], offset);
-		if (pos == std::string::npos){return ;}
+		if (pos == std::string::npos)
+		{
+			return;
+		}
 		img = body.substr(offset, pos - offset);
 		create_img(img);
 		offset = pos + _requests[n].headers["boundary"].size();
@@ -217,20 +229,19 @@ void Server::fill_cookie(std::string &header)
 	{
 		pos = header.find("=", offset);
 		if (pos == std::string::npos)
-			return ;
+			return;
 		cook.name = header.substr(offset, pos - offset);
 		offset = pos + 1;
 		pos = header.find(";", offset);
 		if (pos == std::string::npos)
 		{
 			cook.value = header.substr(offset, header.size() - offset);
-			return ;
+			return;
 		}
 		cook.value = header.substr(offset, pos - offset);
 		_response.cookies_headers.push_back(cook);
 		offset = pos + 2;
 	}
-
 }
 
 void Server::fill_header(std::string &header, int &n)
@@ -241,18 +252,27 @@ void Server::fill_header(std::string &header, int &n)
 	while (pos != std::string::npos)
 	{
 		pos = header.find(":", offset);
-		if (pos == std::string::npos){ return ;}
+		if (pos == std::string::npos)
+		{
+			return;
+		}
 		key = header.substr(offset, pos - offset);
 		offset = pos + 1;
 		if (key == "Content-Type")
 		{
 			pos = check_contentype(n, pos, offset, header);
-			if (pos == std::string::npos){ break;}
+			if (pos == std::string::npos)
+			{
+				break;
+			}
 		}
 		else
 		{
 			pos = header.find("\n", offset);
-			if (pos == std::string::npos){ break;}
+			if (pos == std::string::npos)
+			{
+				break;
+			}
 			_requests[n].headers[key] = header.substr(offset, pos - offset);
 		}
 		offset = pos + 1;
@@ -261,11 +281,11 @@ void Server::fill_header(std::string &header, int &n)
 		fill_cookie(_requests[n].headers["Cookie"]);
 }
 
-std::size_t	Server::check_contentype(int n, std::size_t pos, std::size_t offset, std::string &buffer)
+std::size_t Server::check_contentype(int n, std::size_t pos, std::size_t offset, std::string &buffer)
 {
-	std:: string tmp;
-	std:: string key1("Content-Type");
-	std:: string key2("boundary");
+	std::string tmp;
+	std::string key1("Content-Type");
+	std::string key2("boundary");
 	std::size_t posendline;
 
 	posendline = buffer.find("\r\n", offset);
@@ -284,13 +304,11 @@ std::size_t	Server::check_contentype(int n, std::size_t pos, std::size_t offset,
 	return (posendline);
 }
 
-
-void	Server::clear_request(int n)
+void Server::clear_request(int n)
 {
 	if (!_requests[n].body.empty())
 		_requests[n].body.clear();
 }
-
 
 void Server::fillRequest(int n, std::string &buffer)
 {
@@ -300,7 +318,7 @@ void Server::fillRequest(int n, std::string &buffer)
 	std::string body;
 
 	clear_request(n);
-	//probablement ajouter un truc qui clear la requete si deja remplie avant de la remplir
+	// probablement ajouter un truc qui clear la requete si deja remplie avant de la remplir
 	if (!buffer.find("GET"))
 	{
 		_requests[n].method = GET;
@@ -317,19 +335,31 @@ void Server::fillRequest(int n, std::string &buffer)
 		offset = pos + 6;
 	}
 	pos = buffer.find("/", offset);
-	if (pos == std::string::npos){ return;}
+	if (pos == std::string::npos)
+	{
+		return;
+	}
 	offset = pos;
 	pos = buffer.find(" ", offset);
-	if (pos == std::string::npos){ return;}
+	if (pos == std::string::npos)
+	{
+		return;
+	}
 	_requests[n].path = buffer.substr(offset, pos - offset);
-	_requests[n].path.replace(0, 1, "www/"); //a remplacer par le rroot
+	_requests[n].path.replace(0, 1, "www/"); // a remplacer par le rroot
 	offset = pos + 1;
 	pos = buffer.find("\n", offset);
-	if (pos == std::string::npos){ return;}
+	if (pos == std::string::npos)
+	{
+		return;
+	}
 	_requests[n].version = buffer.substr(offset, pos - offset);
 	offset = pos + 1;
 	pos = buffer.find("\r\n\r\n", offset);
-	if (pos == std::string::npos){ return;}
+	if (pos == std::string::npos)
+	{
+		return;
+	}
 	header = buffer.substr(offset, pos - offset);
 	fill_header(header, n);
 	offset = pos + 4;
