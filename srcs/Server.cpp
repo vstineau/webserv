@@ -17,12 +17,12 @@ Server::~Server()
 		close(server_fd);
 }
 
-Server::Server() : server_fd(-1), address()
+Server::Server() : server_fd(-1), address(), status_code(200)
 {
 	setErrorCodes();
 }
 
-Server::Server(config &conf) : server_fd(-1), _conf(conf)
+Server::Server(config &conf) : server_fd(-1), status_code(200), _conf(conf)
 {
 	setErrorCodes();
 }
@@ -117,9 +117,9 @@ void Server::setErrorCodes(void)
 
 void Server::_responseGET(request &req)
 {
-	std::cout << req.path << RESET << std::endl;
-	if (req.path.find(".jpg") != std::string::npos || req.path.find(".gif") != std::string::npos ||
-		req.path.find(".ico") != std::string::npos)
+	_file.setFileInfo(req.path);
+	_file.setFile(req.path);
+	if (_file.extention != "NO EXTENTION")
 	{
 		std::ifstream imgFile(req.path.c_str());
 		if (!imgFile)
@@ -128,7 +128,8 @@ void Server::_responseGET(request &req)
 			status_code = 404;
 			SetResponseStatus(status_code);
 			_response.body = get_body_error(404);
-			_response.headers["Content-Type: "] = "text/html"; // hard-coded as well, need to check for mimes
+			std::cout << "this thing : " << _file.mimes[_file.extention] << "\n";
+			_response.headers["Content-Type: "] = "text/html";
 			_response.headers["Content-Length: "] = to_string(_response.body.length());
 			return;
 		}
@@ -136,20 +137,12 @@ void Server::_responseGET(request &req)
 		{
 			SetResponseStatus(status_code);
 			std::cout << "file was opened\n";
-			std::string imgStr;
-			std::istreambuf_iterator<char> begin(imgFile), end;
-			imgStr.assign(begin, end);
-			std::string FileName2 = "oui2";
-			std::ofstream ofs(FileName2.c_str(), std::ios_base::binary); // Open output file in binary mode
-			ofs.write(imgStr.c_str(), imgStr.size());
-			_response.body = imgStr;
+			_response.body = _file.filestring;
 			SetResponseStatus(status_code);
-			_response.headers["Content-Type: "] = "image/gif"; // hard-coded as well, need to check for mimes
-			_response.headers["Content-Length: "] = to_string(imgStr.length());
-			imgStr.clear();
+			_response.headers["Content-Type: "] = _file.mimes[_file.extention];
+			_response.headers["Content-Length: "] = to_string(_file.file_size);
 		}
 	}
-	// if (req.path == "www/")
 	else
 	{
 		SetResponseStatus(status_code);
@@ -174,13 +167,14 @@ void Server::_responseGET(request &req)
 			   "		<img src=\"/vstineau.jpg\"/>"
 			   "		<form method=\"POST\" enctype=\"multipart/form-data\">"
 			   "			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
+			   "			<input type=\"file\" id=\"actual-btn2\" name=\"file2\"/>"
 			   "			<input type=\"submit\"/>"
 			   "		</form>"
 			   "	</body>"
 			   "</html>";
 		_response.body = page;
 		SetResponseStatus(status_code);
-		_response.headers["Content-Type: "] = "text/html"; // hard-coded as well, need to check for mimes
+		_response.headers["Content-Type: "] = "text/html";
 		_response.headers["Content-Length: "] = to_string(page.length());
 		page.clear();
 	}
@@ -209,13 +203,14 @@ void Server::_responsePOST(request &req)
 	"		<img src=\"/vstineau.jpg\"/>"
 	"		<form method=\"POST\" enctype=\"multipart/form-data\">"
 	"			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
+	"			<input type=\"file\" id=\"actual-btn2\" name=\"file2\"/>"
 	"			<input type=\"submit\"/>"
 	"		</form>"
 	"	</body>"
 	"</html>";
 	_response.body = page;
 	SetResponseStatus(status_code);
-	_response.headers["Content-Type: "] = "text/html"; // hard-coded as well, need to check for mimes
+	_response.headers["Content-Type: "] = "text/html";
 	_response.headers["Content-Length: "] = to_string(page.length());
 	page.clear();
 	return ; 
@@ -247,6 +242,7 @@ void Server::_responseDELETE(request &req)
 	"		<img src=\"/vstineau.jpg\"/>"
 	"		<form method=\"POST\" enctype=\"multipart/form-data\">"
 	"			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
+	"			<input type=\"file\" id=\"actual-btn2\" name=\"file2\"/>"
 	"			<input type=\"submit\"/>"
 	"		</form>"
 	"	</body>"

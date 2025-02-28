@@ -26,14 +26,8 @@ void FileHandler::setFileInfo(std::string path)
 	std::cout << "Type de fichier :                ";
 	switch (sb.st_mode & S_IFMT)
 	{
-		case S_IFBLK:  std::cout << "périphérique de bloc\n";      break;
-		case S_IFCHR:  std::cout << "périphérique de caractère\n"; break;
 		case S_IFDIR:  type = DIRECTORY; std::cout << "répertoire\n";                break;
-		case S_IFIFO:  std::cout << "FIFO/tube\n";                 break;
-		case S_IFLNK:  std::cout << "lien symbolique\n";           break;
 		case S_IFREG:  type = CLASSIC_FILE; std::cout << "fichier ordinaire\n";         break;
-		case S_IFSOCK: std::cout << "socket\n";                    break;
-		default:       std::cout << "inconnu ?\n";                 break;
 	}
 	file_size = (long long)sb.st_size;
 }
@@ -41,10 +35,11 @@ void FileHandler::setFileInfo(std::string path)
 void FileHandler::setFile(std::string path)
 {
 	std::string line;
+	if (!filestring.empty())
+		filestring.clear();
 	std::ifstream ifs(path.c_str());
 	if (!ifs)
 	{
-		std::cout << "code mieux fdp\n";
 		(NULL);
 	}
 	while (std::getline(ifs, line))
@@ -66,6 +61,7 @@ void FileHandler::setFile(std::string path)
 
 void	FileHandler::setMime(void)
 {
+	mimes["NO EXTENTION"] = "text/plain";
 	mimes["jpg"]     = "image/jpeg";
 	mimes["jpeg"]    = "image/jpeg";
 	mimes["gif"]     = "image/gif";

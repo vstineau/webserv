@@ -48,8 +48,8 @@ class Server {
 	void fillRequest(int n, std::string &buffer);
 	int server_fd;
 	std::vector<int> client_fd;
-	int status_code;
 	struct sockaddr_in address;
+	int status_code;
 
 	private:
 	void fill_header(std::string &header, int &n);
