@@ -133,7 +133,6 @@ void Server::_responseGET(request &req)
 		}
 		else
 		{
-			status_code = 200;
 			SetResponseStatus(status_code);
 			std::cout << "file was opened\n";
 			std::string imgStr;
@@ -152,7 +151,6 @@ void Server::_responseGET(request &req)
 	// if (req.path == "www/")
 	else
 	{
-		status_code = 200;
 		SetResponseStatus(status_code);
 		std::string page;
 		page = "<!DOCTYPE html>"

@@ -24,6 +24,7 @@ void	fill_servers_configs(std::vector<config> &confs, char *file)
 	std::string serv_line;
 //	size_t serv_index = 0;
 	std::ifstream ifs(file);
+	confs.reserve(how_many_serv(file));
 	if (!ifs)
 		(NULL);
 	while (std::getline(ifs, line))

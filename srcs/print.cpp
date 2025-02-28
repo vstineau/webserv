@@ -19,7 +19,8 @@ void	Server::print_response(response &rep)
 {
 	std::cout << B_GREEN << "VERSION = " << rep.status_line << "\n";
 	for (std::map<std::string, std::string>::iterator it = _response.headers.begin(); it != _response.headers.end(); it++)
-		std::cout << it->first << " = "  << it->second << "\n\n";
+		std::cout << it->first << " = "  << it->second << "\r\n";
+	std::cout << B_MAGENTA << "COOKIES = " << rep.status_line << "\n";
 	std::cout << "BODY = " << rep.body << RESET << "\n";
 }
 
