@@ -24,7 +24,7 @@ static int handle_epollrdhup(Server &serv, struct epoll_event *events, int &n, i
 	return 0;
 }
 
-static int handle_epollin(Server &serv, struct epoll_event *events, int &n, int &epoll_fd, int new_connexion)
+static int handle_epollin(Server &serv, struct epoll_event *events, int &n, int &epoll_fd)
 {
 	if (events[n].events & EPOLLIN)
 	{
@@ -46,11 +46,10 @@ static int handle_epollin(Server &serv, struct epoll_event *events, int &n, int 
 			std::cout << RED << "fd [" << events[n].data.fd << "] closed" << RESET << std::endl;
 		}
 		std::cout << HI_CYAN << "-----------REQUEST----------" << RESET << std::endl;
-		std::cout << buff << "\n";
-		serv.fillRequest(new_connexion, buff);
+		serv.fillRequest(n, buff);
 		// serv.identifyRequest(n);
-		serv.SetResponse(new_connexion);
-		// serv.print_request(new_connexion);
+		serv.SetResponse(n);
+		// serv.print_request(n);
 		std::cout << HI_CYAN << "-----------REQUEST----------" << RESET << std::endl;
 		// std::cout << buff << std::endl;
 		struct epoll_event ev;
@@ -70,6 +69,10 @@ static int handle_epollout(Server &serv, struct epoll_event *events, int &n, int
 {
 	if (events[n].events & EPOLLOUT)
 	{
+		// std::cout << "---------------RESPONSE---------------" << RESET << std::endl;
+		// std::cout << BLUE << serv.getResponse() << RESET << std::endl;
+		// std::cout << "---------------RESPONSE---------------" << RESET << std::endl;
+		serv.status_code = 200;
 		if (send(events[n].data.fd, serv.getResponse().c_str(), serv.getResponse().size(), MSG_NOSIGNAL) == -1)
 			std::cerr << "Send error: " << std::endl;
 		struct epoll_event ev;
@@ -155,7 +158,7 @@ void Init::epoll_loop()
 						server_index = i;
 				if (handle_epollrdhup(servs[server_index], events, i, epoll_fd))
 					continue;
-				if (handle_epollin(servs[server_index], events, i, epoll_fd, new_connexion))
+				if (handle_epollin(servs[server_index], events, i, epoll_fd))
 					continue;
 				if (handle_epollout(servs[server_index], events, i, epoll_fd))
 					continue;
