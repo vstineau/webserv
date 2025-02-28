@@ -70,11 +70,12 @@ static int handle_epollout(Server &serv, struct epoll_event *events, int &n, int
 	if (events[n].events & EPOLLOUT)
 	{
 		// std::cout << "---------------RESPONSE---------------" << RESET << std::endl;
-		// std::cout << BLUE << serv.getResponse() << RESET << std::endl;
+		 std::cout << BLUE << serv.getResponse() << RESET << std::endl;
 		// std::cout << "---------------RESPONSE---------------" << RESET << std::endl;
 		serv.status_code = 200;
 		if (send(events[n].data.fd, serv.getResponse().c_str(), serv.getResponse().size(), MSG_NOSIGNAL) == -1)
 			std::cerr << "Send error: " << std::endl;
+		serv.clear_response();
 		struct epoll_event ev;
 		ev.data.fd = events[n].data.fd;
 		ev.events = EPOLLIN | EPOLLRDHUP;

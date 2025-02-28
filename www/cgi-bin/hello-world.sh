@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Content-Type: text/plain"
-echo 
+echo -e "Content-Type: text/plain\r"
+echo -e "\r" 
 echo "Hello World!"
 

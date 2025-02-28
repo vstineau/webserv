@@ -22,7 +22,7 @@ class FileHandler {
 		void setMime();
 		std::map<std::string, std::string>	mimes;
 //		getContentType();
-//		execCgi();
+		response execCgi(std::string &bin_path, std::string &extention);
 		long long		file_size;
 		std::string	filestring;
 		std::string	path;

@@ -85,10 +85,10 @@ struct cookie{
 };
 
 struct response {
-	std::string													status_line;
-	std::map<std::string, std::string>	headers;
-	std::vector<cookie>									cookies_headers;
-	std::string													body;
+	response & operator=(response & r);
+	std::string																			status_line;
+	std::map<std::string, std::vector<std::string> >	headers;
+	std::string																			body;
 };
 
 struct request {

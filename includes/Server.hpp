@@ -45,11 +45,12 @@ class Server {
 	void print_response(response &rep);
 	void print_request(int n);
 	void clear_request(int n);
+	void clear_response();
 	void fillRequest(int n, std::string &buffer);
 	int server_fd;
 	std::vector<int> client_fd;
-	int status_code;
 	struct sockaddr_in address;
+	int status_code;
 
 	private:
 	void fill_header(std::string &header, int &n);

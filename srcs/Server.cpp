@@ -16,12 +16,12 @@ Server::~Server()
 		close(server_fd);
 }
 
-Server::Server() : server_fd(-1), address()
+Server::Server() : server_fd(-1), address(), status_code(200)
 {
 	setErrorCodes();
 }
 
-Server::Server(config &conf) : server_fd(-1), _conf(conf)
+Server::Server(config &conf) : server_fd(-1), status_code(200), _conf(conf)
 {
 	setErrorCodes();
 }
@@ -59,11 +59,14 @@ std::string Server::getResponse(void) const
 	std::string r;
 	r += _response.status_line;
 	r += "\r\n";
-	for (std::map<std::string, std::string>::const_iterator it = _response.headers.begin(); it != _response.headers.end(); it++)
+	for (std::map<std::string, std::vector< std::string> >::const_iterator it = _response.headers.begin(); it != _response.headers.end(); it++)
 	{
-		r += it->first;
-		r += it->second;
-		r += "\r\n";
+		for (size_t i = 0; i < it->second.size(); i++)
+		{
+			r += it->first;
+			r += it->second[i];
+			r += "\r\n";
+		}
 	}
 	r += "\r\n";
 	r += _response.body;
@@ -127,8 +130,8 @@ void Server::_responseGET(request &req)
 			status_code = 404;
 			SetResponseStatus(status_code);
 			_response.body = get_body_error(404);
-			_response.headers["Content-Type: "] = "text/html"; // hard-coded as well, need to check for mimes
-			_response.headers["Content-Length: "] = to_string(_response.body.length());
+			_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 			return;
 		}
 		else
@@ -143,8 +146,8 @@ void Server::_responseGET(request &req)
 			ofs.write(imgStr.c_str(), imgStr.size());
 			_response.body = imgStr;
 			SetResponseStatus(status_code);
-			_response.headers["Content-Type: "] = "image/gif"; // hard-coded as well, need to check for mimes
-			_response.headers["Content-Length: "] = to_string(imgStr.length());
+			_response.headers["Content-Type: "].push_back("image/gif"); // hard-coded as well, need to check for mimes
+			_response.headers["Content-Length: "].push_back(to_string(imgStr.length()));
 			imgStr.clear();
 		}
 	}
@@ -179,8 +182,8 @@ void Server::_responseGET(request &req)
 			   "</html>";
 		_response.body = page;
 		SetResponseStatus(status_code);
-		_response.headers["Content-Type: "] = "text/html"; // hard-coded as well, need to check for mimes
-		_response.headers["Content-Length: "] = to_string(page.length());
+		_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+		_response.headers["Content-Length: "].push_back(to_string(page.length()));
 		page.clear();
 	}
 	return;
@@ -211,6 +214,13 @@ void Server::SetResponseStatus(int n)
 	_response.status_line = "HTTP/1.1 ";
 	_response.status_line += to_string(n);
 	_response.status_line += _error_codes[n];
+}
+
+void Server::clear_response()
+{
+	_response.status_line.clear();
+	_response.headers.clear();
+	_response.body.clear();
 }
 
 void Server::SetResponse(int n)
@@ -284,32 +294,27 @@ void Server::fill_body(std::string &body, int &n)
 		offset = pos + _requests[n].headers["boundary"].size();
 	}
 }
-
-void Server::fill_cookie(std::string &header)
-{
-	size_t pos = 0;
-	size_t offset = 0;
-	cookie cook;
-
-	while (pos != std::string::npos)
-	{
-		pos = header.find("=", offset);
-		if (pos == std::string::npos)
-			return;
-		cook.name = header.substr(offset, pos - offset);
-		offset = pos + 1;
-		pos = header.find(";", offset);
-		if (pos == std::string::npos)
-		{
-			cook.value = header.substr(offset, header.size() - offset);
-			return;
-		}
-		cook.value = header.substr(offset, pos - offset);
-		_response.cookies_headers.push_back(cook);
-		offset = pos + 2;
-	}
-}
-
+//
+//void Server::fill_cookie(std::string &header)
+//{
+//	size_t pos = 0;
+//	size_t offset = 0;
+//	std::string cookie;
+//
+//	while (pos != std::string::npos)
+//	{
+//		pos = header.find(";", offset);
+//		if (pos == std::string::npos)
+//		{
+//			_response.headers["Set-Cookie: "].push_back(header.substr(offset, header.size() - offset));
+//			return;
+//		}
+//		cookie = header.substr(offset, pos - offset);
+//		_response.headers["Set-Cookie: "].push_back(cookie);
+//		offset = pos + 2;
+//	}
+//}
+//
 void Server::fill_header(std::string &header, int &n)
 {
 	size_t pos = 0;
@@ -343,8 +348,8 @@ void Server::fill_header(std::string &header, int &n)
 		}
 		offset = pos + 1;
 	}
-	if (!_requests[n].headers["Cookie"].empty())
-		fill_cookie(_requests[n].headers["Cookie"]);
+//	if (!_requests[n].headers["Cookie"].empty())
+//		fill_cookie(_requests[n].headers["Cookie"]);
 }
 
 std::size_t Server::check_contentype(int n, std::size_t pos, std::size_t offset, std::string &buffer)
