@@ -76,18 +76,29 @@ struct config {
 	std::map<std::string, location>	locations; //PATH -> location 
 };
 
+struct cookie{
+	std::string	name;
+	std::string	value;
+	std::string	expire_date;
+	std::string	max_age;
+	std::string	session;
+};
+
 struct response {
-	std::string	status_line;
-	std::map<std::string, std::string> headers;
-	std::string body;
+	response & operator=(response & r);
+	std::string																			status_line;
+	std::map<std::string, std::vector<std::string> >	headers;
+	std::string																			body;
 };
 
 struct request {
-	std::string path;
-	std::string version;
-	methods method;
-	std::map<std::string, std::string> headers;
-	std::string body; //pas de c_str() parce qu'il peut y avoir de s\0 qui se baladent
+	request();
+	~request();
+	std::string													path;
+	std::string													version;
+	methods															method;
+	std::map<std::string, std::string>	headers;
+	std::string													body; //pas de c_str() parce qu'il peut y avoir de s\0 qui se baladent
 	std::string getContentType(std::string &buffer) const;
 	unsigned int getContentLength(std::string &buffer) const;
 };
@@ -95,7 +106,7 @@ struct request {
 class Server;
 
 //EPOLL STUFF
-void epoll_loop(std::map<int, Server> &map_serv);
+void epoll_loop(std::vector<Server> &servs);
 
 //PARSING OF THE CONFIGURATON FILE
 void init_server(std::map<int, Server> &map_serv, std::vector<config> &confs);

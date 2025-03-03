@@ -18,8 +18,16 @@ void	Server::print_request(int n)
 void	Server::print_response(response &rep)
 {
 	std::cout << B_GREEN << "VERSION = " << rep.status_line << "\n";
-	for (std::map<std::string, std::string>::iterator it = _response.headers.begin(); it != _response.headers.end(); it++)
-		std::cout << it->first << " = "  << it->second << "\n\n";
+	for (std::map<std::string, std::vector<std::string> >::iterator it = _response.headers.begin(); it != _response.headers.end(); it++)
+	{
+		std::cout << it->first << " = ";
+			for(size_t i = 0; i < it->second.size(); i++) 
+			{
+				std::cout << it->second[i];
+			}
+			std::cout << "\r\n";
+	}
+	std::cout << B_MAGENTA << "COOKIES = " << rep.status_line << "\n";
 	std::cout << "BODY = " << rep.body << RESET << "\n";
 }
 
