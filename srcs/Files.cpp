@@ -2,11 +2,58 @@
 #include "../includes/webserv.hpp"
 #include "../includes/Files.hpp"
 #include <fstream>
+#include <string>
+#include <string.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <time.h>
+#include <sys/types.h>
+#include <signal.h>
 
 FileHandler::FileHandler()
 {
 	setMime();
 	no_file = true;
+	_error_codes[100] = " Continue";
+	_error_codes[101] = " Switching Protocols";
+	_error_codes[200] = " OK";
+	_error_codes[201] = " Created";
+	_error_codes[202] = " Accepted";
+	_error_codes[203] = " Non-Authoritative Information";
+	_error_codes[204] = " No Content";
+	_error_codes[205] = " Reset Content";
+	_error_codes[206] = " Partial Content";
+	_error_codes[300] = " Multiple Choices";
+	_error_codes[301] = " Moved Permanently";
+	_error_codes[302] = " Found";
+	_error_codes[303] = " See Other";
+	_error_codes[304] = " Not Modified";
+	_error_codes[305] = " Use Proxy";
+	_error_codes[307] = " Temporary Redirect";
+	_error_codes[400] = " Bad Request";
+	_error_codes[401] = " Unauthorized";
+	_error_codes[402] = " Payment Required";
+	_error_codes[403] = " Forbidden";
+	_error_codes[404] = " Not Found";
+	_error_codes[405] = " Method Not Allowed";
+	_error_codes[406] = " Not Acceptable";
+	_error_codes[407] = " Proxy Authentication Required";
+	_error_codes[408] = " Request Time-out";
+	_error_codes[409] = " Conflict";
+	_error_codes[410] = " Gone";
+	_error_codes[411] = " Length Required";
+	_error_codes[412] = " Precondition Failed";
+	_error_codes[413] = " Request Entity Too Large";
+	_error_codes[414] = " Request-URI Too Large";
+	_error_codes[415] = " Unsupported Media Type";
+	_error_codes[416] = " Requested range not satisfiable";
+	_error_codes[417] = " Expectation Failed";
+	_error_codes[500] = " Internal Server Error";
+	_error_codes[501] = " Not Implemented";
+	_error_codes[502] = " Bad Gateway";
+	_error_codes[503] = " Service Unavailable";
+	_error_codes[504] = " Gateway Time-out";
+	_error_codes[505] = " HTTP Version not supported";
 }
 
 FileHandler::~FileHandler()
@@ -62,6 +109,88 @@ void FileHandler::setFile(std::string path)
 	pos += 1;
 	extention = path.substr(pos, path.size() - pos);
 	Content_Type = mimes[extention];
+}
+
+std::string FileHandler::getCgiStatusLine(int code)
+{
+	std::string status_line("HTTP/1.1 ");
+	status_line += std::to_string(code);
+	status_line += _error_codes[code];
+	return (status_line);
+}
+
+char **FileHandler::getCgiEnv(request &req)
+{
+	char **envp;
+	std::vector<std::string> pre_env;
+	pre_env.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	pre_env.push_back("SCRIPT_FILENAME=");
+	pre_env[1].append(req.path, req.path.size());
+	pre_env.push_back("QUERY_STRING=id=123&name=title&parm=333");
+	pre_env.push_back("REQUEST_METHOD=");
+	switch (req.method)
+	{
+		case GET:
+			pre_env[3].append("GET", 3); break;
+		case POST:
+			pre_env[3].append("POST", 4); break;
+		case DELETE:
+			pre_env[3].append("DELETE", 7); break;
+		case INVALID_METHOD:
+			pre_env[3].append("NO", 2); break;
+	}
+	envp = (char **)std::calloc(pre_env.size() + 1, sizeof(char *));
+	for (std::size_t i = 0; i < pre_env.size(); i++)
+		envp[i] = strdup(pre_env[i].c_str());
+
+	return envp;
+}
+
+response FileHandler::execCgi(request &req, std::string &bin_path, std::string &extention)
+{
+	//rajouter un truc pour detecter si c'est un cgi 
+	response r;
+	std::string cmd;
+	
+	cmd = bin_path + " " + req.path;
+	time_t start = time(NULL);
+	int  cgi_pid = fork();
+	if (cgi_pid == -1)
+		;//return response error mais jsp laquelle 500 
+	if (!cgi_pid)
+	{
+		char **envp;
+		static char *argv[] = {cmd.data(), NULL};
+		envp = getCgiEnv(req);
+		if (envp == NULL)
+			;//return response error mais jsp laquelle 500
+		execve(*argv, argv, envp);
+		//faire un free pour **envp
+		//error 500;
+	}
+	while (waitpid(cgi_pid, ,WNOHANG) > 0)
+	{
+		time_t timeout = time(NULL);
+		if (timeout - start < 5)
+		{
+			kill(cgi_pid, SIGKILL);
+			//timeout jsp pas on fais quoi mais on le fais
+		}
+	
+	}
+	
+	/*
+	meta-variable-name = "AUTH_TYPE" | "CONTENT_LENGTH" |
+	"CONTENT_TYPE" | "GATEWAY_INTERFACE" |
+	"PATH_INFO" | "PATH_TRANSLATED" |
+	"QUERY_STRING" | "REMOTE_ADDR" |
+	"REMOTE_HOST" | "REMOTE_IDENT" |
+	"REMOTE_USER" | "REQUEST_METHOD" |
+	"SCRIPT_NAME" | "SERVER_NAME" |
+	"SERVER_PORT" | "SERVER_PROTOCOL" |
+	"SERVER_SOFTWARE" | scheme |
+	protocol-var-name | extension-var-name	*/
+	return r;
 }
 
 void	FileHandler::setMime(void)

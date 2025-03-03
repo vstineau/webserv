@@ -157,6 +157,8 @@ void Init::epoll_loop()
 				for (int i = 0; i < (int)servs.size(); i++)
 					if (std::count(servs[i].client_fd.begin(), servs[i].client_fd.end(), events[i].data.fd))
 						server_index = i;
+				if (server_index == -1)
+					continue;
 				if (handle_epollrdhup(servs[server_index], events, i, epoll_fd))
 					continue;
 				if (handle_epollin(servs[server_index], events, i, epoll_fd))
