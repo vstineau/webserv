@@ -53,6 +53,7 @@ struct location
 	std::string									root;
 	std::string									cgi_extention;
 	std::string									cgi_bin;
+	std::string									index_html;
 	char												allowed_method[4];
 	int													client_body_size;
 	bool												directory_listing;
@@ -66,8 +67,8 @@ struct config {
 	std::vector<std::string>				server_index;
 	std::string											root;
 	std::string											host;
-	std::string											http_redirection;
-	std::string											directory_path;
+	// std::string											http_redirection;
+	// std::string											directory_path;
 	std::map<int, std::string>			error_pages;
 	char														allowed_method[4];
 	int															port;

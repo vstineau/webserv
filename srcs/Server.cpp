@@ -17,13 +17,13 @@ Server::~Server()
 		close(server_fd);
 }
 
-Server::Server() : server_fd(-1), address(), status_code(200)
+// Server::Server() : server_fd(-1), address(), status_code(200)
 Server::Server() : server_fd(-1), address(), status_code(200)
 {
 	setErrorCodes();
 }
 
-Server::Server(config &conf) : server_fd(-1), status_code(200), _conf(conf)
+// Server::Server(config &conf) : server_fd(-1), status_code(200), _conf(conf)
 Server::Server(config &conf) : server_fd(-1), status_code(200), _conf(conf)
 {
 	setErrorCodes();
@@ -119,8 +119,42 @@ void Server::setErrorCodes(void)
 	_error_codes[505] = " HTTP Version not supported";
 }
 
+int Server::checkLocations(request &req) //gerer si location et fichier dans upload ont le meme nom
+{
+	for(std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
+	std::cout << BLUE << it->first << RESET << std::endl;
+std::cout << RED << req.path.substr(4,6) << RESET << std::endl;
+if(_conf.locations.count(req.path.substr(4,6)))
+{
+		std::cout << "qqqqqqqqqqqqqqqqqqqqqq" << RESET << std::endl;
+		status_code = 200;
+		SetResponseStatus(status_code);
+		std::string path = req.path + "/index.html";
+		file_in_string(_response.body, path.c_str());
+		_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+		return 1;
+	}
+	return 0;
+}
+
+// {
+// 	if (page de base)
+// 		page
+// 	else if (location)
+// 		location
+// 	else if (mime)
+// 		mime
+// 	else
+// 		404
+// }
+
+
+
 void Server::_responseGET(request &req)
 {
+	if(checkLocations(req))
+		return;
 	_file.setFileInfo(req.path);
 	_file.setFile(req.path);
 	if (_file.extention != "NO EXTENTION")
@@ -133,8 +167,8 @@ void Server::_responseGET(request &req)
 			SetResponseStatus(status_code);
 			_response.body = get_body_error(404);
 			std::cout << "this thing : " << _file.mimes[_file.extention] << "\n";
-			_response.headers["Content-Type: "] = "text/html";
-			_response.headers["Content-Length: "] = to_string(_response.body.length());
+			_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 			return;
 		}
 		else
@@ -143,8 +177,8 @@ void Server::_responseGET(request &req)
 			std::cout << "file was opened\n";
 			_response.body = _file.filestring;
 			SetResponseStatus(status_code);
-			_response.headers["Content-Type: "] = _file.mimes[_file.extention];
-			_response.headers["Content-Length: "] = to_string(_file.file_size);
+			_response.headers["Content-Type: "].push_back(_file.mimes[_file.extention]); // hard-coded as well, need to check for mimes
+			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 		}
 	}
 	else
@@ -168,7 +202,6 @@ void Server::_responseGET(request &req)
 			   "src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/"
 			   "aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"/></a>"
 			   "		<img src=\"/200.gif\"/>"
-			   "		<img src=\"/vstineau.jpg\"/>"
 			   "		<form method=\"POST\" enctype=\"multipart/form-data\">"
 			   "			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
 			   "			<input type=\"file\" id=\"actual-btn2\" name=\"file2\"/>"
@@ -178,8 +211,8 @@ void Server::_responseGET(request &req)
 			   "</html>";
 		_response.body = page;
 		SetResponseStatus(status_code);
-		_response.headers["Content-Type: "] = "text/html";
-		_response.headers["Content-Length: "] = to_string(page.length());
+		_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 		page.clear();
 	}
 	return;
@@ -214,8 +247,8 @@ void Server::_responsePOST(request &req)
 	"</html>";
 	_response.body = page;
 	SetResponseStatus(status_code);
-	_response.headers["Content-Type: "] = "text/html";
-	_response.headers["Content-Length: "] = to_string(page.length());
+	_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+	_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 	page.clear();
 	return ; 
 }
@@ -253,8 +286,8 @@ void Server::_responseDELETE(request &req)
 	"</html>";
 	_response.body = page;
 	SetResponseStatus(status_code);
-	_response.headers["Content-Type: "] = "text/html"; // hard-coded as well, need to check for mimes
-	_response.headers["Content-Length: "] = to_string(page.length());
+	_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+	_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 	page.clear();
 	return;
 }

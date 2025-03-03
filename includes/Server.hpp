@@ -3,8 +3,8 @@
 // #ifndef SERVER_HPP
 // #define SERVER_HPP
 
-#include "../includes/webserv.hpp"
 #include "../includes/Files.hpp"
+#include "../includes/webserv.hpp"
 #include <arpa/inet.h>
 #include <map>
 #include <string>
@@ -15,21 +15,17 @@
 
 //%{code_error}%
 static const std::string error_body =
-	"<!DOCTYPE html>" ENDL "<html lang=\"en\"> " ENDL "<head>" ENDL
-	"	<meta charset=\"UTF-8\">" ENDL
-	"	<meta name=\"error\" content=\"width=device-width, initial-scale=1.0\">" ENDL
-	"		<title>%{code_error}%</title>" ENDL
+	"<!DOCTYPE html>" ENDL "<html lang=\"en\"> " ENDL "<head>" ENDL "	<meta charset=\"UTF-8\">" ENDL
+	"	<meta name=\"error\" content=\"width=device-width, initial-scale=1.0\">" ENDL "		<title>%{code_error}%</title>" ENDL
 	"		<style> body{	background: content-box radial-gradient(#0664dc, #33b203);" ENDL
-	"									font-family: cursive;" ENDL
-	"									font-size: 3.2rem;" ENDL
-	"									display: flex;" ENDL
-	"									width: 100%;" ENDL
-	"								height: 100%;" ENDL
-	"								justify-content: center;" ENDL
+	"									font-family: cursive;" ENDL "									font-size: 3.2rem;" ENDL
+	"									display: flex;" ENDL "									width: 100%;" ENDL
+	"								height: 100%;" ENDL "								justify-content: center;" ENDL
 	"								}" ENDL "		</style>" ENDL "</head>" ENDL "<body>" ENDL
 	"		<img src=https://http.cat/%{code_error}%.jpg /> " ENDL "</body>" ENDL;
 
-class Server {
+class Server
+{
 
 	public:
 	Server();
@@ -61,6 +57,7 @@ class Server {
 	void _responseGET(request &rep);
 	void _responsePOST(request &rep);
 	void _responseDELETE(request &rep);
+	int checkLocations(request &req);
 	config _conf;
 	std::map<int, request> _requests;
 	std::map<int, std::string> _error_codes;

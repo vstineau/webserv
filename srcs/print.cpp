@@ -52,6 +52,7 @@ std::ostream & operator<<(std::ostream & o, location & i)
 	{
 		o << "		" << im->first << " " << im->second << "\n";
 	}
+	o << "		ROOT : " << i.index_html << "\n";
 	return (o);
 }
 
