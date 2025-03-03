@@ -154,36 +154,36 @@ void Server::_responseGET(request &req)
 	else
 	{
 		SetResponseStatus(status_code);
-		std::string page;
-		page = "<!DOCTYPE html>"
-			   "<html lang=\"en\">"
-			   "<head>"
-			   "	<meta charset=\"UTF-8\">"
-			   "	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-			   "	<title>Webserv</title>"
-			   "</head>"
-			   "	<body>"
-			   "		<h1>Hello world</h1>"
-			   "		<p style='color: red;'>This is a paragraph</p>"
-			   "		<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\" "
-			   "target=\"_blank\">DUCK</a>"
-			   "		<p></p>"
-			   "		<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img "
-			   "src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/"
-			   "aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"/></a>"
-			   "		<img src=\"/200.gif\"/>"
-			   "		<img src=\"/vstineau.jpg\"/>"
-			   "		<form method=\"POST\" enctype=\"multipart/form-data\">"
-			   "			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
-			   "			<input type=\"submit\"/>"
-			   "		</form>"
-			   "	</body>"
-			   "</html>";
-		_response.body = page;
+		// std::string page = file_in_string(page, "srcs/html/index.html");
+		// page = "<!DOCTYPE html>"
+		// 	   "<html lang=\"en\">"
+		// 	   "<head>"
+		// 	   "	<meta charset=\"UTF-8\">"
+		// 	   "	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
+		// 	   "	<title>Webserv</title>"
+		// 	   "</head>"
+		// 	   "	<body>"
+		// 	   "		<h1>Hello world</h1>"
+		// 	   "		<p style='color: red;'>This is a paragraph</p>"
+		// 	   "		<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\" "
+		// 	   "target=\"_blank\">DUCK</a>"
+		// 	   "		<p></p>"
+		// 	   "		<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img "
+		// 	   "src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/"
+		// 	   "aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"/></a>"
+		// 	   "		<img src=\"/200.gif\"/>"
+		// 	   "		<img src=\"/vstineau.jpg\"/>"
+		// 	   "		<form method=\"POST\" enctype=\"multipart/form-data\">"
+		// 	   "			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
+		// 	   "			<input type=\"submit\"/>"
+		// 	   "		</form>"
+		// 	   "	</body>"
+		// 	   "</html>";
+		file_in_string(_response.body, "srcs/html/index.html");
 		SetResponseStatus(status_code);
 		_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
-		_response.headers["Content-Length: "].push_back(to_string(page.length()));
-		page.clear();
+		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+		// page.clear();
 	}
 	return;
 }

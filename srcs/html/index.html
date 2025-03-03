@@ -53,7 +53,7 @@
             width: 100%;
         }
         button_post {
-            padding: 12px 12px;
+            padding: 11px 25px;
             font-size: 16px;
             cursor: pointer;
             margin-top: 20px;
@@ -65,16 +65,16 @@
         }
         button_post:hover {
             background-color: rgba(255, 187, 0, 0.65);
-            padding: 12px 12px;
+            padding: 11px 23px;
             border-radius: 20px;
             transition: 0.2s;
         }
         button_post:active {
             background-color:rgb(255, 255, 255);
             position: relative;
-            padding: 12px 12px;
+            padding: 11px 23px;
             border-radius: 20px;
-            transition: 0.2s;
+            transition: 0.1s;
         }
         button_delete {
             padding: 12px 12px;
@@ -134,7 +134,13 @@
     <main>
         <h2>WebServ</h2>
         <p>choose the methode you want to use</p>
-        <button_post class="positionne-bouton" onclick="window.location.href='http://127.0.0.1:8080/post';"');"><span>POST</span></button_post>
+        <form action="/upload" method="POST" enctype="multipart/form-data">
+            <div class="button_post">
+                <input type="file" class="button_post" id="actual-btn" name="file" />
+                <input type="file" class="button_post" id="actual-btn" name="file" />
+                <button type="submit" class ="button_post" class="positionne-bouton">POST</button>
+            </div>
+        </form>
         <button_delete class="positionne-bouton" onclick="window.location.href='http://127.0.0.1:8080/delete';"');">DELETE</button_delete>
         <button_galery class="positionne-bouton" onclick="window.location.href='http://127.0.0.1:8080/galery';"');">Galery</button_galery>
         <p>Voici un <a href="https://github.com/vstineau/webserv"         target="_blank">lien vers le GitHub du projet</a>.</p>
