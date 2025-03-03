@@ -12,7 +12,7 @@ void	Server::print_request(int n)
 	std::cout << "VERSION = " << _requests[n].version << "\n";
 	for (std::map<std::string, std::string>::iterator it = _requests[n].headers.begin(); it != _requests[n].headers.end(); it++)
 		std::cout << it->first << " = "  << it->second << "\n\n";
-	std::cout << "BODY = " << _requests[n].body << "\n";
+	// std::cout << "BODY = " << _requests[n].body << "\n";
 }
 
 void	Server::print_response(response &rep)

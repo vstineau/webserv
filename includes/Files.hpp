@@ -24,12 +24,12 @@ class FileHandler {
 //		getContentType();
 		response execCgi(std::string &bin_path, std::string &extention);
 		long long		file_size;
-		std::string	filestring;
-		std::string	path;
+		std::string		filestring;
+		std::string		path;
 		File_type		type;
-		std::string	extention;
-		bool				no_file;
-		std::string	Content_Type;
+		std::string		extention;
+		bool			no_file;
+		std::string		Content_Type;
 };
 
 //

@@ -34,7 +34,6 @@ std::string to_string(long i) {
 	return s.str();
 }
 
-
 void fillBodyResponse(std::string &content) {
 	std::string head =
 		"<!DOCTYPE html>\n"

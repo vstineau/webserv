@@ -126,10 +126,9 @@ std::string getContentGet(std::string str);
 int				init_signals(void);
 
 //DIRECTORY LISTING
-std::string directory_listing(std::string path);
-std::string upload(std::string path);
-int send_response(std::string message, int fd);
-void fillBodyResponse(std::string &content);
+std::string	directory_listing(std::string path);
+std::string	upload(std::string path);
+std::string	fillDirectoryListing(std::string listing);
 
 //DEBUG
 void	print_config(std::vector<config> &confs);
