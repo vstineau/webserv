@@ -1,8 +1,8 @@
 
 #include "../includes/Server.hpp"
 #include "../includes/color.hpp"
-#include <fstream>
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -45,11 +45,13 @@ void Server::setSocket()
 		perror("socket");
 	}
 	setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &b, sizeof(int));
-	if (bind(server_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1) {
+	if (bind(server_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1)
+	{
 		perror("bind");
 		close(server_fd);
 	}
-	if (listen(server_fd, 10) == -1) {
+	if (listen(server_fd, 10) == -1)
+	{
 		perror("listen");
 		close(server_fd);
 	}
@@ -61,7 +63,8 @@ std::string Server::getResponse(void) const
 	std::string r;
 	r += _response.status_line;
 	r += "\r\n";
-	for (std::map<std::string, std::vector< std::string> >::const_iterator it = _response.headers.begin(); it != _response.headers.end(); it++)
+	for (std::map<std::string, std::vector<std::string> >::const_iterator it = _response.headers.begin();
+		 it != _response.headers.end(); it++)
 	{
 		for (size_t i = 0; i < it->second.size(); i++)
 		{
@@ -119,25 +122,6 @@ void Server::setErrorCodes(void)
 	_error_codes[505] = " HTTP Version not supported";
 }
 
-int Server::checkLocations(request &req) //gerer si location et fichier dans upload ont le meme nom
-{
-	for(std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
-	std::cout << BLUE << it->first << RESET << std::endl;
-std::cout << RED << req.path.substr(4,6) << RESET << std::endl;
-if(_conf.locations.count(req.path.substr(4,6)))
-{
-		std::cout << "qqqqqqqqqqqqqqqqqqqqqq" << RESET << std::endl;
-		status_code = 200;
-		SetResponseStatus(status_code);
-		std::string path = req.path + "/index.html";
-		file_in_string(_response.body, path.c_str());
-		_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
-		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
-		return 1;
-	}
-	return 0;
-}
-
 // {
 // 	if (page de base)
 // 		page
@@ -149,11 +133,36 @@ if(_conf.locations.count(req.path.substr(4,6)))
 // 		404
 // }
 
-
+int Server::checkLocations(request &req) // gerer si location et fichier dans upload ont le meme nom
+{
+	// req.
+	// std::cout << "req.path = " << req.path << RESET << std::endl;
+	for (std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
+	{
+		std::cout << it->first << std::endl;
+		std::cout << req.path.substr(_conf.root.length(), it->first.length()) << std::endl;
+		if(it->first == req.path.substr(_conf.root.length()))
+		{
+			std::cout << "qqqqqqqqqqqqqqqqqqqqqq" << RESET << std::endl;
+			status_code = 200;
+			SetResponseStatus(status_code);
+			std::string path = req.path + "/index.html";
+			file_in_string(_response.body, path.c_str());
+			_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+			return 1;
+		}
+	// }
+	// std::cout << GREEN << "req.path.substr(_conf.root.length()) = " << req.path.substr(_conf.root.length()) << RESET << std::endl;
+	// std::cout << GREEN << "req.path = " << req.path << RESET << std::endl;
+	// if (_conf.locations.count(req.path.substr(_conf.root.length())) != 0)
+	}
+	return 0;
+}
 
 void Server::_responseGET(request &req)
 {
-	if(checkLocations(req))
+	if (checkLocations(req))
 		return;
 	_file.setFileInfo(req.path);
 	_file.setFile(req.path);
@@ -177,7 +186,8 @@ void Server::_responseGET(request &req)
 			std::cout << "file was opened\n";
 			_response.body = _file.filestring;
 			SetResponseStatus(status_code);
-			_response.headers["Content-Type: "].push_back(_file.mimes[_file.extention]); // hard-coded as well, need to check for mimes
+			_response.headers["Content-Type: "].push_back(
+				_file.mimes[_file.extention]); // hard-coded as well, need to check for mimes
 			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 		}
 	}
@@ -201,7 +211,7 @@ void Server::_responseGET(request &req)
 			   "		<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img "
 			   "src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/"
 			   "aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"/></a>"
-			   "		<img src=\"/200.gif\"/>"
+			//    "		<img src=\"/upload/200.gif\"/>"
 			   "		<form method=\"POST\" enctype=\"multipart/form-data\">"
 			   "			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
 			   "			<input type=\"file\" id=\"actual-btn2\" name=\"file2\"/>"
@@ -224,33 +234,36 @@ void Server::_responsePOST(request &req)
 	create_img(_response.body);
 	std::string page;
 	page = "<!DOCTYPE html>"
-	"<html lang=\"en\">"
-	"<head>"
-	"	<meta charset=\"UTF-8\">"
-	"	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-	"	<title>Webserv</title>"
-	"</head>"
-	"	<body>"
-	"		<h1>Hello world</h1>"
-	"		<p style='color: red;'>This is a paragraph</p>"
-	"		<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\" target=\"_blank\">DUCK</a>"
-	"		<p></p>"
-	"		<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"/></a>"
-	"		<img src=\"/200.gif\"/>"
-	"		<img src=\"/vstineau.jpg\"/>"
-	"		<form method=\"POST\" enctype=\"multipart/form-data\">"
-	"			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
-	"			<input type=\"file\" id=\"actual-btn2\" name=\"file2\"/>"
-	"			<input type=\"submit\"/>"
-	"		</form>"
-	"	</body>"
-	"</html>";
+		   "<html lang=\"en\">"
+		   "<head>"
+		   "	<meta charset=\"UTF-8\">"
+		   "	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
+		   "	<title>Webserv</title>"
+		   "</head>"
+		   "	<body>"
+		   "		<h1>Hello world</h1>"
+		   "		<p style='color: red;'>This is a paragraph</p>"
+		   "		<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\" "
+		   "target=\"_blank\">DUCK</a>"
+		   "		<p></p>"
+		   "		<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img "
+		   "src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/"
+		   "aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"/></a>"
+		//    "		<img src=\"/200.gif\"/>"
+		   "		<img src=\"/vstineau.jpg\"/>"
+		   "		<form method=\"POST\" enctype=\"multipart/form-data\">"
+		   "			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
+		   "			<input type=\"file\" id=\"actual-btn2\" name=\"file2\"/>"
+		   "			<input type=\"submit\"/>"
+		   "		</form>"
+		   "	</body>"
+		   "</html>";
 	_response.body = page;
 	SetResponseStatus(status_code);
 	_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
 	_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 	page.clear();
-	return ; 
+	return;
 }
 
 void Server::_responseDELETE(request &req)
@@ -263,27 +276,30 @@ void Server::_responseDELETE(request &req)
 	}
 	std::string page;
 	page = "<!DOCTYPE html>"
-	"<html lang=\"en\">"
-	"<head>"
-	"	<meta charset=\"UTF-8\">"
-	"	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-	"	<title>Webserv</title>"
-	"</head>"
-	"	<body>"
-	"		<h1>Hello world</h1>"
-	"		<p style='color: red;'>This is a paragraph</p>"
-	"		<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\" target=\"_blank\">DUCK</a>"
-	"		<p></p>"
-	"		<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"/></a>"
-	"		<img src=\"/200.gif\"/>"
-	"		<img src=\"/vstineau.jpg\"/>"
-	"		<form method=\"POST\" enctype=\"multipart/form-data\">"
-	"			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
-	"			<input type=\"file\" id=\"actual-btn2\" name=\"file2\"/>"
-	"			<input type=\"submit\"/>"
-	"		</form>"
-	"	</body>"
-	"</html>";
+		   "<html lang=\"en\">"
+		   "<head>"
+		   "	<meta charset=\"UTF-8\">"
+		   "	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
+		   "	<title>Webserv</title>"
+		   "</head>"
+		   "	<body>"
+		   "		<h1>Hello world</h1>"
+		   "		<p style='color: red;'>This is a paragraph</p>"
+		   "		<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\" "
+		   "target=\"_blank\">DUCK</a>"
+		   "		<p></p>"
+		   "		<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img "
+		   "src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/"
+		   "aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"/></a>"
+		//    "		<img src=\"/200.gif\"/>"
+		   "		<img src=\"/vstineau.jpg\"/>"
+		   "		<form method=\"POST\" enctype=\"multipart/form-data\">"
+		   "			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
+		   "			<input type=\"file\" id=\"actual-btn2\" name=\"file2\"/>"
+		   "			<input type=\"submit\"/>"
+		   "		</form>"
+		   "	</body>"
+		   "</html>";
 	_response.body = page;
 	SetResponseStatus(status_code);
 	_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
@@ -316,13 +332,14 @@ void Server::SetResponse(int n)
 		_responseDELETE(_requests[n]);
 }
 
-void Server::create_img(std::string &img) {
+void Server::create_img(std::string &img)
+{
 	size_t pos = 0;
 	size_t offset = 0;
 	std::string filename;
 	std::string content;
 	std::string pwd;
-	
+
 	pwd = getcwd(0, 1000);
 	if (chdir("www/upload"))
 		std::cerr << "CHDIR 1 FAILED\n";
@@ -331,7 +348,7 @@ void Server::create_img(std::string &img) {
 	{
 		if (chdir(pwd.c_str()))
 			std::cerr << "CHDIR 2 FAILED\n";
-		return ;
+		return;
 	}
 	offset = pos + 10;
 	pos = img.find("\"", offset);
@@ -350,7 +367,7 @@ void Server::create_img(std::string &img) {
 	{
 		if (chdir(pwd.c_str()))
 			std::cerr << "CHDIR 2 FAILED\n";
-		return ;
+		return;
 	}
 	offset = pos + 4;
 	content = img.substr(offset, img.size() - offset);
@@ -359,11 +376,13 @@ void Server::create_img(std::string &img) {
 		std::cerr << "CHDIR 2 FAILED\n";
 }
 
-void Server::fill_body(std::string &body, int &n) {
+void Server::fill_body(std::string &body, int &n)
+{
 	size_t pos = 0;
 	size_t offset = 0;
 	std::string img;
-	while (pos != std::string::npos) {
+	while (pos != std::string::npos)
+	{
 		pos = body.find("\n", offset);
 		if (pos == std::string::npos)
 		{
@@ -381,7 +400,7 @@ void Server::fill_body(std::string &body, int &n) {
 	}
 }
 //
-//void Server::fill_cookie(std::string &header)
+// void Server::fill_cookie(std::string &header)
 //{
 //	size_t pos = 0;
 //	size_t offset = 0;
@@ -406,7 +425,8 @@ void Server::fill_header(std::string &header, int &n)
 	size_t pos = 0;
 	size_t offset = 0;
 	std::string key;
-	while (pos != std::string::npos) {
+	while (pos != std::string::npos)
+	{
 		pos = header.find(":", offset);
 		if (pos == std::string::npos)
 		{
@@ -414,7 +434,8 @@ void Server::fill_header(std::string &header, int &n)
 		}
 		key = header.substr(offset, pos - offset);
 		offset = pos + 1;
-		if (key == "Content-Type") {
+		if (key == "Content-Type")
+		{
 			pos = check_contentype(n, pos, offset, header);
 			if (pos == std::string::npos)
 			{
@@ -432,8 +453,8 @@ void Server::fill_header(std::string &header, int &n)
 		}
 		offset = pos + 1;
 	}
-//	if (!_requests[n].headers["Cookie"].empty())
-//		fill_cookie(_requests[n].headers["Cookie"]);
+	//	if (!_requests[n].headers["Cookie"].empty())
+	//		fill_cookie(_requests[n].headers["Cookie"]);
 }
 
 std::size_t Server::check_contentype(int n, std::size_t pos, std::size_t offset, std::string &buffer)
@@ -448,7 +469,8 @@ std::size_t Server::check_contentype(int n, std::size_t pos, std::size_t offset,
 		return (posendline);
 	tmp = buffer.substr(offset, pos - offset);
 	pos = buffer.find(key2, offset);
-	if (pos == std::string::npos) {
+	if (pos == std::string::npos)
+	{
 		_requests[n].headers[key1] = buffer.substr(offset, posendline - offset);
 		return (posendline);
 	}
@@ -477,10 +499,14 @@ void Server::fillRequest(int n, std::string &buffer)
 	{
 		_requests[n].method = GET;
 		offset = pos + 3;
-	} else if (!buffer.find("POST")) {
+	}
+	else if (!buffer.find("POST"))
+	{
 		_requests[n].method = POST;
 		offset = pos + 4;
-	} else if (!buffer.find("DELETE")) {
+	}
+	else if (!buffer.find("DELETE"))
+	{
 		_requests[n].method = DELETE;
 		offset = pos + 6;
 	}
@@ -496,7 +522,7 @@ void Server::fillRequest(int n, std::string &buffer)
 		return;
 	}
 	_requests[n].path = buffer.substr(offset, pos - offset);
-	_requests[n].path.replace(0, 1, "www/upload/"); //a remplacer par le root
+	_requests[n].path.replace(0, 1, _conf.root); // a remplacer par le root
 	offset = pos + 1;
 	pos = buffer.find("\n", offset);
 	if (pos == std::string::npos)
