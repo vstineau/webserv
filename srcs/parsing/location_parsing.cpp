@@ -1,6 +1,24 @@
 
 #include "../../includes/webserv.hpp"
 
+static void	get_index(std::string &path, std::string &buffer,  config &conf)
+{
+	size_t				pos = 0;
+	size_t				offset = 0;
+
+	pos = buffer.find("index: ");
+	if (pos == std::string::npos)
+		return ;
+	offset = pos + 7;
+	pos = buffer.find(";", offset);
+	if (pos == std::string::npos)
+	{
+		std::cerr << "no index found\n";
+		return ;
+	}
+	conf.locations[path].index_html = buffer.substr(offset, pos - offset);
+}
+
 static void	get_return(std::string &path, std::string &buffer,  config &conf)
 {
 	size_t				pos = 0;
@@ -163,6 +181,7 @@ void	fill_location(std::string &path, std::string &buffer, config &conf)
 	get_cgi_extention(path, buffer, conf);
 	set_error_pages(path, buffer, conf);
 	get_method_allowed(path, buffer, conf);
+	get_index(path, buffer, conf);
 }
 
 void get_locations_bloc(config &conf, std::string &buffer)

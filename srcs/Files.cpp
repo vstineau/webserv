@@ -1,5 +1,6 @@
 
 #include "../includes/webserv.hpp"
+#include <map>
 #include "../includes/Files.hpp"
 #include <fstream>
 #include <string>
@@ -44,10 +45,11 @@ void FileHandler::setFileInfo(std::string path)
 void FileHandler::setFile(std::string path)
 {
 	std::string line;
+	if (!filestring.empty())
+		filestring.clear();
 	std::ifstream ifs(path.c_str());
 	if (!ifs)
 	{
-		std::cout << "code mieux fdp\n";
 		(NULL);
 	}
 	while (std::getline(ifs, line))
@@ -196,6 +198,7 @@ void	FileHandler::setErrorCodes(void)
 
 void	FileHandler::setMime(void)
 {
+	mimes["NO EXTENTION"] = "text/plain";
 	mimes["jpg"]     = "image/jpeg";
 	mimes["jpeg"]    = "image/jpeg";
 	mimes["gif"]     = "image/gif";

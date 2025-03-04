@@ -27,8 +27,8 @@ class FileHandler {
 		response execCgi(request &req, std::string &bin_path, std::string &extention);
 		char **getCgiEnv(request &req);
 		long long		file_size;
-		std::string	filestring;
-		std::string	path;
+		std::string		filestring;
+		std::string		path;
 		File_type		type;
 		std::string	extention;
 		bool				no_file;

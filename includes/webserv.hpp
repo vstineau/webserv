@@ -53,6 +53,7 @@ struct location
 	std::string									root;
 	std::string									cgi_extention;
 	std::string									cgi_bin;
+	std::string									index_html;
 	char												allowed_method[4];
 	int													client_body_size;
 	bool												directory_listing;
@@ -66,8 +67,8 @@ struct config {
 	std::vector<std::string>				server_index;
 	std::string											root;
 	std::string											host;
-	std::string											http_redirection;
-	std::string											directory_path;
+	// std::string											http_redirection;
+	// std::string											directory_path;
 	std::map<int, std::string>			error_pages;
 	char														allowed_method[4];
 	int															port;
@@ -109,6 +110,7 @@ class Server;
 void epoll_loop(std::vector<Server> &servs);
 
 //PARSING OF THE CONFIGURATON FILE
+void init_server(std::map<int, Server> &map_serv, std::vector<config> &confs);
 size_t		count_words(const char *line, char c);
 size_t		how_many_serv(char *file);
 void			get_one_config(config &conf, std::string &buffer);
@@ -119,15 +121,15 @@ void			get_locations_bloc(config &conf, std::string &buffer);
 //RESPONSES
 void				file_in_string(std::string &sfile, const char *file);
 std::string	get_body_error(int status_code);
+std::string getContentGet(std::string str);
 
 //SIGNAL
 int				init_signals(void);
 
 //DIRECTORY LISTING
-std::string directory_listing(std::string path);
-std::string upload(std::string path);
-int send_response(std::string message, int fd);
-std::string fillDirectoryListing(std::string listing);
+std::string	directory_listing(std::string path);
+std::string	upload(std::string path);
+std::string	fillDirectoryListing(std::string listing);
 
 //DEBUG
 void	print_config(std::vector<config> &confs);

@@ -35,7 +35,9 @@ static int handle_epollin(Server &serv, struct epoll_event *events, int &n, int 
 		do
 		{
 			count = recv(events[n].data.fd, buffer, 1024, 0);
+			// std::string test(buffer);
 			buff.append(buffer, count);
+			// buff += test;
 		} while (count == 1024);
 		if (count == 0)
 		{
@@ -45,11 +47,11 @@ static int handle_epollin(Server &serv, struct epoll_event *events, int &n, int 
 								 serv.client_fd.end());
 			std::cout << RED << "fd [" << events[n].data.fd << "] closed" << RESET << std::endl;
 		}
-		std::cout << HI_CYAN << "-----------REQUEST----------" << RESET << std::endl;
+		// std::cout << HI_CYAN << "-----------REQUEST----------" << RESET << std::endl;
 		serv.fillRequest(n, buff);
 		// serv.identifyRequest(n);
 		serv.SetResponse(n);
-		serv.print_request(n);
+		// serv.print_request(n);
 		std::cout << HI_CYAN << "-----------REQUEST----------" << RESET << std::endl;
 		// std::cout << buff << std::endl;
 		struct epoll_event ev;
@@ -70,7 +72,7 @@ static int handle_epollout(Server &serv, struct epoll_event *events, int &n, int
 	if (events[n].events & EPOLLOUT)
 	{
 		// std::cout << "---------------RESPONSE---------------" << RESET << std::endl;
-		 std::cout << BLUE << serv.getResponse() << RESET << std::endl;
+		//  std::cout << BLUE << serv.getResponse() << RESET << std::endl;
 		// std::cout << "---------------RESPONSE---------------" << RESET << std::endl;
 		serv.status_code = 200;
 		if (send(events[n].data.fd, serv.getResponse().c_str(), serv.getResponse().size(), MSG_NOSIGNAL) == -1)

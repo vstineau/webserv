@@ -10,6 +10,8 @@ void	file_in_string(std::string &sfile, const char *file)
 		std::cout << "code mieux fdp\n";
 		(NULL);
 	}
+	if(!sfile.empty())
+		sfile.clear();
 	while (std::getline(ifs, line))
 	{
 		sfile += line;
