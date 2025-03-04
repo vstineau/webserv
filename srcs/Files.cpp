@@ -8,52 +8,14 @@
 #include <stdlib.h>
 #include <time.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <signal.h>
 
 FileHandler::FileHandler()
 {
 	setMime();
+	setErrorCodes();
 	no_file = true;
-	_error_codes[100] = " Continue";
-	_error_codes[101] = " Switching Protocols";
-	_error_codes[200] = " OK";
-	_error_codes[201] = " Created";
-	_error_codes[202] = " Accepted";
-	_error_codes[203] = " Non-Authoritative Information";
-	_error_codes[204] = " No Content";
-	_error_codes[205] = " Reset Content";
-	_error_codes[206] = " Partial Content";
-	_error_codes[300] = " Multiple Choices";
-	_error_codes[301] = " Moved Permanently";
-	_error_codes[302] = " Found";
-	_error_codes[303] = " See Other";
-	_error_codes[304] = " Not Modified";
-	_error_codes[305] = " Use Proxy";
-	_error_codes[307] = " Temporary Redirect";
-	_error_codes[400] = " Bad Request";
-	_error_codes[401] = " Unauthorized";
-	_error_codes[402] = " Payment Required";
-	_error_codes[403] = " Forbidden";
-	_error_codes[404] = " Not Found";
-	_error_codes[405] = " Method Not Allowed";
-	_error_codes[406] = " Not Acceptable";
-	_error_codes[407] = " Proxy Authentication Required";
-	_error_codes[408] = " Request Time-out";
-	_error_codes[409] = " Conflict";
-	_error_codes[410] = " Gone";
-	_error_codes[411] = " Length Required";
-	_error_codes[412] = " Precondition Failed";
-	_error_codes[413] = " Request Entity Too Large";
-	_error_codes[414] = " Request-URI Too Large";
-	_error_codes[415] = " Unsupported Media Type";
-	_error_codes[416] = " Requested range not satisfiable";
-	_error_codes[417] = " Expectation Failed";
-	_error_codes[500] = " Internal Server Error";
-	_error_codes[501] = " Not Implemented";
-	_error_codes[502] = " Bad Gateway";
-	_error_codes[503] = " Service Unavailable";
-	_error_codes[504] = " Gateway Time-out";
-	_error_codes[505] = " HTTP Version not supported";
 }
 
 FileHandler::~FileHandler()
@@ -73,14 +35,8 @@ void FileHandler::setFileInfo(std::string path)
 	std::cout << "Type de fichier :                ";
 	switch (sb.st_mode & S_IFMT)
 	{
-		case S_IFBLK:  std::cout << "périphérique de bloc\n";      break;
-		case S_IFCHR:  std::cout << "périphérique de caractère\n"; break;
-		case S_IFDIR:  type = DIRECTORY; std::cout << "répertoire\n";                break;
-		case S_IFIFO:  std::cout << "FIFO/tube\n";                 break;
-		case S_IFLNK:  std::cout << "lien symbolique\n";           break;
-		case S_IFREG:  type = CLASSIC_FILE; std::cout << "fichier ordinaire\n";         break;
-		case S_IFSOCK: std::cout << "socket\n";                    break;
-		default:       std::cout << "inconnu ?\n";                 break;
+		case S_IFDIR:  type = DIRECTORY; break;
+		case S_IFREG:  type = CLASSIC_FILE; break;
 	}
 	file_size = (long long)sb.st_size;
 }
@@ -126,7 +82,7 @@ char **FileHandler::getCgiEnv(request &req)
 	pre_env.push_back("GATEWAY_INTERFACE=CGI/1.1");
 	pre_env.push_back("SCRIPT_FILENAME=");
 	pre_env[1].append(req.path, req.path.size());
-	pre_env.push_back("QUERY_STRING=id=123&name=title&parm=333");
+	pre_env.push_back("QUERY_STRING=");
 	pre_env.push_back("REQUEST_METHOD=");
 	switch (req.method)
 	{
@@ -168,7 +124,8 @@ response FileHandler::execCgi(request &req, std::string &bin_path, std::string &
 		//faire un free pour **envp
 		//error 500;
 	}
-	while (waitpid(cgi_pid, ,WNOHANG) > 0)
+	int status;
+	while (waitpid(cgi_pid, &status,WNOHANG) > 0)
 	{
 		time_t timeout = time(NULL);
 		if (timeout - start < 5)
@@ -191,6 +148,50 @@ response FileHandler::execCgi(request &req, std::string &bin_path, std::string &
 	"SERVER_SOFTWARE" | scheme |
 	protocol-var-name | extension-var-name	*/
 	return r;
+}
+
+void	FileHandler::setErrorCodes(void)
+{
+	_error_codes[100] = " Continue";
+	_error_codes[101] = " Switching Protocols";
+	_error_codes[200] = " OK";
+	_error_codes[201] = " Created";
+	_error_codes[202] = " Accepted";
+	_error_codes[203] = " Non-Authoritative Information";
+	_error_codes[204] = " No Content";
+	_error_codes[205] = " Reset Content";
+	_error_codes[206] = " Partial Content";
+	_error_codes[300] = " Multiple Choices";
+	_error_codes[301] = " Moved Permanently";
+	_error_codes[302] = " Found";
+	_error_codes[303] = " See Other";
+	_error_codes[304] = " Not Modified";
+	_error_codes[305] = " Use Proxy";
+	_error_codes[307] = " Temporary Redirect";
+	_error_codes[400] = " Bad Request";
+	_error_codes[401] = " Unauthorized";
+	_error_codes[402] = " Payment Required";
+	_error_codes[403] = " Forbidden";
+	_error_codes[404] = " Not Found";
+	_error_codes[405] = " Method Not Allowed";
+	_error_codes[406] = " Not Acceptable";
+	_error_codes[407] = " Proxy Authentication Required";
+	_error_codes[408] = " Request Time-out";
+	_error_codes[409] = " Conflict";
+	_error_codes[410] = " Gone";
+	_error_codes[411] = " Length Required";
+	_error_codes[412] = " Precondition Failed";
+	_error_codes[413] = " Request Entity Too Large";
+	_error_codes[414] = " Request-URI Too Large";
+	_error_codes[415] = " Unsupported Media Type";
+	_error_codes[416] = " Requested range not satisfiable";
+	_error_codes[417] = " Expectation Failed";
+	_error_codes[500] = " Internal Server Error";
+	_error_codes[501] = " Not Implemented";
+	_error_codes[502] = " Bad Gateway";
+	_error_codes[503] = " Service Unavailable";
+	_error_codes[504] = " Gateway Time-out";
+	_error_codes[505] = " HTTP Version not supported";
 }
 
 void	FileHandler::setMime(void)

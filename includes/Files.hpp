@@ -20,6 +20,7 @@ class FileHandler {
 		void setFileInfo(std::string path);
 		void setFile(std::string path);
 		std::string getCgiStatusLine(int code);
+		void setErrorCodes(void);
 		void setMime();
 		std::map<std::string, std::string>	mimes;
 //		getContentType();
