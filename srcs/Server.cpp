@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -137,13 +138,25 @@ int Server::checkLocations(request &req) // gerer si location et fichier dans up
 {
 	// req.
 	// std::cout << "req.path = " << req.path << RESET << std::endl;
+	// std::cout << "_conf.root = " << _conf.root << RESET << std::endl;
+
+	if (req.path == _conf.root)
+	{
+		status_code = 200;
+		SetResponseStatus(status_code);
+		std::string path = req.path + "/index.html";
+		file_in_string(_response.body, path.c_str());
+		_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+		return 1;
+	}
 	for (std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
 	{
-		std::cout << it->first << std::endl;
-		std::cout << req.path.substr(_conf.root.length(), it->first.length()) << std::endl;
-		if(it->first == req.path.substr(_conf.root.length()))
+		// std::cout << it->first << std::endl;
+		// std::cout << req.path.substr(_conf.root.length(), it->first.length()) << std::endl;
+		if (it->first == req.path.substr(_conf.root.length()))
 		{
-			std::cout << "qqqqqqqqqqqqqqqqqqqqqq" << RESET << std::endl;
+			// std::cout << "qqqqqqqqqqqqqqqqqqqqqq" << RESET << std::endl;
 			status_code = 200;
 			SetResponseStatus(status_code);
 			std::string path = req.path + "/index.html";
@@ -152,10 +165,10 @@ int Server::checkLocations(request &req) // gerer si location et fichier dans up
 			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 			return 1;
 		}
-	// }
-	// std::cout << GREEN << "req.path.substr(_conf.root.length()) = " << req.path.substr(_conf.root.length()) << RESET << std::endl;
-	// std::cout << GREEN << "req.path = " << req.path << RESET << std::endl;
-	// if (_conf.locations.count(req.path.substr(_conf.root.length())) != 0)
+		// }
+		// std::cout << GREEN << "req.path.substr(_conf.root.length()) = " << req.path.substr(_conf.root.length()) << RESET <<
+		// std::endl; std::cout << GREEN << "req.path = " << req.path << RESET << std::endl; if
+		// (_conf.locations.count(req.path.substr(_conf.root.length())) != 0)
 	}
 	return 0;
 }
@@ -193,37 +206,14 @@ void Server::_responseGET(request &req)
 	}
 	else
 	{
+		std::cout << "file could not be opened\n";
+		status_code = 404;
 		SetResponseStatus(status_code);
-		std::string page;
-		page = "<!DOCTYPE html>"
-			   "<html lang=\"en\">"
-			   "<head>"
-			   "	<meta charset=\"UTF-8\">"
-			   "	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-			   "	<title>Webserv</title>"
-			   "</head>"
-			   "	<body>"
-			   "		<h1>Hello world</h1>"
-			   "		<p style='color: red;'>This is a paragraph</p>"
-			   "		<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\" "
-			   "target=\"_blank\">DUCK</a>"
-			   "		<p></p>"
-			   "		<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img "
-			   "src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/"
-			   "aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"/></a>"
-			//    "		<img src=\"/upload/200.gif\"/>"
-			   "		<form method=\"POST\" enctype=\"multipart/form-data\">"
-			   "			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
-			   "			<input type=\"file\" id=\"actual-btn2\" name=\"file2\"/>"
-			   "			<input type=\"submit\"/>"
-			   "		</form>"
-			   "	</body>"
-			   "</html>";
-		_response.body = page;
-		SetResponseStatus(status_code);
+		_response.body = get_body_error(404);
+		std::cout << "this thing : " << _file.mimes[_file.extention] << "\n";
 		_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
 		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
-		page.clear();
+		return;
 	}
 	return;
 }
@@ -232,37 +222,10 @@ void Server::_responsePOST(request &req)
 {
 	(void)req;
 	create_img(_response.body);
-	std::string page;
-	page = "<!DOCTYPE html>"
-		   "<html lang=\"en\">"
-		   "<head>"
-		   "	<meta charset=\"UTF-8\">"
-		   "	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-		   "	<title>Webserv</title>"
-		   "</head>"
-		   "	<body>"
-		   "		<h1>Hello world</h1>"
-		   "		<p style='color: red;'>This is a paragraph</p>"
-		   "		<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\" "
-		   "target=\"_blank\">DUCK</a>"
-		   "		<p></p>"
-		   "		<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img "
-		   "src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/"
-		   "aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"/></a>"
-		//    "		<img src=\"/200.gif\"/>"
-		   "		<img src=\"/vstineau.jpg\"/>"
-		   "		<form method=\"POST\" enctype=\"multipart/form-data\">"
-		   "			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
-		   "			<input type=\"file\" id=\"actual-btn2\" name=\"file2\"/>"
-		   "			<input type=\"submit\"/>"
-		   "		</form>"
-		   "	</body>"
-		   "</html>";
-	_response.body = page;
+	file_in_string(_response.body, "www/index.html");
 	SetResponseStatus(status_code);
 	_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
 	_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
-	page.clear();
 	return;
 }
 
@@ -291,7 +254,7 @@ void Server::_responseDELETE(request &req)
 		   "		<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img "
 		   "src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/"
 		   "aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"/></a>"
-		//    "		<img src=\"/200.gif\"/>"
+		   //    "		<img src=\"/200.gif\"/>"
 		   "		<img src=\"/vstineau.jpg\"/>"
 		   "		<form method=\"POST\" enctype=\"multipart/form-data\">"
 		   "			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
@@ -338,24 +301,18 @@ void Server::create_img(std::string &img)
 	size_t offset = 0;
 	std::string filename;
 	std::string content;
-	std::string pwd;
 
-	pwd = getcwd(0, 1000);
-	if (chdir("www/upload"))
-		std::cerr << "CHDIR 1 FAILED\n";
 	pos = img.find("filename=\"", offset);
 	if (pos == std::string::npos)
-	{
-		if (chdir(pwd.c_str()))
-			std::cerr << "CHDIR 2 FAILED\n";
 		return;
-	}
 	offset = pos + 10;
 	pos = img.find("\"", offset);
 	filename = img.substr(offset, pos - offset);
+	std::cout << filename << RESET << std::endl;
 	offset = pos + 1;
-	std::ofstream ofs(filename.c_str(), std::ios_base::binary);
-	if (!ofs)
+	std::string path = _conf.root + filename;
+	std::ofstream ofs(path.c_str(), std::ios_base::binary);
+	if (!ofs.is_open())
 	{
 		std::cerr << "error opening new file \n";
 		_response.status_line = "HTTP/1.1 403 Forbidden";
@@ -364,16 +321,10 @@ void Server::create_img(std::string &img)
 	offset = pos + 1;
 	pos = img.find("\r\n\r\n", offset);
 	if (pos == std::string::npos)
-	{
-		if (chdir(pwd.c_str()))
-			std::cerr << "CHDIR 2 FAILED\n";
 		return;
-	}
 	offset = pos + 4;
 	content = img.substr(offset, img.size() - offset);
 	ofs << content;
-	if (chdir(pwd.c_str()))
-		std::cerr << "CHDIR 2 FAILED\n";
 }
 
 void Server::fill_body(std::string &body, int &n)
