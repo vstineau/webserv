@@ -310,7 +310,11 @@ void Server::create_img(std::string &img)
 	filename = img.substr(offset, pos - offset);
 	std::cout << filename << RESET << std::endl;
 	offset = pos + 1;
-	std::string path = _conf.root + filename;
+	std::string path;
+	if (_conf.upload_directory.empty())
+		path = _conf.root + filename;
+	else
+		path = _conf.root + _conf.upload_directory + "/" + filename;
 	std::ofstream ofs(path.c_str(), std::ios_base::binary);
 	if (!ofs.is_open())
 	{
@@ -437,6 +441,18 @@ void Server::clear_request(int n)
 		_requests[n].body.clear();
 }
 
+void	Server::fill_query(int n)
+{
+	size_t pos = 0;
+
+	pos = _requests[n].path.find("?");
+	if (pos == std::string::npos)
+		return ;
+	pos += 1;
+	_requests[n].query = _requests[n].path.substr(pos, _requests[n].path.size() - pos);
+	_requests[n].path.erase(pos - 1, _requests[n].path.size() - (pos - 1));
+}
+
 void Server::fillRequest(int n, std::string &buffer)
 {
 	size_t pos = 0;
@@ -473,6 +489,7 @@ void Server::fillRequest(int n, std::string &buffer)
 		return;
 	}
 	_requests[n].path = buffer.substr(offset, pos - offset);
+	fill_query(_requests[n].path, n);
 	_requests[n].path.replace(0, 1, _conf.root); // a remplacer par le root
 	offset = pos + 1;
 	pos = buffer.find("\n", offset);

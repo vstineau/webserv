@@ -50,6 +50,7 @@ class Server
 
 	private:
 	void fill_header(std::string &header, int &n);
+	void fill_query(int n);
 	void fill_cookie(std::string &header);
 	void fill_body(std::string &header, int &n);
 	void create_img(std::string &img);

@@ -85,6 +85,7 @@ char **FileHandler::getCgiEnv(request &req)
 	pre_env.push_back("SCRIPT_FILENAME=");
 	pre_env[1].append(req.path, req.path.size());
 	pre_env.push_back("QUERY_STRING=");
+	pre_env[2].append(req.query, req.query.size());
 	pre_env.push_back("REQUEST_METHOD=");
 	switch (req.method)
 	{
