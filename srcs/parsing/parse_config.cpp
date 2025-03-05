@@ -255,6 +255,7 @@ void	get_one_config(config &conf, std::string &buffer)
 	get_server_port(conf, buffer);
 	get_server_host(conf, buffer);
 	is_directory_listing_allowed(conf, buffer);
+	set_upload_directory(conf, buffer);
 	get_locations_bloc(conf, buffer);
 }
 

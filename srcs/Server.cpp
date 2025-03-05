@@ -36,7 +36,7 @@ void Server::setSocket()
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = INADDR_ANY; // inet_addr("0.0.0.0");
-	addr.sin_port = htons(8080);
+	addr.sin_port = htons(_conf.port);
 	address = addr;
 
 	int b = true;
@@ -489,7 +489,7 @@ void Server::fillRequest(int n, std::string &buffer)
 		return;
 	}
 	_requests[n].path = buffer.substr(offset, pos - offset);
-	fill_query(_requests[n].path, n);
+	fill_query(n);
 	_requests[n].path.replace(0, 1, _conf.root); // a remplacer par le root
 	offset = pos + 1;
 	pos = buffer.find("\n", offset);
