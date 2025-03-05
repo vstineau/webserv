@@ -146,7 +146,7 @@ int Server::checkLocations(request &req) // gerer si location et fichier dans up
 		SetResponseStatus(status_code);
 		std::string path = req.path + "/index.html";
 		file_in_string(_response.body, path.c_str());
-		_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+		_response.headers["Content-Type: "].push_back("text/html");
 		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 		return 1;
 	}
@@ -161,7 +161,7 @@ int Server::checkLocations(request &req) // gerer si location et fichier dans up
 			SetResponseStatus(status_code);
 			std::string path = req.path + "/index.html";
 			file_in_string(_response.body, path.c_str());
-			_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+			_response.headers["Content-Type: "].push_back("text/html");
 			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 			return 1;
 		}
@@ -188,8 +188,7 @@ void Server::_responseGET(request &req)
 			status_code = 404;
 			SetResponseStatus(status_code);
 			_response.body = get_body_error(404);
-			std::cout << "this thing : " << _file.mimes[_file.extention] << "\n";
-			_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+			_response.headers["Content-Type: "].push_back("text/html");
 			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 			return;
 		}
@@ -200,7 +199,7 @@ void Server::_responseGET(request &req)
 			_response.body = _file.filestring;
 			SetResponseStatus(status_code);
 			_response.headers["Content-Type: "].push_back(
-				_file.mimes[_file.extention]); // hard-coded as well, need to check for mimes
+				_file.mimes[_file.extention]);
 			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 		}
 	}
@@ -210,22 +209,36 @@ void Server::_responseGET(request &req)
 		status_code = 404;
 		SetResponseStatus(status_code);
 		_response.body = get_body_error(404);
-		std::cout << "this thing : " << _file.mimes[_file.extention] << "\n";
-		_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+		_response.headers["Content-Type: "].push_back("text/html");
 		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 		return;
 	}
 	return;
 }
 
-void Server::_responsePOST(request &req)
+void Server::_responsePOST(request &req, int n)
 {
 	(void)req;
-	create_img(_response.body);
-	file_in_string(_response.body, "www/index.html");
-	SetResponseStatus(status_code);
-	_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
-	_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+	std::cout << "body size : " << _requests[n].body.size() << "\n";
+	_conf.client_body_size = 200000;
+	std::cout << "max body size : " << _conf.client_body_size << "\n";
+	if ((int)_requests[n].body.size() > _conf.client_body_size)
+	{
+		std::cout << "file body size not allowed\n";
+		status_code = 413;
+		SetResponseStatus(status_code);
+		_response.body = get_body_error(413);
+		_response.headers["Content-Type: "].push_back("text/html");
+		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+	}
+	else
+	{
+		fill_body(_requests[n].body, n);
+		file_in_string(_response.body, "www/index.html");
+		SetResponseStatus(status_code);
+		_response.headers["Content-Type: "].push_back("text/html");
+		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+	}
 	return;
 }
 
@@ -265,7 +278,7 @@ void Server::_responseDELETE(request &req)
 		   "</html>";
 	_response.body = page;
 	SetResponseStatus(status_code);
-	_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+	_response.headers["Content-Type: "].push_back("text/html");
 	_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 	page.clear();
 	return;
@@ -290,7 +303,7 @@ void Server::SetResponse(int n)
 	if (_requests[n].method == GET)
 		_responseGET(_requests[n]);
 	else if (_requests[n].method == POST)
-		_responsePOST(_requests[n]);
+		_responsePOST(_requests[n], n);
 	else if (_requests[n].method == DELETE)
 		_responseDELETE(_requests[n]);
 }
@@ -491,6 +504,4 @@ void Server::fillRequest(int n, std::string &buffer)
 	fill_header(header, n);
 	offset = pos + 4;
 	_requests[n].body = buffer.substr(offset, buffer.size() - offset);
-	if (!_requests[n].headers["boundary"].empty())
-		fill_body(_requests[n].body, n);
 }

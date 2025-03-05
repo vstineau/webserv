@@ -55,7 +55,7 @@ class Server
 	void create_img(std::string &img);
 	std::size_t check_contentype(int n, std::size_t pos, std::size_t offset, std::string &buffer);
 	void _responseGET(request &rep);
-	void _responsePOST(request &rep);
+	void _responsePOST(request &rep, int n);
 	void _responseDELETE(request &rep);
 	int checkLocations(request &req);
 	config _conf;

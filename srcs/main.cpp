@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
 		webserv.fill_servers_configs(argv[1]);
 	}
 	webserv.init_servers();
-	//  print_config(webserv.confs);
+	// print_config(webserv.confs);
 	// init_server(map_serv, confs);
 	webserv.epoll_loop();
 }
