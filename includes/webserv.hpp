@@ -54,6 +54,7 @@ struct location
 	std::string									cgi_extention;
 	std::string									cgi_bin;
 	std::string									index_html;
+	std::string									upload_directory;
 	char												allowed_method[4];
 	int													client_body_size;
 	bool												directory_listing;
@@ -67,6 +68,7 @@ struct config {
 	std::vector<std::string>				server_index;
 	std::string											root;
 	std::string											host;
+	std::string											upload_directory;
 	// std::string											http_redirection;
 	// std::string											directory_path;
 	std::map<int, std::string>			error_pages;
@@ -97,6 +99,7 @@ struct request {
 	~request();
 	std::string													path;
 	std::string													version;
+	std::string													query;
 	methods															method;
 	std::map<std::string, std::string>	headers;
 	std::string													body; //pas de c_str() parce qu'il peut y avoir de s\0 qui se baladent

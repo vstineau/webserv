@@ -101,6 +101,28 @@ static void	set_root(config &conf, std::string &buffer)
 	conf.root = buffer.substr(offset, pos - offset);
 }
 
+static void	set_upload_directory(config &conf, std::string &buffer)
+{
+	size_t				pos = 0;
+	size_t				offset = 0;
+	size_t				posloc = 0;
+
+	posloc = buffer.find("location");
+	if (posloc == std::string::npos)
+		;
+	pos = buffer.find("upload: ");
+	if (pos == std::string::npos || pos > posloc)
+		return ;
+	offset = pos + 8;
+	pos = buffer.find(";", offset);
+	if (pos == std::string::npos)
+	{
+		std::cerr << "no upload found\n";
+		return ;
+	}
+	conf.upload_directory = buffer.substr(offset, pos - offset);
+}
+
 static void	get_server_port(config &conf, std::string &buffer)
 {
 	size_t				pos = 0;
@@ -233,6 +255,7 @@ void	get_one_config(config &conf, std::string &buffer)
 	get_server_port(conf, buffer);
 	get_server_host(conf, buffer);
 	is_directory_listing_allowed(conf, buffer);
+	set_upload_directory(conf, buffer);
 	get_locations_bloc(conf, buffer);
 }
 

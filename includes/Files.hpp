@@ -19,17 +19,21 @@ class FileHandler {
 		~FileHandler();
 		void setFileInfo(std::string path);
 		void setFile(std::string path);
+		std::string getCgiStatusLine(int code);
+		void setErrorCodes(void);
 		void setMime();
 		std::map<std::string, std::string>	mimes;
 //		getContentType();
-		response execCgi(std::string &bin_path, std::string &extention);
+		response execCgi(request &req, std::string &bin_path, std::string &extention);
+		char **getCgiEnv(request &req);
 		long long		file_size;
 		std::string		filestring;
 		std::string		path;
 		File_type		type;
-		std::string		extention;
-		bool			no_file;
-		std::string		Content_Type;
+		std::string	extention;
+		bool				no_file;
+		std::string	Content_Type;
+		std::map<int, std::string> _error_codes;
 };
 
 //
