@@ -15,6 +15,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <cstddef>
+#include <exception>
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <sys/epoll.h>
