@@ -59,7 +59,9 @@ class Server
 	void _responsePOST(request &rep, int &n);
 	std::string checkUpload(request &req);
 	void _responseDELETE(request &rep);
+	void _DELETEmethod(request &req);
 	int checkLocations(request &req);
+	void SetErrorResponse(int error_code);
 	config _conf;
 	std::map<int, request> _requests;
 	std::map<int, std::string> _error_codes;

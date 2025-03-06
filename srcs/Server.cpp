@@ -36,7 +36,7 @@ void Server::setSocket()
 {
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = INADDR_ANY; // inet_addr("0.0.0.0");
+	addr.sin_addr.s_addr = INADDR_ANY;
 	addr.sin_port = htons(_conf.port);
 	address = addr;
 
@@ -124,52 +124,49 @@ void Server::setErrorCodes(void)
 	_error_codes[505] = " HTTP Version not supported";
 }
 
-// {
-// 	if (page de base)
-// 		page
-// 	else if (location)
-// 		location
-// 	else if (mime)
-// 		mime
-// 	else
-// 		404
-// }
-
-int Server::checkLocations(request &req) // gerer si location et fichier dans upload ont le meme nom
+void Server::SetErrorResponse(int error_code)
 {
-	// req.
-	// std::cout << "req.path = " << req.path << RESET << std::endl;
-	// std::cout << "_conf.root = " << _conf.root << RESET << std::endl;
+	status_code = error_code;
+	SetResponseStatus(status_code);
+	_response.body = get_body_error(error_code);
+	_response.headers["Content-Type: "].push_back("text/html");
+	_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+}
 
+int Server::checkLocations(request &req)
+{
 	if (req.path == _conf.root || req.path == _conf.root + "/")
 	{
+		if (!_conf.allowed_method[GET])
+		{
+			SetErrorResponse(405);
+			return 1;
+		}
 		status_code = 200;
 		SetResponseStatus(status_code);
 		std::string path = req.path + "/index.html";
 		file_in_string(_response.body, path.c_str());
-		_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+		_response.headers["Content-Type: "].push_back("text/html");
 		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 		return 1;
 	}
 	for (std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
 	{
-		// std::cout << it->first << std::endl;
-		// std::cout << req.path.substr(_conf.root.length(), it->first.length()) << std::endl;
 		if (it->first == req.path.substr(_conf.root.length()))
 		{
-			// std::cout << "qqqqqqqqqqqqqqqqqqqqqq" << RESET << std::endl;
+			if (!it->second.allowed_method[GET])
+			{
+				SetErrorResponse(405);
+				return 1;
+			}
 			status_code = 200;
 			SetResponseStatus(status_code);
 			std::string path = req.path + "/index.html";
 			file_in_string(_response.body, path.c_str());
-			_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+			_response.headers["Content-Type: "].push_back("text/html");
 			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 			return 1;
 		}
-		// }
-		// std::cout << GREEN << "req.path.substr(_conf.root.length()) = " << req.path.substr(_conf.root.length()) << RESET <<
-		// std::endl; std::cout << GREEN << "req.path = " << req.path << RESET << std::endl; if
-		// (_conf.locations.count(req.path.substr(_conf.root.length())) != 0)
 	}
 	return 0;
 }
@@ -185,12 +182,7 @@ void Server::_responseGET(request &req)
 		std::ifstream imgFile(req.path.c_str());
 		if (!imgFile)
 		{
-			std::cout << "file could not be opened\n";
-			status_code = 404;
-			SetResponseStatus(status_code);
-			_response.body = get_body_error(404);
-			_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
-			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+			SetErrorResponse(404);
 			return;
 		}
 		else
@@ -199,19 +191,13 @@ void Server::_responseGET(request &req)
 			std::cout << "file was opened\n";
 			_response.body = _file.filestring;
 			SetResponseStatus(status_code);
-			_response.headers["Content-Type: "].push_back(
-				_file.mimes[_file.extention]); // hard-coded as well, need to check for mimes
+			_response.headers["Content-Type: "].push_back(_file.mimes[_file.extention]);
 			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 		}
 	}
 	else
 	{
-		std::cout << "file could not be opened\n";
-		status_code = 404;
-		SetResponseStatus(status_code);
-		_response.body = get_body_error(404);
-		_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
-		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+		SetErrorResponse(404);
 		return;
 	}
 	return;
@@ -232,21 +218,13 @@ std::string Server::checkUpload(request &req)
 			}
 			else
 			{
-				status_code = 413;
-				SetResponseStatus(status_code);
-				_response.body = get_body_error(status_code);
-				_response.headers["Content-Type: "].push_back("text/html");
-				_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+				SetErrorResponse(413);
 				return "";
 			}
 		}
 		else
 		{
-			status_code = 405;
-			SetResponseStatus(status_code);
-			_response.body = get_body_error(status_code);
-			_response.headers["Content-Type: "].push_back("text/html");
-			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+			SetErrorResponse(405);
 			return "";
 		}
 	}
@@ -256,7 +234,7 @@ std::string Server::checkUpload(request &req)
 		{
 			if (req.path.substr(_conf.root.size()) == it->first)
 			{
-				if (it->second.allowed_method[POST]) // it->second.allowed_method[POST]
+				if (it->second.allowed_method[POST])
 				{
 					if ((int)req.body.size() < it->second.client_body_size)
 					{
@@ -267,30 +245,18 @@ std::string Server::checkUpload(request &req)
 					}
 					else
 					{
-						status_code = 413;
-						SetResponseStatus(status_code);
-						_response.body = get_body_error(status_code);
-						_response.headers["Content-Type: "].push_back("text/html");
-						_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+						SetErrorResponse(413);
 						return "";
 					}
 				}
 				else
 				{
-					status_code = 405;
-					SetResponseStatus(status_code);
-					_response.body = get_body_error(status_code);
-					_response.headers["Content-Type: "].push_back("text/html");
-					_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+					SetErrorResponse(405);
 					return "";
 				}
 			}
 		}
-		status_code = 404;
-		SetResponseStatus(status_code);
-		_response.body = get_body_error(status_code);
-		_response.headers["Content-Type: "].push_back("text/html");
-		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+		SetErrorResponse(404);
 		return "";
 	}
 }
@@ -302,25 +268,20 @@ void Server::_responsePOST(request &req, int &n)
 	if (up_dir.empty())
 		return;
 	std::cout << "up_dir = " << up_dir << std::endl;
-	if(fill_body(req.body, n, up_dir))
+	if (fill_body(req.body, n, up_dir))
 	{
-		status_code = 403;
-		SetResponseStatus(status_code);
-		_response.body = get_body_error(status_code);
-		_response.headers["Content-Type: "].push_back("text/html");
-		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+		SetErrorResponse(403);
 		return;
 	}
-	// create_img(_response.body);
 	std::string path = _conf.root + "index.html";
 	file_in_string(_response.body, path.c_str());
 	SetResponseStatus(status_code);
-	_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+	_response.headers["Content-Type: "].push_back("text/html");
 	_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 	return;
 }
 
-void Server::_responseDELETE(request &req)
+void Server::_DELETEmethod(request &req)
 {
 	if (unlink(req.path.c_str()) == -1)
 	{
@@ -328,38 +289,43 @@ void Server::_responseDELETE(request &req)
 		SetResponseStatus(status_code);
 		_response.body = get_body_error(404);
 	}
-	std::string page;
-	page = "<!DOCTYPE html>"
-		   "<html lang=\"en\">"
-		   "<head>"
-		   "	<meta charset=\"UTF-8\">"
-		   "	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-		   "	<title>Webserv</title>"
-		   "</head>"
-		   "	<body>"
-		   "		<h1>Hello world</h1>"
-		   "		<p style='color: red;'>This is a paragraph</p>"
-		   "		<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\" "
-		   "target=\"_blank\">DUCK</a>"
-		   "		<p></p>"
-		   "		<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img "
-		   "src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/"
-		   "aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"/></a>"
-		   //    "		<img src=\"/200.gif\"/>"
-		   "		<img src=\"/vstineau.jpg\"/>"
-		   "		<form method=\"POST\" enctype=\"multipart/form-data\">"
-		   "			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
-		   "			<input type=\"file\" id=\"actual-btn2\" name=\"file2\"/>"
-		   "			<input type=\"submit\"/>"
-		   "		</form>"
-		   "	</body>"
-		   "</html>";
-	_response.body = page;
+	std::string path = _conf.root + "index.html";
+	file_in_string(_response.body, path.c_str());
 	SetResponseStatus(status_code);
-	_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+	_response.headers["Content-Type: "].push_back("text/html");
 	_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
-	page.clear();
 	return;
+}
+
+void Server::_responseDELETE(request &req)
+{
+	if (req.path == _conf.root)
+	{
+		if (!_conf.allowed_method[DELETE])
+		{
+			SetErrorResponse(405);
+			return ;
+		}
+		else
+			_DELETEmethod(req);// faire la methode DELETE
+	}
+	else
+	{
+		for (std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
+		{
+			if(req.path == it->first)
+			{
+				if (!it->second.allowed_method[DELETE])
+				{
+					SetErrorResponse(405);
+					return ;
+				}
+				else
+					_DELETEmethod(req);// faire la methode DELETE
+			}
+		}
+	}
+	SetErrorResponse(404);
 }
 
 void Server::SetResponseStatus(int n)
@@ -423,12 +389,9 @@ int Server::fill_body(std::string &body, int &n, std::string &up_dir)
 	size_t pos = 0;
 	size_t offset = 0;
 	std::string img;
-	// std::cout << "body = " << body << RESET << std::endl;
 	while (pos != std::string::npos)
 	{
-		// std::cout << "HERE2" << RESET << std::endl;
 		pos = body.find("\n", offset);
-		// std::cout << "pos = " << pos << RESET << std::endl;
 		if (pos == std::string::npos)
 			return 0;
 		offset = pos + 1;
@@ -436,33 +399,13 @@ int Server::fill_body(std::string &body, int &n, std::string &up_dir)
 		if (pos == std::string::npos)
 			return 0;
 		img = body.substr(offset, pos - offset);
-		if(create_img(img, up_dir))
+		if (create_img(img, up_dir))
 			return 1;
 		offset = pos + _requests[n].headers["boundary"].size();
 	}
 	return 0;
 }
-//
-// void Server::fill_cookie(std::string &header)
-//{
-//	size_t pos = 0;
-//	size_t offset = 0;
-//	std::string cookie;
-//
-//	while (pos != std::string::npos)
-//	{
-//		pos = header.find(";", offset);
-//		if (pos == std::string::npos)
-//		{
-//			_response.headers["Set-Cookie: "].push_back(header.substr(offset, header.size() - offset));
-//			return;
-//		}
-//		cookie = header.substr(offset, pos - offset);
-//		_response.headers["Set-Cookie: "].push_back(cookie);
-//		offset = pos + 2;
-//	}
-//}
-//
+
 void Server::fill_header(std::string &header, int &n)
 {
 	size_t pos = 0;
@@ -549,7 +492,6 @@ void Server::fillRequest(int n, std::string &buffer)
 	std::string body;
 
 	clear_request(n);
-	// probablement ajouter un truc qui clear la requete si deja remplie avant de la remplir
 	if (!buffer.find("GET"))
 	{
 		_requests[n].method = GET;
@@ -578,7 +520,7 @@ void Server::fillRequest(int n, std::string &buffer)
 	}
 	_requests[n].path = buffer.substr(offset, pos - offset);
 	fill_query(n);
-	_requests[n].path.replace(0, 1, _conf.root); // a remplacer par le root
+	_requests[n].path.replace(0, 1, _conf.root);
 	offset = pos + 1;
 	pos = buffer.find("\n", offset);
 	if (pos == std::string::npos)
@@ -596,6 +538,4 @@ void Server::fillRequest(int n, std::string &buffer)
 	fill_header(header, n);
 	offset = pos + 4;
 	_requests[n].body = buffer.substr(offset, buffer.size() - offset);
-	// if (!_requests[n].headers["boundary"].empty())
-	// 	fill_body(_requests[n].body, n);
 }
