@@ -2,7 +2,6 @@
 
 request::request()
 {
-	std::cout << "hgsgdfjhsdf\n";
 }
 
 request::~request()

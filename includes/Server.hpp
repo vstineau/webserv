@@ -50,12 +50,14 @@ class Server
 
 	private:
 	void fill_header(std::string &header, int &n);
+	void fill_query(int n);
 	void fill_cookie(std::string &header);
-	void fill_body(std::string &header, int &n);
-	void create_img(std::string &img);
+	int fill_body(std::string &header, int &n, std::string &up_dir);
+	int create_img(std::string &img, std::string &up_dir);
 	std::size_t check_contentype(int n, std::size_t pos, std::size_t offset, std::string &buffer);
 	void _responseGET(request &rep);
-	void _responsePOST(request &rep, int n);
+	void _responsePOST(request &rep, int &n);
+	std::string checkUpload(request &req);
 	void _responseDELETE(request &rep);
 	int checkLocations(request &req);
 	config _conf;

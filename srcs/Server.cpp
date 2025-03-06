@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -36,7 +37,7 @@ void Server::setSocket()
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = INADDR_ANY; // inet_addr("0.0.0.0");
-	addr.sin_port = htons(8080);
+	addr.sin_port = htons(_conf.port);
 	address = addr;
 
 	int b = true;
@@ -140,7 +141,7 @@ int Server::checkLocations(request &req) // gerer si location et fichier dans up
 	// std::cout << "req.path = " << req.path << RESET << std::endl;
 	// std::cout << "_conf.root = " << _conf.root << RESET << std::endl;
 
-	if (req.path == _conf.root)
+	if (req.path == _conf.root || req.path == _conf.root + "/")
 	{
 		status_code = 200;
 		SetResponseStatus(status_code);
@@ -216,29 +217,106 @@ void Server::_responseGET(request &req)
 	return;
 }
 
-void Server::_responsePOST(request &req, int n)
+std::string Server::checkUpload(request &req)
 {
-	(void)req;
-	std::cout << "body size : " << _requests[n].body.size() << "\n";
-	_conf.client_body_size = 200000;
-	std::cout << "max body size : " << _conf.client_body_size << "\n";
-	if ((int)_requests[n].body.size() > _conf.client_body_size)
+	if (req.path == _conf.root)
 	{
-		std::cout << "file body size not allowed\n";
-		status_code = 413;
-		SetResponseStatus(status_code);
-		_response.body = get_body_error(413);
-		_response.headers["Content-Type: "].push_back("text/html");
-		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+		if (_conf.allowed_method[POST])
+		{
+			if ((int)_response.body.size() < _conf.client_body_size)
+			{
+				if (!_conf.upload_directory.empty())
+					return _conf.root + "/" + _conf.upload_directory;
+				else
+					return _conf.root;
+			}
+			else
+			{
+				status_code = 413;
+				SetResponseStatus(status_code);
+				_response.body = get_body_error(status_code);
+				_response.headers["Content-Type: "].push_back("text/html");
+				_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+				return "";
+			}
+		}
+		else
+		{
+			status_code = 405;
+			SetResponseStatus(status_code);
+			_response.body = get_body_error(status_code);
+			_response.headers["Content-Type: "].push_back("text/html");
+			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+			return "";
+		}
 	}
 	else
 	{
-		fill_body(_requests[n].body, n);
-		file_in_string(_response.body, "www/index.html");
+		for (std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
+		{
+			if (req.path.substr(_conf.root.size()) == it->first)
+			{
+				if (it->second.allowed_method[POST]) // it->second.allowed_method[POST]
+				{
+					if ((int)req.body.size() < it->second.client_body_size)
+					{
+						if (!it->second.upload_directory.empty())
+							return _conf.root + it->second.root + it->second.upload_directory;
+						else
+							return _conf.root + it->second.root;
+					}
+					else
+					{
+						status_code = 413;
+						SetResponseStatus(status_code);
+						_response.body = get_body_error(status_code);
+						_response.headers["Content-Type: "].push_back("text/html");
+						_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+						return "";
+					}
+				}
+				else
+				{
+					status_code = 405;
+					SetResponseStatus(status_code);
+					_response.body = get_body_error(status_code);
+					_response.headers["Content-Type: "].push_back("text/html");
+					_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+					return "";
+				}
+			}
+		}
+		status_code = 404;
 		SetResponseStatus(status_code);
+		_response.body = get_body_error(status_code);
 		_response.headers["Content-Type: "].push_back("text/html");
 		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+		return "";
 	}
+}
+
+void Server::_responsePOST(request &req, int &n)
+{
+	(void)req;
+	std::string up_dir = checkUpload(req);
+	if (up_dir.empty())
+		return;
+	std::cout << "up_dir = " << up_dir << std::endl;
+	if(fill_body(req.body, n, up_dir))
+	{
+		status_code = 403;
+		SetResponseStatus(status_code);
+		_response.body = get_body_error(status_code);
+		_response.headers["Content-Type: "].push_back("text/html");
+		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+		return;
+	}
+	// create_img(_response.body);
+	std::string path = _conf.root + "index.html";
+	file_in_string(_response.body, path.c_str());
+	SetResponseStatus(status_code);
+	_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+	_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 	return;
 }
 
@@ -308,60 +386,61 @@ void Server::SetResponse(int n)
 		_responseDELETE(_requests[n]);
 }
 
-void Server::create_img(std::string &img)
+int Server::create_img(std::string &img, std::string &up_dir)
 {
+	(void)up_dir;
 	size_t pos = 0;
 	size_t offset = 0;
 	std::string filename;
 	std::string content;
 
 	pos = img.find("filename=\"", offset);
+	std::cout << "HERE" << RESET << std::endl;
 	if (pos == std::string::npos)
-		return;
+		return 1;
 	offset = pos + 10;
 	pos = img.find("\"", offset);
 	filename = img.substr(offset, pos - offset);
 	std::cout << filename << RESET << std::endl;
 	offset = pos + 1;
-	std::string path = _conf.root + filename;
+	std::string path = up_dir + filename;
 	std::ofstream ofs(path.c_str(), std::ios_base::binary);
 	if (!ofs.is_open())
-	{
-		std::cerr << "error opening new file \n";
-		_response.status_line = "HTTP/1.1 403 Forbidden";
-		_response.body = get_body_error(403);
-	}
+		return 1;
 	offset = pos + 1;
 	pos = img.find("\r\n\r\n", offset);
 	if (pos == std::string::npos)
-		return;
+		return 1;
 	offset = pos + 4;
 	content = img.substr(offset, img.size() - offset);
 	ofs << content;
+	return 0;
 }
 
-void Server::fill_body(std::string &body, int &n)
+int Server::fill_body(std::string &body, int &n, std::string &up_dir)
 {
+	(void)up_dir;
 	size_t pos = 0;
 	size_t offset = 0;
 	std::string img;
+	// std::cout << "body = " << body << RESET << std::endl;
 	while (pos != std::string::npos)
 	{
+		// std::cout << "HERE2" << RESET << std::endl;
 		pos = body.find("\n", offset);
+		// std::cout << "pos = " << pos << RESET << std::endl;
 		if (pos == std::string::npos)
-		{
-			return;
-		}
+			return 0;
 		offset = pos + 1;
 		pos = body.find(_requests[n].headers["boundary"], offset);
 		if (pos == std::string::npos)
-		{
-			return;
-		}
+			return 0;
 		img = body.substr(offset, pos - offset);
-		create_img(img);
+		if(create_img(img, up_dir))
+			return 1;
 		offset = pos + _requests[n].headers["boundary"].size();
 	}
+	return 0;
 }
 //
 // void Server::fill_cookie(std::string &header)
@@ -450,6 +529,18 @@ void Server::clear_request(int n)
 		_requests[n].body.clear();
 }
 
+void Server::fill_query(int n)
+{
+	size_t pos = 0;
+
+	pos = _requests[n].path.find("?");
+	if (pos == std::string::npos)
+		return;
+	pos += 1;
+	_requests[n].query = _requests[n].path.substr(pos, _requests[n].path.size() - pos);
+	_requests[n].path.erase(pos - 1, _requests[n].path.size() - (pos - 1));
+}
+
 void Server::fillRequest(int n, std::string &buffer)
 {
 	size_t pos = 0;
@@ -486,6 +577,7 @@ void Server::fillRequest(int n, std::string &buffer)
 		return;
 	}
 	_requests[n].path = buffer.substr(offset, pos - offset);
+	fill_query(n);
 	_requests[n].path.replace(0, 1, _conf.root); // a remplacer par le root
 	offset = pos + 1;
 	pos = buffer.find("\n", offset);
@@ -504,4 +596,6 @@ void Server::fillRequest(int n, std::string &buffer)
 	fill_header(header, n);
 	offset = pos + 4;
 	_requests[n].body = buffer.substr(offset, buffer.size() - offset);
+	// if (!_requests[n].headers["boundary"].empty())
+	// 	fill_body(_requests[n].body, n);
 }
