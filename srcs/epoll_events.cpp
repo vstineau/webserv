@@ -28,16 +28,13 @@ static int handle_epollin(Server &serv, struct epoll_event *events, int &n, int 
 {
 	if (events[n].events & EPOLLIN)
 	{
-		// print on terminal what the server receives
 		int count = 0;
 		char buffer[1025];
 		std::string buff;
 		do
 		{
 			count = recv(events[n].data.fd, buffer, 1024, 0);
-			// std::string test(buffer);
 			buff.append(buffer, count);
-			// buff += test;
 		} while (count == 1024);
 		if (count == 0)
 		{
@@ -47,13 +44,10 @@ static int handle_epollin(Server &serv, struct epoll_event *events, int &n, int 
 								 serv.client_fd.end());
 			std::cout << RED << "fd [" << events[n].data.fd << "] closed" << RESET << std::endl;
 		}
-		// std::cout << HI_CYAN << "-----------REQUEST----------" << RESET << std::endl;
 		serv.fillRequest(new_connexion, buff);
-		// serv.identifyRequest(n);
 		serv.SetResponse(new_connexion);
 		//serv.print_request(new_connexion);
 		std::cout << HI_CYAN << "-----------REQUEST----------" << RESET << std::endl;
-		// std::cout << buff << std::endl;
 		struct epoll_event ev;
 		ev.data.fd = events[n].data.fd;
 		ev.events = EPOLLOUT;

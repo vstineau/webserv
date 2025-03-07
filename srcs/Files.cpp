@@ -101,7 +101,6 @@ char **FileHandler::getCgiEnv(request &req)
 	envp = (char **)std::calloc(pre_env.size() + 1, sizeof(char *));
 	for (std::size_t i = 0; i < pre_env.size(); i++)
 		envp[i] = strdup(pre_env[i].c_str());
-
 	return envp;
 }
 
@@ -110,22 +109,30 @@ char **FileHandler::getCgiEnv(request &req)
 // 	//rajouter un truc pour detecter si c'est un cgi 
 // 	response r;
 // 	std::string cmd;
-	
+//
 // 	cmd = bin_path + " " + req.path;
 // 	time_t start = time(NULL);
 // 	int  cgi_pid = fork();
 // 	if (cgi_pid == -1)
-// 		;//return response error mais jsp laquelle 500 
+// 		;//500
 // 	if (!cgi_pid)
 // 	{
-// 		char **envp;
-// 		// static char *argv[] = {cmd.data(), NULL};
-// 		envp = getCgiEnv(req);
-// 		if (envp == NULL)
-// 			;//return response error mais jsp laquelle 500
-// 		// execve(*argv, argv, envp);
-// 		//faire un free pour **envp
-// 		//error 500;
+//		char **envp;
+//		char **argv;
+//
+//		argv = (char **)calloc(2, sizeof(char *));
+//		if (argv == NULL)
+//			;//500
+//		argv[0] = strdup(cmd.c_str());
+//		if (argv[0] == NULL)
+//			;//500
+//		argv[1] = NULL;
+//		envp = getCgiEnv(req);
+//		if (envp == NULL)
+//			;//500
+//		execve(*argv, argv, envp);
+//		//faire un free pour **envp
+// 	//error 500;
 // 	}
 // 	int status;
 // 	while (waitpid(cgi_pid, &status,WNOHANG) > 0)
@@ -136,9 +143,9 @@ char **FileHandler::getCgiEnv(request &req)
 // 			kill(cgi_pid, SIGKILL);
 // 			//timeout jsp pas on fais quoi mais on le fais
 // 		}
-	
+//
 // 	}
-	
+//
 // 	/*
 // 	meta-variable-name = "AUTH_TYPE" | "CONTENT_LENGTH" |
 // 	"CONTENT_TYPE" | "GATEWAY_INTERFACE" |
@@ -152,7 +159,7 @@ char **FileHandler::getCgiEnv(request &req)
 // 	protocol-var-name | extension-var-name	*/
 // 	return r;
 // }
-
+//
 void	FileHandler::setErrorCodes(void)
 {
 	_error_codes[100] = " Continue";
