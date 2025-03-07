@@ -65,13 +65,11 @@ struct location
 struct config {
 	config();
 	~config();
-	std::vector<std::string>				server_names;
-	std::vector<std::string>				server_index;
+	std::string				server_name;
+	std::string				server_index;
 	std::string											root;
 	std::string											host;
 	std::string											upload_directory;
-	// std::string											http_redirection;
-	// std::string											directory_path;
 	std::map<int, std::string>			error_pages;
 	char														allowed_method[4];
 	int															port;
@@ -120,6 +118,7 @@ size_t		how_many_serv(char *file);
 void			get_one_config(config &conf, std::string &buffer);
 void			fill_servers_configs(std::vector<config> &confs, char *file);
 void			set_method(location &loc, std::string method);
+void			set_method(config &conf, std::string method);
 void			get_locations_bloc(config &conf, std::string &buffer);
 
 //RESPONSES

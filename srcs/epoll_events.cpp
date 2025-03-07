@@ -51,7 +51,7 @@ static int handle_epollin(Server &serv, struct epoll_event *events, int &n, int 
 		serv.fillRequest(new_connexion, buff);
 		// serv.identifyRequest(n);
 		serv.SetResponse(new_connexion);
-		//serv.print_request(n);
+		//serv.print_request(new_connexion);
 		std::cout << HI_CYAN << "-----------REQUEST----------" << RESET << std::endl;
 		// std::cout << buff << std::endl;
 		struct epoll_event ev;

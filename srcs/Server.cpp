@@ -25,7 +25,7 @@ Server::Server() : server_fd(-1), address(), status_code(200)
 }
 
 // Server::Server(config &conf) : server_fd(-1), status_code(200), _conf(conf)
-Server::Server(config &conf) : server_fd(-1), status_code(200), _conf(conf)
+Server::Server(config &conf) : server_fd(-1), status_code(200), _conf(conf), server_name(conf.server_name)
 {
 	setErrorCodes();
 	// _conf.locations["www/"] = location;

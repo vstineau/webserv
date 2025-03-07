@@ -141,31 +141,17 @@ static void	get_server_port(config &conf, std::string &buffer)
 	conf.port = atoi(buffer.substr(offset, pos - offset).c_str());
 }
 
-static void	get_server_host(config &conf, std::string &buffer)
-{
-	size_t				pos = 0;
-	size_t				offset = 0;
-
-	pos = buffer.find("host: ");
-	if (pos == std::string::npos)
-		return ;
-	offset = pos + 6;
-	pos = buffer.find(";", offset);
-	if (pos == std::string::npos)
-	{
-		std::cerr << "no host found\n";
-		return ;
-	}
-	conf.host = buffer.substr(offset, pos - offset);
-}
-
 static void	is_directory_listing_allowed(config &conf, std::string &buffer)
 {
 	size_t				pos = 0;
 	size_t				offset = 0;
+	size_t				posloc = 0;
 
+	posloc = buffer.find("location");
+	if (posloc == std::string::npos)
+		;
 	pos = buffer.find("directory-listing: ");
-	if (pos == std::string::npos)
+	if (pos == std::string::npos || pos > posloc)
 		return ;
 	offset = pos + 19;
 	pos = buffer.find(";", offset);
@@ -180,70 +166,92 @@ static void	is_directory_listing_allowed(config &conf, std::string &buffer)
 		conf.directory_listing = false;
 }
 
-static void	get_server_name(config &conf, std::string &buffer)
+static void	get_method_allowed(config &conf, std::string &buffer)
 {
 	size_t				pos = 0;
 	size_t				offset = 0;
 	size_t				wc = 0;
-	std::string		names;
-	
-	pos = buffer.find("server-names: ");
-	offset = pos + 14;
+	std::string		methods;
+	size_t				posloc = 0;
+
+	posloc = buffer.find("location");
+	if (posloc == std::string::npos)
+		;
+	pos = buffer.find("methods: ");
+	if (pos == std::string::npos || pos > posloc)
+	{
+		set_method(conf, "DEFAULT");
+		return ;
+	}
+	offset = pos + 9;
 	pos = buffer.find(";", offset);
 	if (pos == std::string::npos)
 	{
-		std::cerr << "no server name found\n";
+		std::cerr << "no methods found\n";
 		return ;
 	}
-	names = buffer.substr(offset, pos - offset);
+	methods = buffer.substr(offset, pos - offset);
+	if (methods.empty())
+		return ;
 	offset = 0;
-	wc = count_words(names.c_str(), ' ');
+	wc = count_words(methods.c_str(), ' ');
 	for(size_t i = 0; i < wc; i++)
 	{
-		pos = names.find(" ", offset);
+		pos = methods.find(" ", offset);
 		if (pos == std::string::npos)
 		{
-			conf.server_names.push_back(names.substr(offset, names.size() - offset));
+			set_method(conf, methods.substr(offset, methods.size() - offset));
 		}
 		else
 		{
-			conf.server_names.push_back(names.substr(offset, pos - offset));
+			set_method(conf, methods.substr(offset, pos - offset));
 			offset = pos + 1;
 		}
 	}
+}
+
+static void	get_server_name(config &conf, std::string &buffer)
+{
+	size_t				pos = 0;
+	size_t				offset = 0;
+	size_t				posloc = 0;
+
+	posloc = buffer.find("location");
+	if (posloc == std::string::npos)
+		;
+	pos = buffer.find("server-name: ");
+	if (pos == std::string::npos || pos > posloc)
+		return ;
+	offset = pos + 13;
+	pos = buffer.find(";", offset);
+	if (pos == std::string::npos)
+	{
+		std::cerr << "no server-index found\n";
+		return ;
+	}
+	conf.server_name = buffer.substr(offset, pos - offset);
 }
 
 static void	get_index(config &conf, std::string &buffer)
 {
 	size_t				pos = 0;
 	size_t				offset = 0;
-	size_t				wc = 0;
-	std::string		index;
+	size_t				posloc = 0;
 
+	posloc = buffer.find("location");
+	if (posloc == std::string::npos)
+		;
 	pos = buffer.find("index: ");
-	if (pos == std::string::npos)
+	if (pos == std::string::npos || pos > posloc)
 		return ;
 	offset = pos + 7;
 	pos = buffer.find(";", offset);
 	if (pos == std::string::npos)
 	{
-		std::cerr << "no server index found\n";
+		std::cerr << "no index found\n";
 		return ;
 	}
-	index = buffer.substr(offset, pos - offset);
-	offset = 0;
-	wc = count_words(index.c_str(), ' ');
-	for(size_t i = 0; i < wc; i++)
-	{
-		pos = index.find(" ", offset);
-		if (pos == std::string::npos)
-			conf.server_index.push_back(index.substr(offset, index.size() - offset));
-		else
-		{
-			conf.server_index.push_back(index.substr(offset, pos - offset));
-			offset = pos + 1;
-		}
-	}
+	conf.server_index = buffer.substr(offset, pos - offset);
 }
 
 void	get_one_config(config &conf, std::string &buffer)
@@ -253,10 +261,10 @@ void	get_one_config(config &conf, std::string &buffer)
 	set_root(conf, buffer);
 	get_index(conf, buffer);
 	get_server_port(conf, buffer);
-	get_server_host(conf, buffer);
 	is_directory_listing_allowed(conf, buffer);
 	set_upload_directory(conf, buffer);
 	get_locations_bloc(conf, buffer);
+	get_method_allowed(conf, buffer);
 }
 
 //location = /
