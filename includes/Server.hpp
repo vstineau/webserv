@@ -60,6 +60,7 @@ class Server
 	std::string checkUpload(request &req);
 	void _responseDELETE(request &rep);
 	void _DELETEmethod(request &req);
+	void _whichLocationDelete(request &req);
 	int checkLocations(request &req);
 	void SetErrorResponse(int error_code);
 	config _conf;

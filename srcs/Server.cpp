@@ -137,7 +137,7 @@ int Server::checkLocations(request &req)
 {
 	if (req.path == _conf.root || req.path == _conf.root + "/")
 	{
-		if (!_conf.allowed_method[GET])
+		if (_conf.allowed_method[GET]) // changer en !
 		{
 			SetErrorResponse(405);
 			return 1;
@@ -299,34 +299,88 @@ void Server::_DELETEmethod(request &req)
 
 void Server::_responseDELETE(request &req)
 {
-	if (req.path == _conf.root)
+	std::string path = req.path.substr(0, req.path.rfind("/") + 1);
+	std::string file = req.path.substr(req.path.rfind("/") + 1);
+	std::string root = _conf.root;
+	if (root + file == req.path || root + _conf.upload_directory + file == req.path)
 	{
 		if (!_conf.allowed_method[DELETE])
-		{
-			SetErrorResponse(405);
-			return ;
-		}
+			return SetErrorResponse(405);
 		else
-			_DELETEmethod(req);// faire la methode DELETE
+			return _DELETEmethod(req);
 	}
-	else
+	for (std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
 	{
-		for (std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
+		if (root + it->second.root + file == req.path || root + it->second.root + it->second.upload_directory + file == req.path)
 		{
-			if(req.path == it->first)
-			{
-				if (!it->second.allowed_method[DELETE])
-				{
-					SetErrorResponse(405);
-					return ;
-				}
-				else
-					_DELETEmethod(req);// faire la methode DELETE
-			}
+			if (!it->second.allowed_method[DELETE])
+				return SetErrorResponse(405);
+			else
+				return _DELETEmethod(req);
 		}
 	}
-	SetErrorResponse(404);
+	return SetErrorResponse(404);
 }
+
+// void Server::_responseDELETE(request &req)
+// {
+// 	std::string path = req.path.substr(0, req.path.rfind("/") + 1);
+// 	std::string file = req.path.substr(req.path.rfind("/") + 1);
+// 	std::cout << "path = " << path << std::endl;
+// 	std::cout << "file = " << file << std::endl;
+// 	if (_conf.allowed_method[DELETE])
+// 		std::cout << "delete method allowed" << std::endl;
+// 	else
+// 		std::cout << "delete method NOT allowed" << std::endl;
+// 	std::string root = _conf.root;
+// 	for (std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
+// 	{
+// 		if (it->second.allowed_method[DELETE])
+// 			std::cout << it->first << " can delete" << RESET << std::endl;
+// 		else
+// 			std::cout << it->first << " can delete" << RESET << std::endl;
+// 		std::cout << "root + loc = " + root + it->second.root + file << std::endl;
+// 		std::cout << "root + loc + updir = " + root + it->second.root + it->second.upload_directory + file << std::endl;
+// 		if (root + it->second.root + file == req.path)
+// 			std::cout << GREEN << "^ MATCH ^" << RESET << std::endl;
+// 		if (root + it->second.root + it->second.upload_directory + file == req.path)
+// 			std::cout << GREEN << "^ MATCH ^" << RESET << std::endl;
+// 	}
+// 	SetErrorResponse(404);
+// 	// if (req.path == _conf.root)
+// 	// {
+// 	// 	if (!_conf.allowed_method[DELETE])
+// 	// 	{
+// 	// 		SetErrorResponse(405);
+// 	// 		return;
+// 	// 	}
+// 	// 	else
+// 	// 	{
+// 	// 		_DELETEmethod(req);
+// 	// 		return;
+// 	// 	}
+// 	// }
+// 	// else
+// 	// {
+// 	// 	for (std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
+// 	// 	{
+// 	// 		if (req.path == it->first)
+// 	// 		{
+// 	// 			if (!it->second.allowed_method[DELETE])
+// 	// 			{
+// 	// 				SetErrorResponse(405);
+// 	// 				return;
+// 	// 			}
+// 	// 			else
+// 	// 			{
+// 	// 				_DELETEmethod(req);
+// 	// 				return;
+// 	// 			}
+// 	// 		}
+// 	// 	}
+// 	// }
+// 	// SetErrorResponse(404);
+// }
 
 void Server::SetResponseStatus(int n)
 {
@@ -344,6 +398,8 @@ void Server::clear_response()
 
 void Server::SetResponse(int n)
 {
+	std::cout << "req.path = " << _requests[n].path << std::endl;
+	std::cout <<  _requests[n].method << RESET << std::endl;
 	if (_requests[n].method == GET)
 		_responseGET(_requests[n]);
 	else if (_requests[n].method == POST)
@@ -361,7 +417,6 @@ int Server::create_img(std::string &img, std::string &up_dir)
 	std::string content;
 
 	pos = img.find("filename=\"", offset);
-	std::cout << "HERE" << RESET << std::endl;
 	if (pos == std::string::npos)
 		return 1;
 	offset = pos + 10;
