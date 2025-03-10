@@ -137,7 +137,9 @@ int Server::checkLocations(request &req)
 {
 	if (req.path == _conf.root || req.path == _conf.root + "/")
 	{
-		if (_conf.allowed_method[GET]) // changer en !
+		if(_conf.allowed_method[GET])
+			std::cout << "method get allowed" << _conf.allowed_method[GET] << RESET << std::endl;
+		if (!_conf.allowed_method[GET]) // changer en !
 		{
 			SetErrorResponse(405);
 			return 1;
@@ -321,66 +323,6 @@ void Server::_responseDELETE(request &req)
 	}
 	return SetErrorResponse(404);
 }
-
-// void Server::_responseDELETE(request &req)
-// {
-// 	std::string path = req.path.substr(0, req.path.rfind("/") + 1);
-// 	std::string file = req.path.substr(req.path.rfind("/") + 1);
-// 	std::cout << "path = " << path << std::endl;
-// 	std::cout << "file = " << file << std::endl;
-// 	if (_conf.allowed_method[DELETE])
-// 		std::cout << "delete method allowed" << std::endl;
-// 	else
-// 		std::cout << "delete method NOT allowed" << std::endl;
-// 	std::string root = _conf.root;
-// 	for (std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
-// 	{
-// 		if (it->second.allowed_method[DELETE])
-// 			std::cout << it->first << " can delete" << RESET << std::endl;
-// 		else
-// 			std::cout << it->first << " can delete" << RESET << std::endl;
-// 		std::cout << "root + loc = " + root + it->second.root + file << std::endl;
-// 		std::cout << "root + loc + updir = " + root + it->second.root + it->second.upload_directory + file << std::endl;
-// 		if (root + it->second.root + file == req.path)
-// 			std::cout << GREEN << "^ MATCH ^" << RESET << std::endl;
-// 		if (root + it->second.root + it->second.upload_directory + file == req.path)
-// 			std::cout << GREEN << "^ MATCH ^" << RESET << std::endl;
-// 	}
-// 	SetErrorResponse(404);
-// 	// if (req.path == _conf.root)
-// 	// {
-// 	// 	if (!_conf.allowed_method[DELETE])
-// 	// 	{
-// 	// 		SetErrorResponse(405);
-// 	// 		return;
-// 	// 	}
-// 	// 	else
-// 	// 	{
-// 	// 		_DELETEmethod(req);
-// 	// 		return;
-// 	// 	}
-// 	// }
-// 	// else
-// 	// {
-// 	// 	for (std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
-// 	// 	{
-// 	// 		if (req.path == it->first)
-// 	// 		{
-// 	// 			if (!it->second.allowed_method[DELETE])
-// 	// 			{
-// 	// 				SetErrorResponse(405);
-// 	// 				return;
-// 	// 			}
-// 	// 			else
-// 	// 			{
-// 	// 				_DELETEmethod(req);
-// 	// 				return;
-// 	// 			}
-// 	// 		}
-// 	// 	}
-// 	// }
-// 	// SetErrorResponse(404);
-// }
 
 void Server::SetResponseStatus(int n)
 {

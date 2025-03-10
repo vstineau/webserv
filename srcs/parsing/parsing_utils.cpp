@@ -38,6 +38,24 @@ size_t count_words(const char *line, char c)
 	return (l);
 }
 
+void	set_method(config &conf, std::string method)
+{
+	if (method == "GET")
+		conf.allowed_method[GET] = 1;
+	else if (method == "POST")
+		conf.allowed_method[POST] = 1;
+	else if (method == "DELETE")
+		conf.allowed_method[DELETE] = 1;
+	else if (method == "DEFAULT")
+	{
+		conf.allowed_method[GET] = 1;
+		conf.allowed_method[POST] = 1;
+		conf.allowed_method[DELETE] = 1;
+	}
+	else
+		conf.allowed_method[INVALID_METHOD] = 1;
+}
+
 void	set_method(location &loc, std::string method)
 {
 	if (method == "GET")

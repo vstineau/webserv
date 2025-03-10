@@ -180,6 +180,50 @@ static void	is_directory_listing_allowed(config &conf, std::string &buffer)
 		conf.directory_listing = false;
 }
 
+static void	get_method_allowed(config &conf, std::string &buffer)
+{
+	size_t				pos = 0;
+	size_t				offset = 0;
+	size_t				wc = 0;
+	std::string		methods;
+	size_t				posloc = 0;
+
+	posloc = buffer.find("location");
+	if (posloc == std::string::npos)
+		;
+	pos = buffer.find("methods: ");
+	if (pos == std::string::npos || pos > posloc)
+	{
+		set_method(conf, "DEFAULT");
+		return ;
+	}
+	offset = pos + 9;
+	pos = buffer.find(";", offset);
+	if (pos == std::string::npos)
+	{
+		std::cerr << "no methods found\n";
+		return ;
+	}
+	methods = buffer.substr(offset, pos - offset);
+	if (methods.empty())
+		return ;
+	offset = 0;
+	wc = count_words(methods.c_str(), ' ');
+	for(size_t i = 0; i < wc; i++)
+	{
+		pos = methods.find(" ", offset);
+		if (pos == std::string::npos)
+		{
+			set_method(conf, methods.substr(offset, methods.size() - offset));
+		}
+		else
+		{
+			set_method(conf, methods.substr(offset, pos - offset));
+			offset = pos + 1;
+		}
+	}
+}
+
 static void	get_server_name(config &conf, std::string &buffer)
 {
 	size_t				pos = 0;
@@ -257,6 +301,8 @@ void	get_one_config(config &conf, std::string &buffer)
 	is_directory_listing_allowed(conf, buffer);
 	set_upload_directory(conf, buffer);
 	get_locations_bloc(conf, buffer);
+	get_method_allowed(conf, buffer);
+
 }
 
 //location = /

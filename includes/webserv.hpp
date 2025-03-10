@@ -119,6 +119,7 @@ size_t		how_many_serv(char *file);
 void			get_one_config(config &conf, std::string &buffer);
 void			fill_servers_configs(std::vector<config> &confs, char *file);
 void			set_method(location &loc, std::string method);
+void			set_method(config &conf, std::string method);
 void			get_locations_bloc(config &conf, std::string &buffer);
 
 //RESPONSES

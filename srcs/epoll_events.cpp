@@ -117,7 +117,10 @@ void Init::epoll_loop()
 	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, servs[0].server_fd, &evi) == -1)
 		perror("epoll_ctl : socket_fd");
 	for (std::vector<Server>::iterator it = servs.begin(); it != servs.end(); it++)
+	{
+		// it.
 		std::cout << "serv_fd = " << it->server_fd << RESET << std::endl;
+	}
 	while (!g_end)
 	{
 		int event_count = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
