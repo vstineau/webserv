@@ -29,15 +29,6 @@
 
 extern bool g_end;
 
-class BadConfigFileExeption : public std::exception
-{
-	public :
-		virtual const char *what() const throw()
-		{
-			return "Error: invalid configuration file\n";
-		}
-};
-
 enum methods
 {
 	GET,

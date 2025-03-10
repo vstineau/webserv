@@ -17,7 +17,15 @@ class Init {
 	public:
 		Init();
 		~Init();
-		void fill_servers_configs(const std::string &file);
+		class BadConfigFileExeption : public std::exception
+		{
+			public :
+				virtual const char *what() const throw()
+				{
+					return "Error: invalid configuration file\n";
+				}
+		};
+		void fill_servers_configs(char *file);
 		void epoll_loop();
 		void init_servers();
 		std::vector<config> confs;

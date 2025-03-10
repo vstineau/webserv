@@ -2,6 +2,7 @@
 //https://www.plesk.com/blog/various/nginx-configuration-guide/
 //https://www.digitalocean.com/community/tutorials/understanding-the-nginx-configuration-file-structure-and-configuration-contexts
 #include "../../includes/webserv.hpp"
+#include "../../includes/Init.hpp"
 
 size_t	how_many_serv(char *file)
 {
@@ -16,36 +17,6 @@ size_t	how_many_serv(char *file)
 			count ++;
 	}
 	return (count);
-}
-
-void	fill_servers_configs(std::vector<config> &confs, char *file)
-{
-	std::string line;
-	std::string serv_line;
-//	size_t serv_index = 0;
-	std::ifstream ifs(file);
-	confs.reserve(how_many_serv(file));
-	if (!ifs)
-		(NULL);
-	while (std::getline(ifs, line))
-	{
-		if (line == "Server {" )
-		{
-			config temp;
-			while (line != "}")
-			{
-				std::getline(ifs, line);
-				if (line != "}")
-				{
-					serv_line += line;
-					serv_line += "\n";
-				}
-			}
-			get_one_config(temp, serv_line);
-			confs.push_back(temp);
-			serv_line.clear();
-		}
-	}
 }
 
 static void	set_error_pages(config &conf, std::string &buffer)
@@ -130,7 +101,7 @@ static void	get_server_port(config &conf, std::string &buffer)
 
 	pos = buffer.find("port: ");
 	if (pos == std::string::npos)
-		return ;
+		throw Init::BadConfigFileExeption();
 	offset = pos + 6;
 	pos = buffer.find(";", offset);
 	if (pos == std::string::npos)

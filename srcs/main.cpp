@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
 		if (argc == 1)
 		{
 			file = default_conf;
-			webserv.fill_servers_configs(file);
+			//webserv.fill_servers_configs(file);  a remplacer par une fonction menbre de init fill default conf qui remplie conf[0]; 
 		}
 		else if (argc == 2)
 		{
