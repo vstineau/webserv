@@ -58,27 +58,23 @@ std::ostream & operator<<(std::ostream & o, location & i)
 
 std::ostream & operator<<(std::ostream & o, config & i)
 {
-	o << "SERVER NAMES : " << i.server_names.size() << "\n";
-	for (std::size_t c = 0; c < i.server_names.size(); c++)
-		o << i.server_names[c] << " ";
+	o << "SERVER NAMES :" << i.server_name << "\n";
 	o << "\n";
-	o << "SERVER INDEX : " << i.server_index.size() << "\n";
-	for (std::vector<std::string>::iterator it = i.server_index.begin(); it != i.server_index.end(); it++)
-		o << *it << " ";
+	o << "SERVER INDEX :" << i.server_index << "\n";
 	o << "\n";
-	o << "HOST : " << i.host << "\n";
-	o << "PORT : " << i.port << "\n";
-	o << "ROOT : " << i.root << "\n";
-	o << "CLIENT BODY SIZE : " << i.client_body_size << "\n";
-	o << "DIRECTORY LISTING : " << i.directory_listing << "\n";
-	o << "ERROR PAGES : \n";
+	o << "HOST :" << i.host << "\n";
+	o << "PORT :" << i.port << "\n";
+	o << "ROOT :" << i.root << "\n";
+	o << "CLIENT BODY SIZE :" << i.client_body_size << "\n";
+	o << "DIRECTORY LISTING :" << i.directory_listing << "\n";
+	o << "ERROR PAGES :\n";
 	for (std::map<int, std::string>::iterator im = i.error_pages.begin(); im != i.error_pages.end(); im++)
 	{
 		o << im->first << " " << im->second << "\n";
 	}
 	for (std::map<std::string, location>::iterator im = i.locations.begin(); im != i.locations.end(); im++)
 	{
-		o << "	LOCATION PATH : " << im->first << "\n" << "	LOCATION DETAILS :\n";
+		o << "	LOCATION PATH :" << im->first << "\n" << "	LOCATION DETAILS:\n";
 		o << im->second;
 	}
 	return (o);

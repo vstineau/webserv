@@ -26,7 +26,7 @@ Server::Server() : server_fd(-1), address(), status_code(200)
 }
 
 // Server::Server(config &conf) : server_fd(-1), status_code(200), _conf(conf)
-Server::Server(config &conf) : server_fd(-1), status_code(200), _conf(conf)
+Server::Server(config &conf) : server_fd(-1), status_code(200), _conf(conf), server_name(conf.server_name)
 {
 	setErrorCodes();
 	// _conf.locations["www/"] = location;
@@ -138,7 +138,7 @@ int Server::checkLocations(request &req)
 	std::cout << "conf.root = " << RESET << std::endl;
 	if (req.path == _conf.root || req.path == _conf.root + "/")
 	{
-		if(_conf.allowed_method[GET])
+		if (_conf.allowed_method[GET])
 			std::cout << "method get allowed" << _conf.allowed_method[GET] << RESET << std::endl;
 		if (!_conf.allowed_method[GET]) // changer en !
 		{
@@ -147,7 +147,7 @@ int Server::checkLocations(request &req)
 		}
 		status_code = 200;
 		SetResponseStatus(status_code);
-		std::string path = req.path + "/index.html";
+		std::string path = req.path + "index.html";
 		std::cout << "path = " << path << RESET << std::endl;
 		file_in_string(_response.body, path.c_str());
 		_response.headers["Content-Type: "].push_back("text/html");
@@ -166,6 +166,7 @@ int Server::checkLocations(request &req)
 			status_code = 200;
 			SetResponseStatus(status_code);
 			std::string path = req.path + "/index.html";
+			std::cout << "path = " << path << RESET << std::endl;
 			file_in_string(_response.body, path.c_str());
 			_response.headers["Content-Type: "].push_back("text/html");
 			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
@@ -343,7 +344,7 @@ void Server::clear_response()
 void Server::SetResponse(int n)
 {
 	std::cout << "req.path = " << _requests[n].path << std::endl;
-	std::cout <<  _requests[n].method << RESET << std::endl;
+	std::cout << _requests[n].method << RESET << std::endl;
 	if (_requests[n].method == GET)
 		_responseGET(_requests[n]);
 	else if (_requests[n].method == POST)

@@ -47,6 +47,7 @@ class Server
 	std::vector<int> client_fd;
 	struct sockaddr_in address;
 	int status_code;
+	response _response;
 
 	private:
 	void fill_header(std::string &header, int &n);
@@ -64,9 +65,11 @@ class Server
 	int checkLocations(request &req);
 	void SetErrorResponse(int error_code);
 	config _conf;
+	public: 
+	std::string server_name;
+	private:
 	std::map<int, request> _requests;
 	std::map<int, std::string> _error_codes;
-	response _response;
 	FileHandler _file;
 };
 

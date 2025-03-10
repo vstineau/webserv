@@ -15,6 +15,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <cstddef>
+#include <exception>
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <sys/epoll.h>
@@ -64,13 +65,11 @@ struct location
 struct config {
 	config();
 	~config();
-	std::vector<std::string>				server_names;
-	std::vector<std::string>				server_index;
+	std::string				server_name;
+	std::string				server_index;
 	std::string											root;
 	std::string											host;
 	std::string											upload_directory;
-	// std::string											http_redirection;
-	// std::string											directory_path;
 	std::map<int, std::string>			error_pages;
 	char														allowed_method[4];
 	int															port;
@@ -92,6 +91,7 @@ struct response {
 	std::string																			status_line;
 	std::map<std::string, std::vector<std::string> >	headers;
 	std::string																			body;
+	std::string repInString(void) const;
 };
 
 struct request {
@@ -121,6 +121,7 @@ void			fill_servers_configs(std::vector<config> &confs, char *file);
 void			set_method(location &loc, std::string method);
 void			set_method(config &conf, std::string method);
 void			get_locations_bloc(config &conf, std::string &buffer);
+int	check_host(std::string &buff, std::string &host);
 
 //RESPONSES
 void				file_in_string(std::string &sfile, const char *file);
