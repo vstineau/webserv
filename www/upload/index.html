@@ -1,153 +1,69 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>WeebServ UwU</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background-color: #333;
-            color: white;
-            padding: 10px 0;
-            text-align: center;
-        }
-        .positionne-bouton {
-            position:relative;
-            display: flex;
-            margin-top: 1%;
-            margin-left: 0%;
-            margin-right: auto;
-            height: auto;
-            width: 5%;
-            align-items: center;
-            justify-content: center;
-        }
-        .positionne-bouton other-button {
-            position:relative;
-            display: flex;
-            margin-top: 1%;
-            margin-left: 0%;
-            margin-right: auto;
-            height: auto;
-            width: 5%;
-            align-items: center;
-            justify-content: center;
-        }
-        main {
-            padding: 20px;
-        }
-        footer {
-            background-color: #333;
-            color: white;
-            text-align: center;
-            padding: 10px 0;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-        }
-        button_post {
-            padding: 11px 25px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 20px;
-            background-color:rgb(255, 187, 0);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            transition: 0.2s;
-        }
-        button_post:hover {
-            background-color: rgba(255, 187, 0, 0.65);
-            padding: 11px 23px;
-            border-radius: 20px;
-            transition: 0.2s;
-        }
-        button_post:active {
-            background-color:rgb(255, 255, 255);
-            position: relative;
-            padding: 11px 23px;
-            border-radius: 20px;
-            transition: 0.1s;
-        }
-        button_delete {
-            padding: 12px 12px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 20px;
-            background-color:rgb(255, 187, 0);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            transition: 0.2s;
-        }
-        button_delete:hover {
-            background-color: rgba(255, 187, 0, 0.65);
-            padding: 12px 12px;
-            border-radius: 20px;
-            transition: 0.2s;
-        }
-        button_delete:active {
-            background-color:rgb(255, 255, 255);
-            position: relative;
-            padding: 12px 12px;
-        }
-        button_galery {
-            padding: 50px 50px;
-            font-size: 30px;
-            cursor: pointer;
-            margin-top: 5px;
-            background-color:rgba(0, 179, 54, 0.82);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            transition: 0.2s;
-        }
-        button_galery:hover {
-            background-color:rgba(0, 179, 54, 0.51);
-            border-radius: 20px;
-            transition: 0.2s;
-        }
-        a {
-            color: #007bff;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        a:active {
-            color:rgba(255, 0, 0, 0.65);
-        }
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+      }
+      header {
+        background-color: #333;
+        color: white;
+        padding: 10px 0;
+        text-align: center;
+      }
+      main {
+        padding: 20px;
+      }
+      footer {
+        background-color: #333;
+        color: white;
+        text-align: center;
+        padding: 10px 0;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+      }
+      a {
+        color: #007bff;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      a:active {
+        color: rgba(255, 0, 0, 0.65);
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <header>
-        <h1>Welcome to wnocchi, vstineau and umerde 's webserv</h1>
+      <h1>Directory Listing</h1>
     </header>
 
     <main>
-        <h2>WebServ</h2>
-        <p>choose the methode you want to use</p>
-        <form method="POST" enctype="multipart/form-data">
-            <div class="button_post">
-                <input type="file" class="button_post" id="actual-btn" name="file" />
-                <!-- <input type="file" class="button_post" id="actual-btn2" name="file2" /> -->
-                <button type="submit" class ="button_post" class="positionne-bouton">POST</button>
-            </div>
-        </form>
-        <button_delete class="positionne-bouton" onclick="window.location.href='http://127.0.0.1:8080/delete';"');">DELETE</button_delete>
-        <button_galery class="positionne-bouton" onclick="window.location.href='http://127.0.0.1:8080/upload';"');">Galery</button_galery>
-        <p>Voici un <a href="https://github.com/vstineau/webserv"         target="_blank">lien vers le GitHub du projet</a>.</p>
+      <h2>Upload</h2>
+      <p>
+        <a href="https://github.com/vstineau/webserv">image2.png</a>
+      </p>
+      <p>
+        <a href="https://github.com/vstineau/webserv">image3.png</a>
+      </p>
+      <p>
+        <a href="https://github.com/vstineau/webserv">image4.png</a>
+      </p>
+      <p>
+        <a href="https://github.com/vstineau/webserv">image5.png</a>
+      </p>
     </main>
-
     <footer>
-        <p>&copy; WeebServ UwU Baka Pro Max club</p>
+      <p>&copy; WeebServ UwU Baka Pro Max club</p>
     </footer>
-</body>
+  </body>
 </html>

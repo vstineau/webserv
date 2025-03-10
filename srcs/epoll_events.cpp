@@ -52,7 +52,7 @@ static int handle_epollin(Server &serv, struct epoll_event *events, int &n, int 
 		// serv.identifyRequest(n);
 		serv.SetResponse(n);
 		// serv.print_request(n);
-		std::cout << HI_CYAN << "-----------REQUEST----------" << RESET << std::endl;
+		// std::cout << HI_CYAN << "-----------REQUEST----------" << RESET << std::endl;
 		// std::cout << buff << std::endl;
 		struct epoll_event ev;
 		ev.data.fd = events[n].data.fd;
