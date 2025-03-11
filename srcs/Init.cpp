@@ -8,6 +8,18 @@ Init::Init()
 Init::~Init()
 {}
 
+void Init::set_default_conf()
+{
+	config temp;
+
+	temp.server_name = "webserv";
+	temp.root = "www/";
+	set_method(temp, "DEFAULT");
+	temp.port = 8080;
+	temp.directory_listing = true;
+	confs.push_back(temp);
+}
+
 void Init::fill_servers_configs(char *file)
 {
 	std::string line;

@@ -49,8 +49,8 @@ void	set_method(config &conf, std::string method)
 	else if (method == "DEFAULT")
 	{
 		conf.allowed_method[GET] = 1;
-		conf.allowed_method[POST] = 1;
-		conf.allowed_method[DELETE] = 1;
+		conf.allowed_method[POST] = 0;
+		conf.allowed_method[DELETE] = 0;
 	}
 	else
 		conf.allowed_method[INVALID_METHOD] = 1;

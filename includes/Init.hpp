@@ -28,6 +28,7 @@ class Init {
 		void fill_servers_configs(char *file);
 		void epoll_loop();
 		void init_servers();
+		void set_default_conf();
 		std::vector<config> confs;
 		std::vector<Server> servs;
 };
