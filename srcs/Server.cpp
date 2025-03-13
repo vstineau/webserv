@@ -126,11 +126,23 @@ void Server::setErrorCodes(void)
 
 void Server::SetErrorResponse(int error_code)
 {
-	status_code = error_code;
-	SetResponseStatus(status_code);
-	_response.body = get_body_error(error_code);
-	_response.headers["Content-Type: "].push_back("text/html");
-	_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+	if (_conf.error_pages[error_code].size() != 0)
+	{
+		status_code = error_code;
+		SetResponseStatus(status_code);
+		_response.body = _conf.error_pages[error_code];
+		std::cout << _response.body << "\n";
+		_response.headers["Content-Type: "].push_back("text/html");
+		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+	}
+	else
+	{
+		status_code = error_code;
+		SetResponseStatus(status_code);
+		_response.body = get_body_error(error_code);
+		_response.headers["Content-Type: "].push_back("text/html");
+		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+	}
 }
 
 int Server::checkLocations(request &req)
