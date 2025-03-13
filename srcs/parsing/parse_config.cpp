@@ -61,7 +61,7 @@ static void	set_root(config &conf, std::string &buffer)
 		;
 	pos = buffer.find("root: ");
 	if (pos == std::string::npos || pos > posloc)
-		return ;
+		throw Init::BadConfigFileExeption();
 	offset = pos + 6;
 	pos = buffer.find(";", offset);
 	if (pos == std::string::npos)
