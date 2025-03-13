@@ -8,13 +8,26 @@ Init::Init()
 Init::~Init()
 {}
 
-void Init::fill_servers_configs(const std::string &file)
+void Init::set_default_conf()
+{
+	config temp;
+
+	temp.server_name = "webserv";
+	temp.root = "www/";
+	set_method(temp, "DEFAULT");
+	temp.port = 8080;
+	temp.directory_listing = true;
+	confs.push_back(temp);
+}
+
+void Init::fill_servers_configs(char *file)
 {
 	std::string line;
 	std::string serv_line;
-	std::ifstream ifs(file.c_str());
+	std::ifstream ifs(file);
 	if (!ifs)
-		(NULL);
+		throw BadConfigFileExeption();
+	confs.reserve(how_many_serv(file));
 	while (std::getline(ifs, line))
 	{
 		if (line == "Server {" )
@@ -30,6 +43,11 @@ void Init::fill_servers_configs(const std::string &file)
 				}
 			}
 			get_one_config(temp, serv_line);
+			for(std::vector<config>::iterator it = confs.begin(); it != confs.end(); it++)
+			{
+				if (temp.server_name == it->server_name)
+					throw Init::BadConfigFileExeption();
+			}
 			confs.push_back(temp);
 			serv_line.clear();
 		}

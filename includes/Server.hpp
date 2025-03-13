@@ -63,6 +63,9 @@ class Server
 	int checkLocations(request &req);
 	void SetErrorResponse(int error_code);
 	config _conf;
+	public: 
+	std::string server_name;
+	private:
 	std::map<int, request> _requests;
 	std::map<int, std::string> _error_codes;
 	response _response;

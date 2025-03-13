@@ -14,15 +14,22 @@ int main(int argc, char *argv[]) {
 
 	// std::vector<config> confs;
 	// std::map<int, Server> map_serv;
-	if (argc == 1)
-	{
-		file = default_conf;
-		webserv.fill_servers_configs(file);
+	try {
+		if (argc == 1)
+		{
+			file = default_conf;
+			webserv.set_default_conf();
+		}
+		else if (argc == 2)
+		{
+			file = argv[1];
+			webserv.fill_servers_configs(argv[1]);
+		}
 	}
-	else if (argc == 2)
+	catch (std::exception &e)
 	{
-		file = argv[1];
-		webserv.fill_servers_configs(argv[1]);
+		std::cout << e.what();
+		return 1;
 	}
 	webserv.init_servers();
 	// print_config(webserv.confs);
