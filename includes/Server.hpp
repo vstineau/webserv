@@ -56,7 +56,9 @@ class Server
 	int fill_body(std::string &header, int &n, std::string &up_dir);
 	int create_img(std::string &img, std::string &up_dir);
 	std::size_t check_contentype(int n, std::size_t pos, std::size_t offset, std::string &buffer);
-	void _responseGET(request &rep);
+	void _responseGET(request &rep, location &loc);
+	int allowedMethod(request &req, location &ret_loc);
+	int isCGI(request &req, location &loc);
 	void _responsePOST(request &rep, int &n);
 	std::string checkUpload(request &req);
 	void _responseDELETE(request &rep);
@@ -65,8 +67,10 @@ class Server
 	int checkLocations(request &req);
 	void SetErrorResponse(int error_code);
 	config _conf;
-	public: 
+
+	public:
 	std::string server_name;
+
 	private:
 	std::map<int, request> _requests;
 	std::map<int, std::string> _error_codes;

@@ -62,6 +62,8 @@ void Server::setSocket()
 // return response in one string ready to get send to the client
 std::string Server::getResponse(void) const
 {
+	if (!_response.cgi_rep.empty())
+		return _response.cgi_rep;
 	std::string r;
 	r += _response.status_line;
 	r += "\r\n";
@@ -176,14 +178,49 @@ int Server::checkLocations(request &req)
 	return 0;
 }
 
-void Server::_responseGET(request &req)
+int Server::allowedMethod(request &req, location &ret_loc)
+{
+	std::string path = req.path.substr(0, req.path.rfind("/") + 1);
+	std::string file = req.path.substr(req.path.rfind("/") + 1);
+	std::string root = _conf.root;
+	for (std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
+	{
+		if (root + it->second.root + file == req.path || root + it->second.root + it->second.upload_directory + file == req.path)
+		{
+			if (!it->second.allowed_method[req.method])
+				return 405;
+			else
+			{
+				ret_loc = it->second;
+				return 200; // exec_cgi
+			}
+		}
+	}
+	return 404;
+}
+
+int Server::isCGI(request &req, location &loc)
+{
+	if (_file.extention == loc.cgi_extention)
+	{
+		_response = _file.execCgi(req, loc.cgi_bin);
+		status_code = 200;
+		SetResponseStatus(status_code);
+		return 1;
+	}
+	return 0;
+}
+
+void Server::_responseGET(request &req, location &loc)
 {
 	if (checkLocations(req))
 		return;
 	_file.setFileInfo(req.path);
 	_file.setFile(req.path);
+	if(isCGI(req, loc));
 	if (_file.extention != "NO EXTENTION")
 	{
+		// allowedMethod(req, loc);
 		std::ifstream imgFile(req.path.c_str());
 		if (!imgFile)
 		{
@@ -345,8 +382,16 @@ void Server::SetResponse(int n)
 {
 	std::cout << "req.path = " << _requests[n].path << std::endl;
 	std::cout << _requests[n].method << RESET << std::endl;
+	location loc;
+	config conf;
+	int allowed = allowedMethod(_requests[n], loc);
+	if (allowed != 200)
+	{
+		SetErrorResponse(allowed);
+		return;
+	}
 	if (_requests[n].method == GET)
-		_responseGET(_requests[n]);
+		_responseGET(_requests[n], loc);
 	else if (_requests[n].method == POST)
 		_responsePOST(_requests[n], n);
 	else if (_requests[n].method == DELETE)

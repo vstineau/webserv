@@ -254,6 +254,18 @@ static void	get_index(config &conf, std::string &buffer)
 	conf.server_index = buffer.substr(offset, pos - offset);
 }
 
+void get_loconfig(config & conf)
+{
+    conf.locations[""].root =  conf.root;
+    conf.locations[""].index_html =  conf.server_index;
+    conf.locations[""].client_body_size =  conf.client_body_size;
+    conf.locations[""].directory_listing =  conf.directory_listing;
+    conf.locations[""].allowed_method[0] =  conf.allowed_method[0];
+    conf.locations[""].allowed_method[1] =  conf.allowed_method[1];
+    conf.locations[""].allowed_method[2] =  conf.allowed_method[2];
+    conf.locations[""].allowed_method[3] =  conf.allowed_method[3];
+}
+
 void	get_one_config(config &conf, std::string &buffer)
 {
 	get_server_name(conf, buffer);
@@ -265,8 +277,7 @@ void	get_one_config(config &conf, std::string &buffer)
 	set_upload_directory(conf, buffer);
 	get_locations_bloc(conf, buffer);
 	get_method_allowed(conf, buffer);
-
-	get_method_allowed(conf, buffer);
+	get_loconfig(conf);
 }
 
 //location = /

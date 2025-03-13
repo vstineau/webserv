@@ -5,6 +5,7 @@ response & response::operator=(response & r)
 	status_line = r.status_line;
 	headers = r.headers;
 	body = r.body;
+	cgi_rep = r.cgi_rep;
 
 	return *this;
 }

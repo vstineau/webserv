@@ -82,6 +82,7 @@ static int handle_epollout(Server &serv, struct epoll_event &events, int &epoll_
 	if (events.events & EPOLLOUT)
 	{
 		serv.status_code = 200;
+		std::cout << rep[0].repInString() << RESET << std::endl;
 		if (send(events.data.fd, rep[0].repInString().c_str(), rep[0].repInString().size(), MSG_NOSIGNAL) == -1)
 			std::cerr << "Send error: " << std::endl;
 		rep.erase(rep.begin());
