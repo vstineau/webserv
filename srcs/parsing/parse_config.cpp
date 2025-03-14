@@ -110,6 +110,8 @@ static void	get_server_port(config &conf, std::string &buffer)
 		return ;
 	}
 	conf.port = atoi(buffer.substr(offset, pos - offset).c_str());
+	if (conf.port == 0)
+		throw Init::BadConfigFileExeption();
 }
 
 static void	is_directory_listing_allowed(config &conf, std::string &buffer)
