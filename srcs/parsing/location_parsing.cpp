@@ -1,4 +1,5 @@
 
+#include "../../includes/Init.hpp"
 #include "../../includes/webserv.hpp"
 
 static void	get_index(std::string &path, std::string &buffer,  config &conf)
@@ -95,7 +96,7 @@ static void	get_root(std::string &path, std::string &buffer,  config &conf)
 
 	pos = buffer.find("root: ");
 	if (pos == std::string::npos)
-		return ;
+		throw Init::BadConfigFileExeption();
 	offset = pos + 6;
 	pos = buffer.find(";", offset);
 	if (pos == std::string::npos)
