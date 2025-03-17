@@ -34,7 +34,7 @@ void FileHandler::setFileInfo(std::string path)
 		return;
 	}
 	no_file = false;
-	std::cout << "Type de fichier :                ";
+	// std::cout << "Type de fichier :                ";
 	switch (sb.st_mode & S_IFMT)
 	{
 	case S_IFDIR:
@@ -149,19 +149,21 @@ int FileHandler::execCgi(request &req, location &loc, response &r)
 	{
 		char **envp;
 		char **argv;
-		if (dup2(pipe_in[0], STDIN_FILENO))
-		{
-			close_pipe(pipe_in);
-			close_pipe(pipe_out);
-			exit(1);
-		}
-		if (dup2(pipe_out[1], STDOUT_FILENO))
+		close(pipe_in[1]);
+		if (dup2(pipe_in[0], STDIN_FILENO) == -1)
 		{
 			close_pipe(pipe_in);
 			close_pipe(pipe_out);
 			exit(1);
 		}
 		close_pipe(pipe_in);
+		close(pipe_out[0]);
+		if (dup2(pipe_out[1], STDOUT_FILENO) == -1)
+		{
+			close_pipe(pipe_in);
+			close_pipe(pipe_out);
+			exit(1);
+		}
 		close_pipe(pipe_out);
 		argv = (char **)calloc(3, sizeof(char *));
 		if (argv == NULL)
@@ -196,14 +198,13 @@ int FileHandler::execCgi(request &req, location &loc, response &r)
 	int count = 0;
 	char buffer[1025];
 	std::string buff;
-	do
-	{
-		count = recv(pipe_out[1], buffer, 1024, 0);
-		if(count != -1)
-			buff.append(buffer, count);
-	} while (count == 1024);
-	close_pipe(pipe_in);
+    close(pipe_in[0]);
+    close(pipe_out[1]);
+	while ((count = read(pipe_out[0], buffer, 1024)) > 0)
+        buff.append(buffer, count);
+	std::cout << "count = "<< count << RESET << std::endl;
 	close_pipe(pipe_out);
+	close_pipe(pipe_in);
 	std::cout << "pipe read :\n" << buff << RESET << std::endl;
 	int status;
 	r.cgi_rep = buff;

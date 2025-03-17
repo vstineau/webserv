@@ -8,8 +8,7 @@ void file_in_string(std::string &sfile, const char *file)
 	std::ifstream ifs(file);
 	if (!ifs)
 	{
-		std::cout << "code mieux fdp\n";
-		(NULL);
+		return ;
 	}
 	if (!sfile.empty())
 		sfile.clear();
