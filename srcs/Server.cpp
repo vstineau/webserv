@@ -137,20 +137,11 @@ void Server::SetErrorResponse(int error_code)
 
 int Server::checkLocations(request &req)
 {
-	std::cout << "conf.root = " << RESET << std::endl;
-	if (req.path == _conf.root || req.path == _conf.root + "/")
+	if (req.path == _conf.root || req.path == _conf.root + SLASH)
 	{
-		if (_conf.allowed_method[GET])
-			std::cout << "method get allowed" << _conf.allowed_method[GET] << RESET << std::endl;
-		if (!_conf.allowed_method[GET]) // changer en !
-		{
-			SetErrorResponse(405);
-			return 1;
-		}
 		status_code = 200;
 		SetResponseStatus(status_code);
 		std::string path = req.path + "index.html";
-		std::cout << "path = " << path << RESET << std::endl;
 		file_in_string(_response.body, path.c_str());
 		_response.headers["Content-Type: "].push_back("text/html");
 		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
@@ -158,17 +149,13 @@ int Server::checkLocations(request &req)
 	}
 	for (std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
 	{
-		if (it->first == req.path.substr(_conf.root.length()))
+		std::cout << it->first << " == " << req.path.substr(_conf.root.length() + 1) << RESET << std::endl;
+		if (it->first == req.path.substr(_conf.root.length() + 1))
 		{
-			if (!it->second.allowed_method[GET])
-			{
-				SetErrorResponse(405);
-				return 1;
-			}
 			status_code = 200;
 			SetResponseStatus(status_code);
 			std::string path = req.path + "/index.html";
-			std::cout << "path = " << path << RESET << std::endl;
+			std::cout << "path = " << path << std::endl;
 			file_in_string(_response.body, path.c_str());
 			_response.headers["Content-Type: "].push_back("text/html");
 			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
@@ -183,29 +170,56 @@ int Server::allowedMethod(request &req, location &ret_loc)
 	std::string path = req.path.substr(0, req.path.rfind("/") + 1);
 	std::string file = req.path.substr(req.path.rfind("/") + 1);
 	std::string root = _conf.root;
+	std::cout << "req path = " << req.path << RESET << std::endl;
 	for (std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
 	{
-		if (root + it->second.root + file == req.path || root + it->second.root + it->second.upload_directory + file == req.path)
+		if (it->first.empty())
+		{
+			if (root + SLASH + file == req.path || root + SLASH + it->second.upload_directory + SLASH + file == req.path)
+			{
+				if (!it->second.allowed_method[req.method])
+					return 405;
+				else
+				{
+					ret_loc = it->second;
+					if (it->first != it->second.root)
+						return 302;
+					return 200; // exec_cgi
+				}
+			}
+			continue;
+		}
+		if (root + SLASH + it->second.root + SLASH + file == req.path ||
+			root + SLASH + it->second.root + SLASH + it->second.upload_directory + SLASH + file == req.path)
 		{
 			if (!it->second.allowed_method[req.method])
 				return 405;
 			else
 			{
 				ret_loc = it->second;
-				return 200; // exec_cgi
+				if (it->first != it->second.root && !it->second.root.empty())
+					return 302;
+				return 200;
 			}
 		}
 	}
+	std::cout << RED "NOT FOUND" RESET << std::endl;
 	return 404;
 }
 
 int Server::isCGI(request &req, location &loc)
 {
+	// std::cout << _file.extention << " == " << loc.cgi_extention << std::endl;
 	if (_file.extention == loc.cgi_extention)
 	{
-		_response = _file.execCgi(req, loc.cgi_bin);
-		status_code = 200;
+		int code = _file.execCgi(req, loc, _response);
+		if (code != 200)
+			status_code = code;
 		SetResponseStatus(status_code);
+		_response.status_line += "\r\n";
+		_response.cgi_rep.insert(0, _response.status_line.c_str());
+		std::cout << "message" << std::endl;
+		// _response.cgi_rep.clear();
 		return 1;
 	}
 	return 0;
@@ -213,13 +227,16 @@ int Server::isCGI(request &req, location &loc)
 
 void Server::_responseGET(request &req, location &loc)
 {
+	std::cout << "HERE" << std::endl;
 	if (checkLocations(req))
 		return;
 	_file.setFileInfo(req.path);
 	_file.setFile(req.path);
-	if(isCGI(req, loc));
+	if (isCGI(req, loc))
+		return;
 	if (_file.extention != "NO EXTENTION")
 	{
+		std::cout << "HERE 2" << std::endl;
 		// allowedMethod(req, loc);
 		std::ifstream imgFile(req.path.c_str());
 		if (!imgFile)
@@ -376,16 +393,17 @@ void Server::clear_response()
 	_response.status_line.clear();
 	_response.headers.clear();
 	_response.body.clear();
+	_response.cgi_rep.clear();
 }
 
 void Server::SetResponse(int n)
 {
 	std::cout << "req.path = " << _requests[n].path << std::endl;
-	std::cout << _requests[n].method << RESET << std::endl;
+	std::cout << _requests[n].method << std::endl;
 	location loc;
-	config conf;
 	int allowed = allowedMethod(_requests[n], loc);
-	if (allowed != 200)
+	std::cout << allowed << std::endl;
+	if (allowed != 200 && allowed != 302)
 	{
 		SetErrorResponse(allowed);
 		return;
@@ -412,7 +430,7 @@ int Server::create_img(std::string &img, std::string &up_dir)
 	offset = pos + 10;
 	pos = img.find("\"", offset);
 	filename = img.substr(offset, pos - offset);
-	std::cout << filename << RESET << std::endl;
+	std::cout << filename << std::endl;
 	offset = pos + 1;
 	std::string path = up_dir + filename;
 	std::ofstream ofs(path.c_str(), std::ios_base::binary);
@@ -565,7 +583,7 @@ void Server::fillRequest(int n, std::string &buffer)
 	}
 	_requests[n].path = buffer.substr(offset, pos - offset);
 	fill_query(n);
-	_requests[n].path.replace(0, 1, _conf.root);
+	_requests[n].path.replace(0, 1, _conf.root + SLASH);
 	offset = pos + 1;
 	pos = buffer.find("\n", offset);
 	if (pos == std::string::npos)

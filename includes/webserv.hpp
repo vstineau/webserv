@@ -28,6 +28,7 @@
 
 #define MAX_EVENTS 28
 #define ENDL "\r\n"
+#define SLASH "/"
 
 extern bool g_end;
 

@@ -69,7 +69,6 @@ void FileHandler::setFile(std::string path)
 		extention = "NO EXTENTION";
 		return;
 	}
-	pos += 1;
 	extention = path.substr(pos, path.size() - pos);
 	Content_Type = mimes[extention];
 }
@@ -121,53 +120,69 @@ static void close_pipe(int pipe[2])
 		close(pipe[1]);
 }
 
-response FileHandler::execCgi(request &req, std::string &bin_path)
+int FileHandler::execCgi(request &req, location &loc, response &r)
 {
 	// rajouter un truc pour detecter si c'est un cgi
-	response r;
+	// response r;
 	std::string cmd;
 
-	cmd = bin_path + " " + req.path;
+	cmd = loc.cgi_bin + " " + req.path;
+	std::cout  << "cmd = " << cmd << RESET << std::endl;
 	time_t start = time(NULL);
 	int cgi_pid = fork();
-	int pipe_fd[2] = {-1, -1};
-	if (pipe(pipe_fd))
-		return r; // error
+	int pipe_out[2] = {-1, -1};
+	int pipe_in[2] = {-1, -1};
+	if (pipe(pipe_in))
+		return 500; // error
+	if (pipe(pipe_out))
+	{
+		close_pipe(pipe_in);
+		return 500; // error
+	}
 	if (cgi_pid == -1)
-		; // 500
+	{
+		close_pipe(pipe_in);
+		close_pipe(pipe_out);
+		return 500; // 500
+	}
 	if (!cgi_pid)
 	{
 		char **envp;
 		char **argv;
-		if (dup2(pipe_fd[0], STDIN_FILENO))
+		if (dup2(pipe_in[0], STDIN_FILENO))
 		{
-			close_pipe(pipe_fd);
-			return r;
+			close_pipe(pipe_in);
+			close_pipe(pipe_out);
+			exit(1);
 		}
-		if (dup2(pipe_fd[1], STDOUT_FILENO))
+		if (dup2(pipe_out[1], STDOUT_FILENO))
 		{
-			close_pipe(pipe_fd);
-			return r;
+			close_pipe(pipe_in);
+			close_pipe(pipe_out);
+			exit(1);
 		}
-		close_pipe(pipe_fd);
-		argv = (char **)calloc(2, sizeof(char *));
+		close_pipe(pipe_in);
+		close_pipe(pipe_out);
+		argv = (char **)calloc(3, sizeof(char *));
 		if (argv == NULL)
-			; // 500
-		argv[0] = strdup(cmd.c_str());
-		if (argv[0] == NULL)
+			exit(1);
+		argv[0] = strdup(loc.cgi_bin.c_str());
+		argv[1] = strdup(req.path.c_str());
+		if (argv[0])
 		{
 			free(argv);
-			; // 500
+			exit(1);
 		}
-		argv[1] = NULL;
 		envp = getCgiEnv(req);
 		if (envp == NULL)
 		{
 			free(argv[1]);
+			free(argv[2]);
 			free(argv);
-			; // 500
+			exit(1);
 		}
-		execve(*argv, argv, envp);
+		std::cout << argv[0] << RESET << std::endl;
+		execve(cmd.c_str(), argv, envp);
 		for (int i = 0; envp[i]; i++)
 		{
 			if (argv[i])
@@ -176,30 +191,36 @@ response FileHandler::execCgi(request &req, std::string &bin_path)
 		}
 		free(argv);
 		free(envp);
-		// error 500;
+		exit(1);
 	}
 	int count = 0;
 	char buffer[1025];
 	std::string buff;
 	do
 	{
-		count = recv(pipe_fd[0], buffer, 1024, 0);
-		buff.append(buffer, count);
+		count = recv(pipe_out[1], buffer, 1024, 0);
+		if(count != -1)
+			buff.append(buffer, count);
 	} while (count == 1024);
-	close(pipe_fd[1]);
-	close(pipe_fd[0]);
+	close_pipe(pipe_in);
+	close_pipe(pipe_out);
 	std::cout << "pipe read :\n" << buff << RESET << std::endl;
 	int status;
-	r.status_line = "HTTP/1.1 ";
-	r.status_line += to_string(200);
-	r.status_line += _error_codes[200];
-	r.cgi_rep += buff;
+	r.cgi_rep = buff;
 	while (waitpid(cgi_pid, &status, WNOHANG) > 0)
 	{
+		if (WIFEXITED(status))
+		{
+			r.cgi_rep.clear();
+			return 500;
+		}
 		time_t timeout = time(NULL);
+		// c'est ici qu'il faut mettre un 500
+		// set le code erreur dans le child va pas marcher
 		if (timeout - start < 5)
 		{
-			kill(cgi_pid, SIGKILL);
+			r.cgi_rep.clear();
+			kill(cgi_pid, SIGQUIT);
 			// timeout jsp pas on fais quoi mais on le fais
 		}
 	}
@@ -215,7 +236,7 @@ response FileHandler::execCgi(request &req, std::string &bin_path)
 	"SERVER_PORT" | "SERVER_PROTOCOL" |
 	"SERVER_SOFTWARE" | scheme |
 	protocol-var-name | extension-var-name	*/
-	return r;
+	return 200;
 }
 
 void FileHandler::setErrorCodes(void)

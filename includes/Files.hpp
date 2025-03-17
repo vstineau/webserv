@@ -24,7 +24,7 @@ class FileHandler {
 		void setMime();
 		std::map<std::string, std::string>	mimes;
 //		getContentType();
-		response execCgi(request &req, std::string &bin_path);
+		int execCgi(request &req, location &loc, response &r);
 		char **getCgiEnv(request &req);
 		long long		file_size;
 		std::string		filestring;
