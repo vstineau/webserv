@@ -162,7 +162,10 @@ static void	get_client_body_size(std::string &path, std::string &buffer,  config
 		std::cerr << "no client-body-size found\n";
 		return ;
 	}
-	conf.locations[path].client_body_size = atoi(buffer.substr(offset, pos - offset).c_str());
+	char *ptr;
+	conf.locations[path].client_body_size = std::strtold(buffer.substr(offset, pos - offset).c_str(), &ptr);
+	if (*ptr != 0)
+	    throw Init::BadConfigFileExeption();
 }
 
 static void	set_error_pages(std::string &path, std::string &buffer,  config &conf)

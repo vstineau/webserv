@@ -48,7 +48,7 @@ struct location
 	std::string									index_html;
 	std::string									upload_directory;
 	char												allowed_method[4];
-	int													client_body_size;
+	unsigned long								client_body_size;
 	bool												directory_listing;
 	std::map<int, std::string>	error_pages;
 };
@@ -64,7 +64,7 @@ struct config {
 	std::map<int, std::string>			error_pages;
 	char														allowed_method[4];
 	int															port;
-	int															client_body_size;
+	unsigned long										client_body_size;
 	bool														directory_listing;
 	std::map<std::string, location>	locations; //PATH -> location 
 };

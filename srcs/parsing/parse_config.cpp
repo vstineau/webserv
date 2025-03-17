@@ -202,7 +202,10 @@ static void	get_client_body_size(config &conf, std::string &buffer)
 		std::cerr << "no client-body-size found\n";
 		return ;
 	}
-	conf.client_body_size = atoi(buffer.substr(offset, pos - offset).c_str());
+	char *ptr;
+	conf.client_body_size = std::strtold(buffer.substr(offset, pos - offset).c_str(), &ptr);
+	if (*ptr != 0)
+	    throw Init::BadConfigFileExeption();
 }
 
 static void	get_server_name(config &conf, std::string &buffer)
