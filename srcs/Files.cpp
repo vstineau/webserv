@@ -11,6 +11,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
+//https://stackoverflow.com/questions/7047426/call-php-from-virtual-custom-web-server
+//https://aprelium.com/data/doc/2/abyssws-win-doc-html/cgivars.html#:~:text=SCRIPT_FILENAME%20and%20REQUEST_FILENAME%20%3A%20The%20real,and%20PATH_INFO%20(if%20available.)
+//https://datatracker.ietf.org/doc/html/rfc3875
 
 FileHandler::FileHandler()
 {
