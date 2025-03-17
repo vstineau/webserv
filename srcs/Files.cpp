@@ -64,7 +64,6 @@ void FileHandler::setFile(std::string path)
 		extention = "NO EXTENTION";
 		return ;
 	}
-	pos += 1;
 	extention = path.substr(pos, path.size() - pos);
 	Content_Type = mimes[extention];
 }

@@ -216,7 +216,7 @@ void get_locations_bloc(config &conf, std::string &buffer)
 		pos = buffer.find("location ", offset);
 		if (pos == std::string::npos)
 			return ;
-		offset = pos + 10;
+		offset = pos + 9;
 		pos = buffer.find(" {", offset);
 		if (pos == std::string::npos)
 			continue ;
