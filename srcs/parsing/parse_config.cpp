@@ -183,6 +183,28 @@ static void	get_method_allowed(config &conf, std::string &buffer)
 	}
 }
 
+static void	get_client_body_size(config &conf, std::string &buffer)
+{
+	size_t				pos = 0;
+	size_t				offset = 0;
+	size_t				posloc = 0;
+
+	posloc = buffer.find("location");
+	if (posloc == std::string::npos)
+		;
+	pos = buffer.find("client-body-size: ");
+	if (pos == std::string::npos || pos > posloc)
+		return ;
+	offset = pos + 18;
+	pos = buffer.find(";", offset);
+	if (pos == std::string::npos)
+	{
+		std::cerr << "no client-body-size found\n";
+		return ;
+	}
+	conf.client_body_size = atoi(buffer.substr(offset, pos - offset).c_str());
+}
+
 static void	get_server_name(config &conf, std::string &buffer)
 {
 	size_t				pos = 0;
@@ -250,6 +272,7 @@ void	get_one_config(config &conf, std::string &buffer)
 	set_upload_directory(conf, buffer);
 	get_method_allowed(conf, buffer);
 	get_locations_bloc(conf, buffer);
+	get_client_body_size(conf, buffer);
 	get_loconfig(conf);
 }
 
