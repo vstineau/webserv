@@ -100,6 +100,8 @@ char **FileHandler::getCgiEnv(request &req)
 		case INVALID_METHOD:
 			pre_env[3].append("NO", 2); break;
 	}
+	pre_env.push_back("PATH_INFO=");
+	pre_env[4].append(req.path, req.path.size());
 	envp = (char **)std::calloc(pre_env.size() + 1, sizeof(char *));
 	for (std::size_t i = 0; i < pre_env.size(); i++)
 		envp[i] = strdup(pre_env[i].c_str());
