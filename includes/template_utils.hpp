@@ -8,21 +8,21 @@ const char rep_200[] = "HTTP/1.1 200 OK\r\n";
 template <typename V, typename F>
 void fill_servers_configs(V &confs, F *file)
 {
-	std::ifstream	ifs(file);
-	std::string		buffer;
-	std::string		temp;
+	std::ifstream ifs(file);
+	std::string buffer;
+	std::string temp;
 
-	for(size_t serv_index = 0; serv_index < confs.capacity(); serv_index++)
+	for (size_t serv_index = 0; serv_index < confs.capacity(); serv_index++)
 	{
 		std::getline(ifs, buffer);
 		while (buffer.empty() && buffer != "Server {")
 			std::getline(ifs, buffer);
-		//std::cout << BHI_RED << buffer << RESET << std::endl;
+		// std::cout << BHI_RED << buffer << RESET << std::endl;
 		if (buffer == "Server {")
 		{
 			buffer.clear();
 			std::getline(ifs, temp);
-			//std::cout << BHI_GREEN << temp << RESET << std::endl;
+			// std::cout << BHI_GREEN << temp << RESET << std::endl;
 			while (temp != "}")
 			{
 				std::getline(ifs, temp);
@@ -37,10 +37,10 @@ void fill_servers_configs(V &confs, F *file)
 	}
 }
 
-template<typename T>
-std::string to_string(const T & value)
+template <typename T>
+std::string to_string(const T &value)
 {
-    std::ostringstream oss;
-    oss << value;
-    return oss.str();
+	std::ostringstream oss;
+	oss << value;
+	return oss.str();
 }
