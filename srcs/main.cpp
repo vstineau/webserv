@@ -5,6 +5,8 @@
 #include <map>
 
 bool g_end;
+std::vector<int> grb;
+
 
 int main(int argc, char *argv[])
 {

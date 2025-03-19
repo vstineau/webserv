@@ -46,6 +46,7 @@ void Server::setSocket()
 	{
 		perror("socket");
 	}
+	grb.push_back(server_fd);
 	setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &b, sizeof(int));
 	if (bind(server_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1)
 	{
@@ -63,7 +64,7 @@ void Server::setSocket()
 std::string Server::getResponse(void) const
 {
 	if (!_response.cgi_rep.empty())
-		return _response.cgi_rep;
+		return _response.status_line + _response.cgi_rep;
 	std::string r;
 	r += _response.status_line;
 	r += "\r\n";
@@ -208,11 +209,17 @@ int Server::isCGI(request &req, location &loc)
 	if (_file.extention == loc.cgi_extention)
 	{
 		int code = _file.execCgi(req, loc, _response);
-		if (code != 200)
+		std::cout << "" << RESET << std::endl;
+		if (code != 200 && code != 302)
+		{
 			status_code = code;
+			SetErrorResponse(code);
+			return 1;
+		}
 		SetResponseStatus(status_code);
 		_response.status_line += "\r\n";
 		_response.cgi_rep.insert(0, _response.status_line.c_str());
+		// std::cout << _response.cgi_rep << RESET << std::endl;
 		// _response.cgi_rep.clear();
 		return 1;
 	}
@@ -361,7 +368,7 @@ void Server::SetResponse(int n)
 	std::cout << _requests[n].method << std::endl;
 	location loc;
 	int allowed = allowedMethod(_requests[n], loc);
-	std::cout << allowed << std::endl;
+	std::cout <<"HERE >" << allowed << std::endl;
 	if (allowed != 200 && allowed != 302)
 	{
 		SetErrorResponse(allowed);

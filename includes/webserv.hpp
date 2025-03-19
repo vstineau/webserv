@@ -31,6 +31,7 @@
 #define SLASH "/"
 
 extern bool g_end;
+extern std::vector<int> grb;
 
 class BadConfigFileExeption : public std::exception
 {

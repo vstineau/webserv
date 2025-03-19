@@ -3,6 +3,7 @@
 #include "../includes/webserv.hpp"
 #include <cstdio>
 #include <fstream>
+#include <iostream>
 #include <map>
 #include <signal.h>
 #include <stdlib.h>
@@ -122,37 +123,38 @@ static void close_pipe(int pipe[2])
 		close(pipe[1]);
 }
 
+
+// struct sigaction sig;
+
+// sigemptyset(&sig.sa_mask);
+// sig.sa_sigaction = handle_sigint;
+// sig.sa_flags = SA_SIGINFO;
+// if (sigaction(SIGINT, &sig, NULL) == -1)
+// 	return (1);
+// return (0);
+
 extern char **environ;
 
 int FileHandler::execCgi(request &req, location &loc, response &r)
 {
-	// rajouter un truc pour detecter si c'est un cgi
-	// response r;
-	std::string cmd;
-
-	cmd = loc.cgi_bin + " " + req.path;
-	std::cout << "cmd = " << cmd << RESET << std::endl;
 	time_t start = time(NULL);
+	(void)start;
 	int pipe_out[2] = {-1, -1};
-	// int pipe_in[2] = {-1, -1};
 	if (pipe(pipe_out))
-		return 500; // error
-	// if (pipe(pipe_out))
-	// {
-	// 	close_pipe(pipe_in);
-	// 	return 500; // error
-	// }
-	// std::cout << "pipe_in = [" << pipe_in[0] << "] [" << pipe_in[1] << "]" << RESET << std::endl;
-	// std::cout << "pipe_out = [" << pipe_out[0] << "] [" << pipe_out[1] << "]" << RESET << std::endl;
+		return 500;
 	int cgi_pid = fork();
 	if (cgi_pid == -1)
 	{
-		// close_pipe(pipe_in);
 		close_pipe(pipe_out);
-		return 500; // 500
+		return 500;
 	}
 	if (!cgi_pid)
 	{
+		for (size_t i = 0; i < grb.size(); i++)
+		{
+			if (grb[i] != -1)
+				close(grb[i]);
+		}
 		char **envp;
 		char **argv;
 		if (dup2(pipe_out[1], STDOUT_FILENO) == -1)
@@ -161,10 +163,11 @@ int FileHandler::execCgi(request &req, location &loc, response &r)
 			exit(1);
 		}
 		close_pipe(pipe_out);
-		argv = (char **)calloc(2, sizeof(char *));
+		argv = (char **)calloc(3, sizeof(char *));
 		if (argv == NULL)
 			exit(1);
 		argv[0] = strdup(loc.cgi_bin.c_str());
+		argv[1] = strdup(req.path.c_str());
 		if (!argv[0])
 		{
 			free(argv);
@@ -178,7 +181,7 @@ int FileHandler::execCgi(request &req, location &loc, response &r)
 			free(argv);
 			exit(1);
 		}
-		execve(req.path.c_str(), argv, NULL);
+		execve(loc.cgi_bin.c_str(), argv, envp);
 		std::cerr << "exec failed" << RESET << std::endl;
 		for (int i = 0; envp[i]; i++)
 			free(envp[i]);
@@ -189,6 +192,17 @@ int FileHandler::execCgi(request &req, location &loc, response &r)
 		exit(1);
 	}
 	int status;
+	while (waitpid(-1, &status, WNOHANG) == 0)
+	{
+		if (time(NULL) - start > 5)
+		{
+			r.cgi_rep.clear();
+			std::cerr << "TIMEOUT" << RESET << std::endl;
+			close_pipe(pipe_out);
+			kill(cgi_pid, SIGKILL);
+			return 504;
+		}
+	}
 	int count = 0;
 	char buffer[1025];
 	std::string buff;
@@ -196,38 +210,12 @@ int FileHandler::execCgi(request &req, location &loc, response &r)
 	while ((count = read(pipe_out[0], buffer, 1024)) > 0)
 		buff.append(buffer, count);
 	close_pipe(pipe_out);
-	std::cout << "pipe read :\n" << buff << RESET << std::endl;
-	r.cgi_rep = buff;
-	while (waitpid(-1, &status, WNOHANG) > 0)
+	if (!WIFEXITED(status) || WEXITSTATUS(status) != 0 || count == -1)
 	{
-		if (WIFEXITED(status))
-		{
-			r.cgi_rep.clear();
-			return 500;
-		}
-		time_t timeout = time(NULL);
-		// c'est ici qu'il faut mettre un 500
-		// set le code erreur dans le child va pas marcher
-		if (timeout - start < 5)
-		{
-			r.cgi_rep.clear();
-			std::cerr << "TIMEOUT" << RESET << std::endl;
-			kill(cgi_pid, SIGQUIT);
-			// timeout jsp pas on fais quoi mais on le fais
-		}
+		r.cgi_rep.clear();
+		return 500;
 	}
-
-	/*
-	meta-variable-name = "AUTH_TYPE" | "CONTENT_LENGTH" |
-	"CONTENT_TYPE" | "GATEWAY_INTERFACE" |
-	"PATH_INFO" | "PATH_TRANSLATED" |
-	"QUERY_STRING" | "REMOTE_ADDR" |
-	"REMOTE_HOST" | "REMOTE_IDENT" |
-	"REMOTE_USER" | "REQUEST_METHOD" |
-	"SCRIPT_NAME" | "SERVER_NAME" |
-	"SERVER_PORT" | "SERVER_PROTOCOL" |
-	"SERVER_SOFTWARE" | scheme |
-	protocol-var-name | extension-var-name	*/
+	r.cgi_rep = buff;
 	return 200;
 }
 

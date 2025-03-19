@@ -3,6 +3,7 @@
 #include "../includes/webserv.hpp"
 #include <algorithm>
 #include <cstdlib>
+#include <ostream>
 #include <vector>
 
 void redirect_serv(std::vector<Server> &serv, int &server_index, std::string &host)
@@ -29,6 +30,7 @@ static int handle_epollrdhup(std::vector<Server> &serv, struct epoll_event &even
 			perror("Error deleting the current connection");
 			return 1;
 		}
+		grb.erase(std::remove(grb.begin(), grb.end(), events.data.fd), grb.end());
 		for (std::vector<Server>::iterator it = serv.begin(); it != serv.end(); it++)
 			it->client_fd.erase(std::remove(it->client_fd.begin(), it->client_fd.end(), events.data.fd), it->client_fd.end());
 		close(events.data.fd);
@@ -86,11 +88,14 @@ static int handle_epollout(Server &serv, struct epoll_event &events, int &epoll_
 		// std::cout << rep[0].repInString() << RESET << std::endl;
 		if (rep[0].cgi_rep.empty())
 		{
+			std::cout << rep[0].cgi_rep << std::endl << rep[0].cgi_rep.size() << std::endl;
 			if (send(events.data.fd, rep[0].repInString().c_str(), rep[0].repInString().size(), MSG_NOSIGNAL) == -1)
 				std::cerr << "Send error: " << std::endl;
 		}
 		else
 		{
+			std::cout << rep[0].cgi_rep << std::endl << rep[0].cgi_rep.size() << std::endl;
+			// std::cout << "HERE" << RESET << std::endl;
 			if (send(events.data.fd, rep[0].cgi_rep.c_str(), rep[0].cgi_rep.size(), MSG_NOSIGNAL) == -1)
 				std::cerr << "Send error: " << std::endl;
 		}
@@ -129,6 +134,7 @@ void Init::epoll_loop()
 	int new_connexion = -1;
 	if (epoll_fd == -1)
 		perror("epoll_create");
+	grb.push_back(epoll_fd);
 	evi.events = EPOLLIN;
 	evi.data.fd = servs[0].server_fd;
 	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, servs[0].server_fd, &evi) == -1)
@@ -162,6 +168,7 @@ void Init::epoll_loop()
 						continue;
 					}
 					servs[server_index].client_fd.push_back(evi.data.fd);
+					grb.push_back(evi.data.fd);
 				}
 			}
 			else
