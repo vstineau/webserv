@@ -21,11 +21,8 @@ class FileHandler
 	~FileHandler();
 	void setFileInfo(std::string path);
 	void setFile(std::string path);
-	std::string getCgiStatusLine(int code);
-	void setErrorCodes(void);
 	void setMime();
 	std::map<std::string, std::string> mimes;
-	//		getContentType();
 	int execCgi(request &req, location &loc, response &r);
 	char **getCgiEnv(request &req);
 	long long file_size;
@@ -35,23 +32,4 @@ class FileHandler
 	std::string extention;
 	bool no_file;
 	std::string Content_Type;
-	std::map<int, std::string> _error_codes;
 };
-
-//
-// POST /images/dumb HTTP/1.1
-// Host: hostname
-// Connection: close
-// Transfer-encoding: chunked
-//
-// 15
-// Hi this is chunked !!
-// 4
-// fewf
-// 6
-// wefwef
-// 3
-// wef
-// 3
-// wef
-// 0

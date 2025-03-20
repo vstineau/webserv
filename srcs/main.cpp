@@ -12,7 +12,6 @@ int main(int argc, char *argv[])
 {
 	g_end = false;
 	init_signals();
-	std::string file;
 	Init webserv;
 
 	// std::vector<config> confs;
@@ -20,15 +19,9 @@ int main(int argc, char *argv[])
 	try
 	{
 		if (argc == 1)
-		{
-			file = default_conf;
 			webserv.set_default_conf();
-		}
 		else if (argc == 2)
-		{
-			file = argv[1];
 			webserv.fill_servers_configs(argv[1]);
-		}
 	}
 	catch (std::exception &e)
 	{

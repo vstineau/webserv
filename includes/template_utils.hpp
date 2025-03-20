@@ -17,12 +17,10 @@ void fill_servers_configs(V &confs, F *file)
 		std::getline(ifs, buffer);
 		while (buffer.empty() && buffer != "Server {")
 			std::getline(ifs, buffer);
-		// std::cout << BHI_RED << buffer << RESET << std::endl;
 		if (buffer == "Server {")
 		{
 			buffer.clear();
 			std::getline(ifs, temp);
-			// std::cout << BHI_GREEN << temp << RESET << std::endl;
 			while (temp != "}")
 			{
 				std::getline(ifs, temp);

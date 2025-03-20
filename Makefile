@@ -46,7 +46,6 @@ SRC = srcs/main.cpp \
 		srcs/parsing/parsing_utils.cpp \
 		srcs/parsing/parse_config.cpp \
 		srcs/parsing/location_parsing.cpp \
-		srcs/init_server.cpp \
 		srcs/Init.cpp \
 		srcs/request.cpp \
 		srcs/error.cpp \

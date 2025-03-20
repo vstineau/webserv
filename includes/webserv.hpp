@@ -4,8 +4,6 @@
 // https://man7.org/linux/man-pages/man7/epoll.7.html
 
 #pragma once
-// #ifndef WEBSERV_HPP
-// #define WEBSERV_HPP
 
 // clang-format off
 #include <iostream>
@@ -117,7 +115,6 @@ struct request
 	std::string getContentType(std::string &buffer) const;
 	unsigned int getContentLength(std::string &buffer) const;
 };
-// connection: keep-alive -> reply everytime with connection: keep-alive if connection: close quitter tout
 class Server;
 
 // EPOLL STUFF
@@ -149,5 +146,3 @@ std::string fillDirectoryListing(std::string listing);
 
 // DEBUG
 void print_config(std::vector<config> &confs);
-
-// #endif

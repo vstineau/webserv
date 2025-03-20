@@ -234,7 +234,6 @@ void get_locations_bloc(config &conf, std::string &buffer)
 		location_string = buffer.substr(offset, pos - offset);
 		fill_location(path, location_string, conf);
 		offset = pos + 2;
-		//std::cout << RED << "ICI WHILE 1" << RESET << std::endl;
 	}
 
 
