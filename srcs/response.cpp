@@ -10,24 +10,24 @@ response & response::operator=(response & r)
 	return *this;
 }
 
-std::string getHtmlPage(std::string str) {
-	std::ifstream html(str.c_str());
-	std::string htmlPage;
-	if (html.is_open()) {
-		// std::cout << GREEN << "ssssss" << RESET << std::endl;
-		std::string line;
-		while (getline(html, line)) {
-			htmlPage += line + "\n";
-		}
-		html.close();
-		return htmlPage;
-	}
-	// std::cout << GREEN << "ssssss" << RESET << std::endl;
-	return "";
-}
+// std::string getHtmlPage(std::string str) {
+// 	std::ifstream html(str.c_str());
+// 	std::string htmlPage;
+// 	if (html.is_open()) {
+// 		// std::cout << GREEN << "ssssss" << RESET << std::endl;
+// 		std::string line;
+// 		while (getline(html, line)) {
+// 			htmlPage += line + "\n";
+// 		}
+// 		html.close();
+// 		return htmlPage;
+// 	}
+// 	// std::cout << GREEN << "ssssss" << RESET << std::endl;
+// 	return "";
+// }
 
-std::string mainPage = getHtmlPage("srcs/html/index.html");
-std::string galeryPage = getHtmlPage("srcs/html/galery.html");
+// std::string mainPage = getHtmlPage("srcs/html/index.html");
+// std::string galeryPage = getHtmlPage("srcs/html/galery.html");
 
 std::string to_string(long i) {
 	std::stringstream s;

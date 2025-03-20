@@ -23,7 +23,7 @@ void redirect_serv(std::vector<Server> &serv, int &server_index, std::string &ho
 static int handle_epollrdhup(std::vector<Server> &serv, struct epoll_event &events, int &epoll_fd)
 {
 	struct epoll_event ev;
-	if (events.events & EPOLLRDHUP) // if (a client leaves)
+	if (events.events & EPOLLRDHUP)
 	{
 		if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events.data.fd, &ev) == -1)
 		{
@@ -64,7 +64,6 @@ static int handle_epollin(std::vector<Server> &serv, struct epoll_event &events,
 		redirect_serv(serv, serv_index, host);
 		serv[serv_index].fillRequest(new_connexion, buff);
 		serv[serv_index].SetResponse(new_connexion);
-		// serv[serv_index].print_request(new_connexion);
 		rep.push_back(serv[serv_index]._response);
 		serv[serv_index].clear_response();
 		struct epoll_event ev;
@@ -85,17 +84,13 @@ static int handle_epollout(Server &serv, struct epoll_event &events, int &epoll_
 	if (events.events & EPOLLOUT)
 	{
 		serv.status_code = 200;
-		// std::cout << rep[0].repInString() << RESET << std::endl;
 		if (rep[0].cgi_rep.empty())
 		{
-			std::cout << rep[0].cgi_rep << std::endl << rep[0].cgi_rep.size() << std::endl;
 			if (send(events.data.fd, rep[0].repInString().c_str(), rep[0].repInString().size(), MSG_NOSIGNAL) == -1)
 				std::cerr << "Send error: " << std::endl;
 		}
 		else
 		{
-			std::cout << rep[0].cgi_rep << std::endl << rep[0].cgi_rep.size() << std::endl;
-			// std::cout << "HERE" << RESET << std::endl;
 			if (send(events.data.fd, rep[0].cgi_rep.c_str(), rep[0].cgi_rep.size(), MSG_NOSIGNAL) == -1)
 				std::cerr << "Send error: " << std::endl;
 		}

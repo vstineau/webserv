@@ -88,6 +88,5 @@ int check_host(std::string &buff, std::string &host)
 	if (pos == std::string::npos)
 		return 1;
 	host = buff.substr(offset, pos - offset);
-	std::cout << "host = " << host << RESET << std::endl;
 	return 0;
 }

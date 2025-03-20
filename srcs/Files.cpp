@@ -124,17 +124,6 @@ static void close_pipe(int pipe[2])
 }
 
 
-// struct sigaction sig;
-
-// sigemptyset(&sig.sa_mask);
-// sig.sa_sigaction = handle_sigint;
-// sig.sa_flags = SA_SIGINFO;
-// if (sigaction(SIGINT, &sig, NULL) == -1)
-// 	return (1);
-// return (0);
-
-extern char **environ;
-
 int FileHandler::execCgi(request &req, location &loc, response &r)
 {
 	time_t start = time(NULL);
@@ -150,13 +139,13 @@ int FileHandler::execCgi(request &req, location &loc, response &r)
 	}
 	if (!cgi_pid)
 	{
+		char **envp;
+		char **argv;
 		for (size_t i = 0; i < grb.size(); i++)
 		{
 			if (grb[i] != -1)
 				close(grb[i]);
 		}
-		char **envp;
-		char **argv;
 		if (dup2(pipe_out[1], STDOUT_FILENO) == -1)
 		{
 			close_pipe(pipe_out);
@@ -167,9 +156,15 @@ int FileHandler::execCgi(request &req, location &loc, response &r)
 		if (argv == NULL)
 			exit(1);
 		argv[0] = strdup(loc.cgi_bin.c_str());
-		argv[1] = strdup(req.path.c_str());
-		if (!argv[0])
+		if(!argv[0])
 		{
+			free(argv);
+			exit(1);
+		}
+		argv[1] = strdup(req.path.c_str());
+		if (!argv[1])
+		{
+			free(argv[0]);
 			free(argv);
 			exit(1);
 		}

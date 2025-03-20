@@ -19,17 +19,14 @@ Server::~Server()
 		close(server_fd);
 }
 
-// Server::Server() : server_fd(-1), address(), status_code(200)
 Server::Server() : server_fd(-1), address(), status_code(200)
 {
 	setErrorCodes();
 }
 
-// Server::Server(config &conf) : server_fd(-1), status_code(200), _conf(conf)
 Server::Server(config &conf) : server_fd(-1), status_code(200), _conf(conf), server_name(conf.server_name)
 {
 	setErrorCodes();
-	// _conf.locations["www/"] = location;
 }
 
 void Server::setSocket()
@@ -44,18 +41,18 @@ void Server::setSocket()
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (server_fd == -1)
 	{
-		perror("socket");
+		perror("socket"); //return error
 	}
 	grb.push_back(server_fd);
 	setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &b, sizeof(int));
 	if (bind(server_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1)
 	{
-		perror("bind");
+		perror("bind"); //return error
 		close(server_fd);
 	}
 	if (listen(server_fd, 10) == -1)
 	{
-		perror("listen");
+		perror("listen"); //return error
 		close(server_fd);
 	}
 }
@@ -219,8 +216,6 @@ int Server::isCGI(request &req, location &loc)
 		SetResponseStatus(status_code);
 		_response.status_line += "\r\n";
 		_response.cgi_rep.insert(0, _response.status_line.c_str());
-		// std::cout << _response.cgi_rep << RESET << std::endl;
-		// _response.cgi_rep.clear();
 		return 1;
 	}
 	return 0;
@@ -364,11 +359,11 @@ void Server::clear_response()
 
 void Server::SetResponse(int n)
 {
-	std::cout << "req.path = " << _requests[n].path << std::endl;
-	std::cout << _requests[n].method << std::endl;
+	// std::cout << "req.path = " << _requests[n].path << std::endl;
+	// std::cout << _requests[n].method << std::endl;
 	location loc;
 	int allowed = allowedMethod(_requests[n], loc);
-	std::cout <<"HERE >" << allowed << std::endl;
+	// std::cout <<"HERE >" << allowed << std::endl;
 	if (allowed != 200 && allowed != 302)
 	{
 		SetErrorResponse(allowed);
@@ -396,7 +391,7 @@ int Server::create_img(std::string &img, std::string &up_dir)
 	offset = pos + 10;
 	pos = img.find("\"", offset);
 	filename = img.substr(offset, pos - offset);
-	std::cout << filename << std::endl;
+	// std::cout << filename << std::endl;
 	offset = pos + 1;
 	std::string path = up_dir + filename;
 	std::ofstream ofs(path.c_str(), std::ios_base::binary);
