@@ -5,8 +5,11 @@
 #include <map>
 
 bool g_end;
+std::vector<int> grb;
 
-int main(int argc, char *argv[]) {
+
+int main(int argc, char *argv[])
+{
 	g_end = false;
 	init_signals();
 	std::string file;
@@ -14,7 +17,8 @@ int main(int argc, char *argv[]) {
 
 	// std::vector<config> confs;
 	// std::map<int, Server> map_serv;
-	try {
+	try
+	{
 		if (argc == 1)
 		{
 			file = default_conf;

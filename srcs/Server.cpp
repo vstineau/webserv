@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -18,24 +19,21 @@ Server::~Server()
 		close(server_fd);
 }
 
-// Server::Server() : server_fd(-1), address(), status_code(200)
 Server::Server() : server_fd(-1), address(), status_code(200)
 {
 	setErrorCodes();
 }
 
-// Server::Server(config &conf) : server_fd(-1), status_code(200), _conf(conf)
 Server::Server(config &conf) : server_fd(-1), status_code(200), _conf(conf), server_name(conf.server_name)
 {
 	setErrorCodes();
-	// _conf.locations["www/"] = location;
 }
 
 void Server::setSocket()
 {
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = INADDR_ANY; // inet_addr("0.0.0.0");
+	addr.sin_addr.s_addr = INADDR_ANY;
 	addr.sin_port = htons(_conf.port);
 	address = addr;
 
@@ -43,17 +41,18 @@ void Server::setSocket()
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (server_fd == -1)
 	{
-		perror("socket");
+		perror("socket"); //return error
 	}
+	grb.push_back(server_fd);
 	setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &b, sizeof(int));
 	if (bind(server_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1)
 	{
-		perror("bind");
+		perror("bind"); //return error
 		close(server_fd);
 	}
 	if (listen(server_fd, 10) == -1)
 	{
-		perror("listen");
+		perror("listen"); //return error
 		close(server_fd);
 	}
 }
@@ -61,6 +60,8 @@ void Server::setSocket()
 // return response in one string ready to get send to the client
 std::string Server::getResponse(void) const
 {
+	if (!_response.cgi_rep.empty())
+		return _response.status_line + _response.cgi_rep;
 	std::string r;
 	r += _response.status_line;
 	r += "\r\n";
@@ -123,113 +124,189 @@ void Server::setErrorCodes(void)
 	_error_codes[505] = " HTTP Version not supported";
 }
 
-// {
-// 	if (page de base)
-// 		page
-// 	else if (location)
-// 		location
-// 	else if (mime)
-// 		mime
-// 	else
-// 		404
-// }
-
-int Server::checkLocations(request &req) // gerer si location et fichier dans upload ont le meme nom
+void Server::SetErrorResponse(int error_code)
 {
-	// req.
-	// std::cout << "req.path = " << req.path << RESET << std::endl;
-	// std::cout << "_conf.root = " << _conf.root << RESET << std::endl;
+	status_code = error_code;
+	SetResponseStatus(status_code);
+	_response.body = get_body_error(error_code);
+	_response.headers["Content-Type: "].push_back("text/html");
+	_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+}
 
-	if (req.path == _conf.root)
+int Server::checkLocations(request &req)
+{
+	if (req.path == _conf.root || req.path == _conf.root + SLASH)
 	{
 		status_code = 200;
 		SetResponseStatus(status_code);
 		std::string path = req.path + "/index.html";
 		file_in_string(_response.body, path.c_str());
-		_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+		_response.headers["Content-Type: "].push_back("text/html");
 		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 		return 1;
 	}
 	for (std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
 	{
-		// std::cout << it->first << std::endl;
-		// std::cout << req.path.substr(_conf.root.length(), it->first.length()) << std::endl;
-		if (it->first == req.path.substr(_conf.root.length()))
+		if (it->first == req.path.substr(_conf.root.length() + 1))
 		{
-			// std::cout << "qqqqqqqqqqqqqqqqqqqqqq" << RESET << std::endl;
 			status_code = 200;
 			SetResponseStatus(status_code);
 			std::string path = req.path + "/index.html";
 			file_in_string(_response.body, path.c_str());
-			_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+			_response.headers["Content-Type: "].push_back("text/html");
 			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 			return 1;
 		}
-		// }
-		// std::cout << GREEN << "req.path.substr(_conf.root.length()) = " << req.path.substr(_conf.root.length()) << RESET <<
-		// std::endl; std::cout << GREEN << "req.path = " << req.path << RESET << std::endl; if
-		// (_conf.locations.count(req.path.substr(_conf.root.length())) != 0)
 	}
 	return 0;
 }
 
-void Server::_responseGET(request &req)
+int Server::allowedMethod(request &req, location &ret_loc)
+{
+	std::string path = req.path.substr(0, req.path.rfind("/") + 1);
+	std::string file = req.path.substr(req.path.rfind("/") + 1);
+	std::string root = _conf.root;
+	for (std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
+	{
+		if (it->first.empty())
+		{
+			if (root + SLASH + file == req.path || root + SLASH + it->second.upload_directory + SLASH + file == req.path)
+			{
+				if (!it->second.allowed_method[req.method])
+					return 405;
+				else
+				{
+					ret_loc = it->second;
+					if (it->first != it->second.root)
+						return 302;
+					return 200; // exec_cgi
+				}
+			}
+			continue;
+		}
+		if (root + SLASH + it->second.root + SLASH + file == req.path ||
+			root + SLASH + it->second.root + SLASH + it->second.upload_directory + SLASH + file == req.path)
+		{
+			if (!it->second.allowed_method[req.method])
+				return 405;
+			else
+			{
+				ret_loc = it->second;
+				if (it->first != it->second.root && !it->second.root.empty())
+					return 302;
+				return 200;
+			}
+		}
+	}
+	return 404;
+}
+
+int Server::isCGI(request &req, location &loc)
+{
+	if (_file.extention == loc.cgi_extention)
+	{
+		int code = _file.execCgi(req, loc, _response);
+		std::cout << "" << RESET << std::endl;
+		if (code != 200 && code != 302)
+		{
+			status_code = code;
+			SetErrorResponse(code);
+			return 1;
+		}
+		SetResponseStatus(status_code);
+		_response.status_line += "\r\n";
+		_response.cgi_rep.insert(0, _response.status_line.c_str());
+		return 1;
+	}
+	return 0;
+}
+
+void Server::_responseGET(request &req, location &loc)
 {
 	if (checkLocations(req))
 		return;
 	_file.setFileInfo(req.path);
 	_file.setFile(req.path);
+	if (isCGI(req, loc))
+		return;
 	if (_file.extention != "NO EXTENTION")
 	{
 		std::ifstream imgFile(req.path.c_str());
 		if (!imgFile)
 		{
-			std::cout << "file could not be opened\n";
-			status_code = 404;
-			SetResponseStatus(status_code);
-			_response.body = get_body_error(404);
-			std::cout << "this thing : " << _file.mimes[_file.extention] << "\n";
-			_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
-			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+			SetErrorResponse(404);
 			return;
 		}
 		else
 		{
 			SetResponseStatus(status_code);
-			std::cout << "file was opened\n";
 			_response.body = _file.filestring;
 			SetResponseStatus(status_code);
-			_response.headers["Content-Type: "].push_back(
-				_file.mimes[_file.extention]); // hard-coded as well, need to check for mimes
+			_response.headers["Content-Type: "].push_back(_file.mimes[_file.extention]);
 			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 		}
 	}
 	else
 	{
-		std::cout << "file could not be opened\n";
-		status_code = 404;
-		SetResponseStatus(status_code);
-		_response.body = get_body_error(404);
-		std::cout << "this thing : " << _file.mimes[_file.extention] << "\n";
-		_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
-		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+		SetErrorResponse(404);
 		return;
 	}
 	return;
 }
 
-void Server::_responsePOST(request &req)
+std::string Server::checkUpload(request &req)
+{
+	for (std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
+	{
+		if (req.path.substr(_conf.root.size() + 1) == it->first)
+		{
+			if ((unsigned long)req.body.size() < it->second.client_body_size)
+			{
+				if (it->first.empty())
+				{
+					if (!it->second.upload_directory.empty())
+						return it->second.root + SLASH + it->second.upload_directory + SLASH;
+					return it->second.root + SLASH;
+				}
+				else
+				{
+					if (!it->second.upload_directory.empty())
+						return _conf.root + SLASH + it->second.root + SLASH + it->second.upload_directory + SLASH;
+					return _conf.root + SLASH + it->second.root + SLASH;
+				}
+			}
+			else
+			{
+				SetErrorResponse(413);
+				return "";
+			}
+		}
+	}
+	SetErrorResponse(404);
+	return "";
+}
+
+void Server::_responsePOST(request &req, int &n)
 {
 	(void)req;
-	create_img(_response.body);
-	file_in_string(_response.body, "www/index.html");
+	std::string up_dir = checkUpload(req);
+	if (up_dir.empty())
+		return;
+	// std::cout << "up_dir = " << up_dir << std::endl;
+	if (fill_body(req.body, n, up_dir))
+	{
+		SetErrorResponse(403);
+		return;
+	}
+	std::string path = _conf.root + "/index.html";
+	file_in_string(_response.body, path.c_str());
 	SetResponseStatus(status_code);
-	_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+	_response.headers["Content-Type: "].push_back("text/html");
 	_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 	return;
 }
 
-void Server::_responseDELETE(request &req)
+void Server::_DELETEmethod(request &req)
 {
 	if (unlink(req.path.c_str()) == -1)
 	{
@@ -237,38 +314,32 @@ void Server::_responseDELETE(request &req)
 		SetResponseStatus(status_code);
 		_response.body = get_body_error(404);
 	}
-	std::string page;
-	page = "<!DOCTYPE html>"
-		   "<html lang=\"en\">"
-		   "<head>"
-		   "	<meta charset=\"UTF-8\">"
-		   "	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">"
-		   "	<title>Webserv</title>"
-		   "</head>"
-		   "	<body>"
-		   "		<h1>Hello world</h1>"
-		   "		<p style='color: red;'>This is a paragraph</p>"
-		   "		<a href=\"https://www.youtube.com/watch?v=MtN1YnoL46Q&pp=ygUNdGhlIGR1Y2sgc29uZw%3D%3D\" "
-		   "target=\"_blank\">DUCK</a>"
-		   "		<p></p>"
-		   "		<a href=\"https://www.youtube.com/watch?v=zg00AYUEU9s\" target=\"_blank\"><img "
-		   "src=\"https://imgs.search.brave.com/hfDqCMllFIoY-5uuVLRPZ7I-Rfm2vOt6qK0tDt5z9cs/rs:fit:860:0:0:0/g:ce/"
-		   "aHR0cHM6Ly9pLmlt/Z2ZsaXAuY29tLzIv/MWVsYWlmLmpwZw\" alt=\"FlexingPenguin\"/></a>"
-		   //    "		<img src=\"/200.gif\"/>"
-		   "		<img src=\"/vstineau.jpg\"/>"
-		   "		<form method=\"POST\" enctype=\"multipart/form-data\">"
-		   "			<input type=\"file\" id=\"actual-btn\" name=\"file\"/>"
-		   "			<input type=\"file\" id=\"actual-btn2\" name=\"file2\"/>"
-		   "			<input type=\"submit\"/>"
-		   "		</form>"
-		   "	</body>"
-		   "</html>";
-	_response.body = page;
+	std::string path = _conf.root + "/index.html";
+	file_in_string(_response.body, path.c_str());
 	SetResponseStatus(status_code);
-	_response.headers["Content-Type: "].push_back("text/html"); // hard-coded as well, need to check for mimes
+	_response.headers["Content-Type: "].push_back("text/html");
 	_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
-	page.clear();
 	return;
+}
+
+void Server::_responseDELETE(request &req)
+{
+	std::string path = req.path.substr(0, req.path.rfind("/") + 1);
+	std::string file = req.path.substr(req.path.rfind("/") + 1);
+	std::string root = _conf.root;
+	for (std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
+	{
+		if (it->first.empty())
+		{
+			if (it->second.root + SLASH + file == req.path ||
+				it->second.root + SLASH + it->second.upload_directory + SLASH + file == req.path)
+				return _DELETEmethod(req);
+		}
+		if (root + SLASH + it->second.root + SLASH + file == req.path ||
+			root + SLASH + it->second.root + SLASH + it->second.upload_directory + SLASH + file == req.path)
+			return _DELETEmethod(req);
+	}
+	return SetErrorResponse(404);
 }
 
 void Server::SetResponseStatus(int n)
@@ -283,20 +354,32 @@ void Server::clear_response()
 	_response.status_line.clear();
 	_response.headers.clear();
 	_response.body.clear();
+	_response.cgi_rep.clear();
 }
 
 void Server::SetResponse(int n)
 {
+	// std::cout << "req.path = " << _requests[n].path << std::endl;
+	// std::cout << _requests[n].method << std::endl;
+	location loc;
+	int allowed = allowedMethod(_requests[n], loc);
+	// std::cout <<"HERE >" << allowed << std::endl;
+	if (allowed != 200 && allowed != 302)
+	{
+		SetErrorResponse(allowed);
+		return;
+	}
 	if (_requests[n].method == GET)
-		_responseGET(_requests[n]);
+		_responseGET(_requests[n], loc);
 	else if (_requests[n].method == POST)
-		_responsePOST(_requests[n]);
+		_responsePOST(_requests[n], n);
 	else if (_requests[n].method == DELETE)
 		_responseDELETE(_requests[n]);
 }
 
-void Server::create_img(std::string &img)
+int Server::create_img(std::string &img, std::string &up_dir)
 {
+	(void)up_dir;
 	size_t pos = 0;
 	size_t offset = 0;
 	std::string filename;
@@ -304,35 +387,29 @@ void Server::create_img(std::string &img)
 
 	pos = img.find("filename=\"", offset);
 	if (pos == std::string::npos)
-		return;
+		return 1;
 	offset = pos + 10;
 	pos = img.find("\"", offset);
 	filename = img.substr(offset, pos - offset);
-	std::cout << filename << RESET << std::endl;
+	// std::cout << filename << std::endl;
 	offset = pos + 1;
-	std::string path;
-	if (_conf.upload_directory.empty())
-		path = _conf.root + filename;
-	else
-		path = _conf.root + _conf.upload_directory + "/" + filename;
+	std::string path = up_dir + filename;
 	std::ofstream ofs(path.c_str(), std::ios_base::binary);
 	if (!ofs.is_open())
-	{
-		std::cerr << "error opening new file \n";
-		_response.status_line = "HTTP/1.1 403 Forbidden";
-		_response.body = get_body_error(403);
-	}
+		return 1;
 	offset = pos + 1;
 	pos = img.find("\r\n\r\n", offset);
 	if (pos == std::string::npos)
-		return;
+		return 1;
 	offset = pos + 4;
 	content = img.substr(offset, img.size() - offset);
 	ofs << content;
+	return 0;
 }
 
-void Server::fill_body(std::string &body, int &n)
+int Server::fill_body(std::string &body, int &n, std::string &up_dir)
 {
+	(void)up_dir;
 	size_t pos = 0;
 	size_t offset = 0;
 	std::string img;
@@ -340,41 +417,19 @@ void Server::fill_body(std::string &body, int &n)
 	{
 		pos = body.find("\n", offset);
 		if (pos == std::string::npos)
-		{
-			return;
-		}
+			return 0;
 		offset = pos + 1;
 		pos = body.find(_requests[n].headers["boundary"], offset);
 		if (pos == std::string::npos)
-		{
-			return;
-		}
+			return 0;
 		img = body.substr(offset, pos - offset);
-		create_img(img);
+		if (create_img(img, up_dir))
+			return 1;
 		offset = pos + _requests[n].headers["boundary"].size();
 	}
+	return 0;
 }
-//
-// void Server::fill_cookie(std::string &header)
-//{
-//	size_t pos = 0;
-//	size_t offset = 0;
-//	std::string cookie;
-//
-//	while (pos != std::string::npos)
-//	{
-//		pos = header.find(";", offset);
-//		if (pos == std::string::npos)
-//		{
-//			_response.headers["Set-Cookie: "].push_back(header.substr(offset, header.size() - offset));
-//			return;
-//		}
-//		cookie = header.substr(offset, pos - offset);
-//		_response.headers["Set-Cookie: "].push_back(cookie);
-//		offset = pos + 2;
-//	}
-//}
-//
+
 void Server::fill_header(std::string &header, int &n)
 {
 	size_t pos = 0;
@@ -441,13 +496,13 @@ void Server::clear_request(int n)
 		_requests[n].body.clear();
 }
 
-void	Server::fill_query(int n)
+void Server::fill_query(int n)
 {
 	size_t pos = 0;
 
 	pos = _requests[n].path.find("?");
 	if (pos == std::string::npos)
-		return ;
+		return;
 	pos += 1;
 	_requests[n].query = _requests[n].path.substr(pos, _requests[n].path.size() - pos);
 	_requests[n].path.erase(pos - 1, _requests[n].path.size() - (pos - 1));
@@ -461,7 +516,6 @@ void Server::fillRequest(int n, std::string &buffer)
 	std::string body;
 
 	clear_request(n);
-	// probablement ajouter un truc qui clear la requete si deja remplie avant de la remplir
 	if (!buffer.find("GET"))
 	{
 		_requests[n].method = GET;
@@ -490,7 +544,7 @@ void Server::fillRequest(int n, std::string &buffer)
 	}
 	_requests[n].path = buffer.substr(offset, pos - offset);
 	fill_query(n);
-	_requests[n].path.replace(0, 1, _conf.root); // a remplacer par le root
+	_requests[n].path.replace(0, 1, _conf.root + SLASH);
 	offset = pos + 1;
 	pos = buffer.find("\n", offset);
 	if (pos == std::string::npos)
@@ -508,6 +562,4 @@ void Server::fillRequest(int n, std::string &buffer)
 	fill_header(header, n);
 	offset = pos + 4;
 	_requests[n].body = buffer.substr(offset, buffer.size() - offset);
-	if (!_requests[n].headers["boundary"].empty())
-		fill_body(_requests[n].body, n);
 }

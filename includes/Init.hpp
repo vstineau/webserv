@@ -1,18 +1,18 @@
 #pragma once
 
-
-#include "webserv.hpp"
 #include "Server.hpp"
+#include "webserv.hpp"
 #include <arpa/inet.h>
+#include <fstream>
 #include <map>
 #include <string>
-#include <fstream>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <vector>
 
-class Init {
+class Init
+{
 
 	public:
 		Init();

@@ -1,16 +1,16 @@
 
 #include "../../includes/webserv.hpp"
+#include <cstddef>
 
-void	file_in_string(std::string &sfile, const char *file)
+void file_in_string(std::string &sfile, const char *file)
 {
 	std::string line;
 	std::ifstream ifs(file);
 	if (!ifs)
 	{
-		std::cout << "code mieux fdp\n";
-		(NULL);
+		return ;
 	}
-	if(!sfile.empty())
+	if (!sfile.empty())
 		sfile.clear();
 	while (std::getline(ifs, line))
 	{
@@ -21,8 +21,8 @@ void	file_in_string(std::string &sfile, const char *file)
 
 size_t count_words(const char *line, char c)
 {
-	size_t	l;
-	size_t	i;
+	size_t l;
+	size_t i;
 
 	i = 0;
 	l = 0;
@@ -38,7 +38,7 @@ size_t count_words(const char *line, char c)
 	return (l);
 }
 
-void	set_method(config &conf, std::string method)
+void set_method(config &conf, std::string method)
 {
 	if (method == "GET")
 		conf.allowed_method[GET] = 1;
@@ -56,7 +56,7 @@ void	set_method(config &conf, std::string method)
 		conf.allowed_method[INVALID_METHOD] = 1;
 }
 
-void	set_method(location &loc, std::string method)
+void set_method(location &loc, std::string method)
 {
 	if (method == "GET")
 		loc.allowed_method[GET] = 1;
@@ -72,4 +72,21 @@ void	set_method(location &loc, std::string method)
 	}
 	else
 		loc.allowed_method[INVALID_METHOD] = 1;
+}
+
+int check_host(std::string &buff, std::string &host)
+{
+	std::size_t pos = 0;
+	std::size_t offset = 0;
+
+	pos = buff.find("Host: ", offset);
+	if (pos == std::string::npos)
+		return 1;
+	pos += 5;
+	offset = pos + 1;
+	pos = buff.find(":", offset);
+	if (pos == std::string::npos)
+		return 1;
+	host = buff.substr(offset, pos - offset);
+	return 0;
 }

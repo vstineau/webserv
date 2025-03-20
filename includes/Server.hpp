@@ -47,25 +47,33 @@ class Server
 	std::vector<int> client_fd;
 	struct sockaddr_in address;
 	int status_code;
+	response _response;
 
 	private:
 	void fill_header(std::string &header, int &n);
 	void fill_query(int n);
 	void fill_cookie(std::string &header);
-	void fill_body(std::string &header, int &n);
-	void create_img(std::string &img);
+	int fill_body(std::string &header, int &n, std::string &up_dir);
+	int create_img(std::string &img, std::string &up_dir);
 	std::size_t check_contentype(int n, std::size_t pos, std::size_t offset, std::string &buffer);
-	void _responseGET(request &rep);
-	void _responsePOST(request &rep);
+	void _responseGET(request &rep, location &loc);
+	int allowedMethod(request &req, location &ret_loc);
+	int isCGI(request &req, location &loc);
+	void _responsePOST(request &rep, int &n);
+	std::string checkUpload(request &req);
 	void _responseDELETE(request &rep);
+	void _DELETEmethod(request &req);
+	void _whichLocationDelete(request &req);
 	int checkLocations(request &req);
+	void SetErrorResponse(int error_code);
 	config _conf;
-	public: 
+
+	public:
 	std::string server_name;
+
 	private:
 	std::map<int, request> _requests;
 	std::map<int, std::string> _error_codes;
-	response _response;
 	FileHandler _file;
 };
 
