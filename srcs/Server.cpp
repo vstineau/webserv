@@ -41,18 +41,18 @@ void Server::setSocket()
 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (server_fd == -1)
 	{
-		perror("socket"); //return error
+		perror("socket"); // return error
 	}
 	grb.push_back(server_fd);
 	setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, &b, sizeof(int));
 	if (bind(server_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1)
 	{
-		perror("bind"); //return error
+		perror("bind"); // return error
 		close(server_fd);
 	}
 	if (listen(server_fd, 10) == -1)
 	{
-		perror("listen"); //return error
+		perror("listen"); // return error
 		close(server_fd);
 	}
 }
@@ -61,7 +61,25 @@ void Server::setSocket()
 std::string Server::getResponse(void) const
 {
 	if (!_response.cgi_rep.empty())
-		return _response.status_line + _response.cgi_rep;
+	{
+		std::string cgi_rep(_response.status_line);
+		cgi_rep += "\r\n";
+
+		for (std::map<std::string, std::vector<std::string> >::const_iterator it = _response.headers.begin();
+			 it != _response.headers.end(); it++)
+		{
+			for (size_t i = 0; i < it->second.size(); i++)
+			{
+				cgi_rep += it->first;
+				cgi_rep += it->second[i];
+				cgi_rep += "\r\n";
+			}
+		}
+		cgi_rep += "\r\n";
+		cgi_rep += _response.cgi_rep;
+		// std::cout << "cgi rep = " << cgi_rep << RESET << std::endl;
+		return cgi_rep;
+	}
 	std::string r;
 	r += _response.status_line;
 	r += "\r\n";
@@ -128,37 +146,39 @@ void Server::SetErrorResponse(int error_code)
 {
 	status_code = error_code;
 	SetResponseStatus(status_code);
-	_response.body = get_body_error(error_code);
+	if (_conf.error_pages[error_code].size() != 0)
+	{
+		std::string path = _conf.root + SLASH + _conf.error_pages[error_code];
+		if (file_in_string(_response.body, path.c_str()))
+			_response.body = get_body_error(404);
+	}
+	else
+		_response.body = get_body_error(error_code);
 	_response.headers["Content-Type: "].push_back("text/html");
 	_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 }
 
-int Server::checkLocations(request &req)
+int Server::checkLocations(request &req, location &loc)
 {
-	if (req.path == _conf.root || req.path == _conf.root + SLASH)
+	status_code = 200;
+	SetResponseStatus(status_code);
+	std::string path = req.path + "/index.html";
+	if (loc.directory_listing)
 	{
-		status_code = 200;
-		SetResponseStatus(status_code);
-		std::string path = req.path + "/index.html";
-		file_in_string(_response.body, path.c_str());
-		_response.headers["Content-Type: "].push_back("text/html");
-		_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
-		return 1;
+		_response.body = directory_listing(req.path);
+		fillBodyResponse(_response.body);
 	}
-	for (std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
+	else
 	{
-		if (it->first == req.path.substr(_conf.root.length() + 1))
+		if (file_in_string(_response.body, path.c_str()))
 		{
-			status_code = 200;
-			SetResponseStatus(status_code);
-			std::string path = req.path + "/index.html";
-			file_in_string(_response.body, path.c_str());
-			_response.headers["Content-Type: "].push_back("text/html");
-			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+			SetErrorResponse(404);
 			return 1;
 		}
 	}
-	return 0;
+	_response.headers["Content-Type: "].push_back("text/html");
+	_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
+	return 1;
 }
 
 int Server::allowedMethod(request &req, location &ret_loc)
@@ -166,6 +186,7 @@ int Server::allowedMethod(request &req, location &ret_loc)
 	std::string path = req.path.substr(0, req.path.rfind("/") + 1);
 	std::string file = req.path.substr(req.path.rfind("/") + 1);
 	std::string root = _conf.root;
+	// std::cout << "req.path = " << req.path << RESET << std::endl;
 	for (std::map<std::string, location>::iterator it = _conf.locations.begin(); it != _conf.locations.end(); it++)
 	{
 		if (it->first.empty())
@@ -206,25 +227,27 @@ int Server::isCGI(request &req, location &loc)
 	if (_file.extention == loc.cgi_extention)
 	{
 		int code = _file.execCgi(req, loc, _response);
-		std::cout << "" << RESET << std::endl;
+		// std::cout << "" << RESET << std::endl;
 		if (code != 200 && code != 302)
 		{
 			status_code = code;
 			SetErrorResponse(code);
 			return 1;
 		}
+		if(loc.cgi_extention == ".php")
+			status_code = 307;
 		SetResponseStatus(status_code);
-		_response.status_line += "\r\n";
-		_response.cgi_rep.insert(0, _response.status_line.c_str());
+		// _response.headers["Content-Type: "].push_back("text/html");
+		// _response.headers["Content-Length: "].push_back(to_string(_response.cgi_rep.size()));
+		// _response.cgi_rep.insert(0, _response.status_line.c_str());
 		return 1;
 	}
+	std::cout << "HERE" << RESET << std::endl;
 	return 0;
 }
 
 void Server::_responseGET(request &req, location &loc)
 {
-	if (checkLocations(req))
-		return;
 	_file.setFileInfo(req.path);
 	_file.setFile(req.path);
 	if (isCGI(req, loc))
@@ -246,6 +269,8 @@ void Server::_responseGET(request &req, location &loc)
 			_response.headers["Content-Length: "].push_back(to_string(_response.body.length()));
 		}
 	}
+	else if (checkLocations(req, loc))
+		return;
 	else
 	{
 		SetErrorResponse(404);
@@ -363,7 +388,7 @@ void Server::SetResponse(int n)
 	// std::cout << _requests[n].method << std::endl;
 	location loc;
 	int allowed = allowedMethod(_requests[n], loc);
-	// std::cout <<"HERE >" << allowed << std::endl;
+	// std::cout << "HERE >" << allowed << std::endl;
 	if (allowed != 200 && allowed != 302)
 	{
 		SetErrorResponse(allowed);
@@ -391,7 +416,6 @@ int Server::create_img(std::string &img, std::string &up_dir)
 	offset = pos + 10;
 	pos = img.find("\"", offset);
 	filename = img.substr(offset, pos - offset);
-	// std::cout << filename << std::endl;
 	offset = pos + 1;
 	std::string path = up_dir + filename;
 	std::ofstream ofs(path.c_str(), std::ios_base::binary);
@@ -420,6 +444,9 @@ int Server::fill_body(std::string &body, int &n, std::string &up_dir)
 			return 0;
 		offset = pos + 1;
 		pos = body.find(_requests[n].headers["boundary"], offset);
+		if (pos == std::string::npos)
+			return 0;
+		pos = body.rfind("\n", pos);
 		if (pos == std::string::npos)
 			return 0;
 		img = body.substr(offset, pos - offset);

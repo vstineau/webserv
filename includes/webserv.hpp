@@ -61,7 +61,7 @@ struct location
 	char allowed_method[4];
 	unsigned long client_body_size;
 	bool directory_listing;
-	std::map<int, std::string> error_pages;
+	// std::map<int, std::string> error_pages;
 	location &operator=(location &l);
 };
 
@@ -132,7 +132,7 @@ void get_locations_bloc(config &conf, std::string &buffer);
 int check_host(std::string &buff, std::string &host);
 
 // RESPONSES
-void file_in_string(std::string &sfile, const char *file);
+int file_in_string(std::string &sfile, const char *file);
 std::string get_body_error(int status_code);
 std::string getContentGet(std::string str);
 
@@ -142,7 +142,7 @@ int init_signals(void);
 // DIRECTORY LISTING
 std::string directory_listing(std::string path);
 std::string upload(std::string path);
-std::string fillDirectoryListing(std::string listing);
+void fillBodyResponse(std::string &content);
 
 // DEBUG
 void print_config(std::vector<config> &confs);

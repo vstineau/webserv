@@ -48,10 +48,10 @@ std::ostream & operator<<(std::ostream & o, location & i)
 		o << "DELETE ";
 	o << "\n";
 	o << "		ERROR PAGES : \n";
-	for (std::map<int, std::string>::iterator im = i.error_pages.begin(); im != i.error_pages.end(); im++)
-	{
-		o << "		" << im->first << " " << im->second << "\n";
-	}
+	// for (std::map<int, std::string>::iterator im = i.error_pages.begin(); im != i.error_pages.end(); im++)
+	// {
+	// 	o << "		" << im->first << " " << im->second << "\n";
+	// }
 	o << "		ROOT : " << i.index_html << "\n";
 	return (o);
 }

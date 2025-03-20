@@ -2,6 +2,7 @@
 #include "../includes/Files.hpp"
 #include "../includes/webserv.hpp"
 #include <cstdio>
+#include <ctime>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -80,31 +81,50 @@ char **FileHandler::getCgiEnv(request &req)
 	char **envp;
 	std::vector<std::string> pre_env;
 	pre_env.push_back("GATEWAY_INTERFACE=CGI/1.1");
-	pre_env.push_back("SCRIPT_FILENAME=");
-	pre_env[1].append(req.path, req.path.size());
-	pre_env.push_back("QUERY_STRING=");
-	pre_env[2].append(req.query, req.query.size());
-	pre_env.push_back("REQUEST_METHOD=");
+	pre_env.push_back("REDIRECT_STATUS=200");
+	pre_env.push_back("SCRIPT_FILENAME=" + req.path);
+	pre_env.push_back("QUERY_STRING=" + req.query);
 	pre_env.push_back("PATH=/usr/bin:/bin:/usr/local/bin");
 	switch (req.method)
 	{
-	case GET:
-		pre_env[3].append("GET", 3);
+		case GET:
+		pre_env.push_back("REQUEST_METHOD=GET");
 		break;
 	case POST:
-		pre_env[3].append("POST", 4);
+		pre_env.push_back("REQUEST_METHOD=POST");
 		break;
 	case DELETE:
-		pre_env[3].append("DELETE", 7);
+		pre_env.push_back("REQUEST_METHOD=DELETE");
 		break;
 	case INVALID_METHOD:
-		pre_env[3].append("NO", 2);
+		pre_env.push_back("REQUEST_METHOD=");
 		break;
 	}
-	pre_env.push_back("PATH=/usr/bin:/bin/:usr/local/bin");
+	// pre_env.push_back("PATH=/usr/bin:/bin/:usr/local/bin");
 	envp = (char **)std::calloc(pre_env.size() + 1, sizeof(char *));
 	for (std::size_t i = 0; i < pre_env.size(); i++)
 		envp[i] = strdup(pre_env[i].c_str());
+	// std::vector<std::string> envp;
+	// envp.push_back("GATEWAY_INTERFACE=CGI/1.1");
+
+	// // NOTE: This is required by `php-cgi` but not part of the CGI standard.
+
+	// // NOTE: May be specific to php but not 100% sure
+	// envp.push_back("SCRIPT_FILENAME=" + filename);
+
+	// envp.push_back("REQUEST_METHOD=" + std::string(strmethod(req.method())));
+	// envp.push_back("HTTP_COOKIE=" + req.cookies());
+	// envp.push_back("HTTP_USER_AGENT=" + req.user_agent());
+
+	// if (req.method() == POST)
+	// {
+	// 	envp.push_back("CONTENT_LENGTH=" + req.get_param("Content-Length"));
+	// 	envp.push_back("CONTENT_TYPE=" + req.get_param("Content-Type"));
+	// }
+	// else
+	// {
+	// 	envp.push_back("QUERY_STRING=" + req.args_str().substr(1));
+	// }
 	return envp;
 }
 
@@ -169,6 +189,10 @@ int FileHandler::execCgi(request &req, location &loc, response &r)
 			free(argv);
 			exit(1);
 		}
+		std::cerr << loc.cgi_bin << std::endl;
+		std::cerr << argv[0] << std::endl;
+		std::cerr << argv[1] << std::endl;
+
 		execve(loc.cgi_bin.c_str(), argv, envp);
 		std::cerr << "exec failed" << RESET << std::endl;
 		for (int i = 0; envp[i]; i++)
@@ -180,6 +204,7 @@ int FileHandler::execCgi(request &req, location &loc, response &r)
 		exit(1);
 	}
 	int status;
+	close(pipe_out[1]);
 	while (waitpid(-1, &status, WNOHANG) == 0)
 	{
 		if (time(NULL) - start > 5)
@@ -194,14 +219,13 @@ int FileHandler::execCgi(request &req, location &loc, response &r)
 	int count = 0;
 	char buffer[1025];
 	std::string buff;
-	close(pipe_out[1]);
 	while ((count = read(pipe_out[0], buffer, 1024)) > 0)
 		buff.append(buffer, count);
 	close_pipe(pipe_out);
 	if (!WIFEXITED(status) || WEXITSTATUS(status) != 0 || count == -1)
 	{
 		r.cgi_rep.clear();
-		return 500;
+		return 400;
 	}
 	r.cgi_rep = buff;
 	return 200;

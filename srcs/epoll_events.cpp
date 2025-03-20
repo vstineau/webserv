@@ -91,7 +91,9 @@ static int handle_epollout(Server &serv, struct epoll_event &events, int &epoll_
 		}
 		else
 		{
-			if (send(events.data.fd, rep[0].cgi_rep.c_str(), rep[0].cgi_rep.size(), MSG_NOSIGNAL) == -1)
+			std::cout << rep[0].cgi_rep << RESET << std::endl;
+			std::cout << rep[0].cgi_rep.size() << RESET << std::endl;
+			if (send(events.data.fd, rep[0].repInString().c_str(), rep[0].repInString().size(), MSG_NOSIGNAL) == -1)
 				std::cerr << "Send error: " << std::endl;
 		}
 		rep.erase(rep.begin());

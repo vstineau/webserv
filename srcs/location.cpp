@@ -24,7 +24,7 @@ location &location::operator=(location &l)
 	allowed_method[3] = l.allowed_method[3];
 	client_body_size = l.client_body_size;
 	directory_listing = l.directory_listing;
-	error_pages = l.error_pages;//
+	// error_pages = l.error_pages;//
 
 	return *this;
 }

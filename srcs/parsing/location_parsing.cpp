@@ -168,32 +168,6 @@ static void	get_client_body_size(std::string &path, std::string &buffer,  config
 	    throw Init::BadConfigFileExeption();
 }
 
-static void	set_error_pages(std::string &path, std::string &buffer,  config &conf)
-{
-	size_t				pos = 0;
-	size_t				offset = 0;
-	int						error_num = 0;
-	while (pos != std::string::npos)
-	{
-		pos = buffer.find("error-page: ", offset);
-		if (pos == std::string::npos)
-			break ;
-		offset = pos + 12;
-		pos = buffer.find(" ", offset);
-		if (pos == std::string::npos)
-			break ;
-		error_num = atoi(buffer.substr(offset, pos - offset).c_str());
-		pos = buffer.find(" ", offset);
-		if (pos == std::string::npos)
-			break ;
-		offset = pos + 1;
-		pos = buffer.find(";", offset);
-		if (pos == std::string::npos)
-			break ;
-		conf.locations[path].error_pages[error_num] = buffer.substr(offset, pos - offset);
-	}
-}
-
 void	fill_location(std::string &path, std::string &buffer, config &conf)
 {
 	get_return(path, buffer, conf);
@@ -201,7 +175,6 @@ void	fill_location(std::string &path, std::string &buffer, config &conf)
 	get_root(path, buffer, conf);
 	get_cgi_bin(path, buffer, conf);
 	get_cgi_extention(path, buffer, conf);
-	set_error_pages(path, buffer, conf);
 	get_method_allowed(path, buffer, conf);
 	get_index(path, buffer, conf);
 	get_upload_directory(path, buffer, conf);

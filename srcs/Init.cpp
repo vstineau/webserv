@@ -13,8 +13,11 @@ void Init::set_default_conf()
 	config temp;
 
 	temp.server_name = "webserv";
-	temp.root = "www/";
+	temp.root = "www";
+	temp.locations[""].root = temp.root;
+	temp.locations[""].directory_listing = true;
 	set_method(temp, "DEFAULT");
+	set_method(temp.locations[""], "DEFAULT");
 	temp.port = 8080;
 	temp.directory_listing = true;
 	confs.push_back(temp);

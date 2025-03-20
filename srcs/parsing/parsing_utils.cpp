@@ -2,13 +2,13 @@
 #include "../../includes/webserv.hpp"
 #include <cstddef>
 
-void file_in_string(std::string &sfile, const char *file)
+int file_in_string(std::string &sfile, const char *file)
 {
 	std::string line;
 	std::ifstream ifs(file);
 	if (!ifs)
 	{
-		return ;
+		return 1;
 	}
 	if (!sfile.empty())
 		sfile.clear();
@@ -17,6 +17,7 @@ void file_in_string(std::string &sfile, const char *file)
 		sfile += line;
 		sfile += "\n";
 	}
+	return 0;
 }
 
 size_t count_words(const char *line, char c)
@@ -67,8 +68,8 @@ void set_method(location &loc, std::string method)
 	else if (method == "DEFAULT")
 	{
 		loc.allowed_method[GET] = 1;
-		loc.allowed_method[POST] = 1;
-		loc.allowed_method[DELETE] = 1;
+		loc.allowed_method[POST] = 0;
+		loc.allowed_method[DELETE] = 0;
 	}
 	else
 		loc.allowed_method[INVALID_METHOD] = 1;

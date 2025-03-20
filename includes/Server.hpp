@@ -64,7 +64,7 @@ class Server
 	void _responseDELETE(request &rep);
 	void _DELETEmethod(request &req);
 	void _whichLocationDelete(request &req);
-	int checkLocations(request &req);
+	int checkLocations(request &req, location &loc);
 	void SetErrorResponse(int error_code);
 	config _conf;
 
