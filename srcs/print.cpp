@@ -2,6 +2,8 @@
 
 void	Server::print_request(int n)
 {
+	if(_requests[n].path == "www/favicon.ico")
+		return;
 	if (_requests[n].method == GET)
 		std::cout << "method : GET\n";
 	if (_requests[n].method == POST)

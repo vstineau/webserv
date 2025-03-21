@@ -5,4 +5,4 @@
     header("Location: /");
 ?>
 
-<p>Logout successful! Click <a href="/">here</a> to return to the index</p>
+<p>Logout successful! Click <a href="index.php">here</a> to return to the index</p>

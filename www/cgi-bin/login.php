@@ -1,7 +1,12 @@
 <?php
     session_start();
-
-    if (isset($_POST["password"]) && hash("md5", $_POST["password"]) == "1102438e142e17a78b8dc1d7d1919188")
+    
+    $raw_post_data = file_get_contents("php://input");
+// Afficher le contenu brut du corps de la requête
+    echo "<pre>";
+    var_dump($raw_post_data);
+    echo "</pre>";
+    if (isset($_POST["password"]) && $_POST["password"] == "qwerty")
     {
         $_SESSION["username"] = $_POST["username"];
         header("Location: /");

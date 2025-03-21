@@ -59,7 +59,7 @@ class Server
 	void _responseGET(request &rep, location &loc);
 	int allowedMethod(request &req, location &ret_loc);
 	int isCGI(request &req, location &loc);
-	void _responsePOST(request &rep, int &n);
+	void _responsePOST(request &rep, int &n, location &loc);
 	std::string checkUpload(request &req);
 	void _responseDELETE(request &rep);
 	void _DELETEmethod(request &req);

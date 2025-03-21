@@ -12,10 +12,10 @@
 #include <string>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <signal.h>
-//https://stackoverflow.com/questions/7047426/call-php-from-virtual-custom-web-server
-//https://aprelium.com/data/doc/2/abyssws-win-doc-html/cgivars.html#:~:text=SCRIPT_FILENAME%20and%20REQUEST_FILENAME%20%3A%20The%20real,and%20PATH_INFO%20(if%20available.)
-//https://datatracker.ietf.org/doc/html/rfc3875
+#include <unistd.h>
+// https://stackoverflow.com/questions/7047426/call-php-from-virtual-custom-web-server
+// https://aprelium.com/data/doc/2/abyssws-win-doc-html/cgivars.html#:~:text=SCRIPT_FILENAME%20and%20REQUEST_FILENAME%20%3A%20The%20real,and%20PATH_INFO%20(if%20available.)
+// https://datatracker.ietf.org/doc/html/rfc3875
 
 FileHandler::FileHandler()
 {
@@ -83,15 +83,20 @@ char **FileHandler::getCgiEnv(request &req)
 	pre_env.push_back("GATEWAY_INTERFACE=CGI/1.1");
 	pre_env.push_back("REDIRECT_STATUS=200");
 	pre_env.push_back("SCRIPT_FILENAME=" + req.path);
-	pre_env.push_back("QUERY_STRING=" + req.query);
+	pre_env.push_back("HTTP_USER_AGENT=" + req.headers["User-Agent"]);
 	pre_env.push_back("PATH=/usr/bin:/bin:/usr/local/bin");
+	pre_env.push_back("HTTP_COOKIE=" + req.headers["Cookie"]);
+	// std::cout << GREEN <<req.body << RESET << std::endl;
 	switch (req.method)
 	{
-		case GET:
+	case GET:
+		pre_env.push_back("QUERY_STRING=" + req.query);
 		pre_env.push_back("REQUEST_METHOD=GET");
 		break;
 	case POST:
 		pre_env.push_back("REQUEST_METHOD=POST");
+		pre_env.push_back("CONTENT_LENGTH=" + req.headers["Content-Length"]);
+		pre_env.push_back("CONTENT_TYPE=" + req.headers["Content-Type"]);
 		break;
 	case DELETE:
 		pre_env.push_back("REQUEST_METHOD=DELETE");
@@ -100,6 +105,8 @@ char **FileHandler::getCgiEnv(request &req)
 		pre_env.push_back("REQUEST_METHOD=");
 		break;
 	}
+	// for(size_t i = 0; i < pre_env.size(); i++)
+	// 	std::cout << pre_env[i] << RESET << std::endl;
 	// pre_env.push_back("PATH=/usr/bin:/bin/:usr/local/bin");
 	envp = (char **)std::calloc(pre_env.size() + 1, sizeof(char *));
 	for (std::size_t i = 0; i < pre_env.size(); i++)
@@ -114,7 +121,6 @@ char **FileHandler::getCgiEnv(request &req)
 
 	// envp.push_back("REQUEST_METHOD=" + std::string(strmethod(req.method())));
 	// envp.push_back("HTTP_COOKIE=" + req.cookies());
-	// envp.push_back("HTTP_USER_AGENT=" + req.user_agent());
 
 	// if (req.method() == POST)
 	// {
@@ -136,18 +142,24 @@ static void close_pipe(int pipe[2])
 		close(pipe[1]);
 }
 
-
 int FileHandler::execCgi(request &req, location &loc, response &r)
 {
 	time_t start = time(NULL);
 	(void)start;
 	int pipe_out[2] = {-1, -1};
+	int pipe_in[2] = {-1, -1};
 	if (pipe(pipe_out))
 		return 500;
+	if (pipe(pipe_in))
+	{
+		close_pipe(pipe_out);
+		return 500;
+	}
 	int cgi_pid = fork();
 	if (cgi_pid == -1)
 	{
 		close_pipe(pipe_out);
+		close_pipe(pipe_in);
 		return 500;
 	}
 	if (!cgi_pid)
@@ -164,12 +176,19 @@ int FileHandler::execCgi(request &req, location &loc, response &r)
 			close_pipe(pipe_out);
 			exit(1);
 		}
+		if (dup2(pipe_in[0], STDIN_FILENO) == -1)
+		{
+			close_pipe(pipe_out);
+			close_pipe(pipe_in);
+			return 500;
+		}
+		close_pipe(pipe_in);
 		close_pipe(pipe_out);
-		argv = (char **)calloc(3, sizeof(char *));
+		argv = (char **)calloc(4, sizeof(char *));
 		if (argv == NULL)
 			exit(1);
 		argv[0] = strdup(loc.cgi_bin.c_str());
-		if(!argv[0])
+		if (!argv[0])
 		{
 			free(argv);
 			exit(1);
@@ -189,10 +208,15 @@ int FileHandler::execCgi(request &req, location &loc, response &r)
 			free(argv);
 			exit(1);
 		}
-		std::cerr << loc.cgi_bin << std::endl;
-		std::cerr << argv[0] << std::endl;
-		std::cerr << argv[1] << std::endl;
-
+		// std::cerr << loc.cgi_bin << std::endl;
+		// std::cerr << argv[0] << std::endl;
+		// std::cerr << argv[1] << std::endl;
+		int count = 0;
+		char buffer[1025];
+		std::string buff;
+		while ((count = read(pipe_out[0], buffer, 1024)) > 0)
+			buff.append(buffer, count);
+		std::cerr << GREEN << "READ :\n" <<buff << "\n" << RESET;
 		execve(loc.cgi_bin.c_str(), argv, envp);
 		std::cerr << "exec failed" << RESET << std::endl;
 		for (int i = 0; envp[i]; i++)
@@ -203,32 +227,51 @@ int FileHandler::execCgi(request &req, location &loc, response &r)
 		free(envp);
 		exit(1);
 	}
-	int status;
-	close(pipe_out[1]);
-	while (waitpid(-1, &status, WNOHANG) == 0)
+	else
 	{
-		if (time(NULL) - start > 5)
+		int status;
+		ssize_t n;
+		// close(pipe_in[0]);
+		if (req.method == POST && !req.body.empty())
+        {
+			std::cerr << RED << "HERE\n" << RESET;
+			std::cerr << BLUE << req.body << "\n" << RESET;
+            n = write(pipe_in[1], req.body.c_str(), req.body.size());
+            if (n == 0 || n == -1)
+            {
+                kill(cgi_pid, SIGKILL);
+                close_pipe(pipe_in);
+                close_pipe(pipe_out);
+                return 500;
+            }
+        }
+		close_pipe(pipe_in);
+		close(pipe_out[1]);
+		while (waitpid(-1, &status, WNOHANG) == 0)
+		{
+			if (time(NULL) - start > 5)
+			{
+				r.cgi_rep.clear();
+				std::cerr << "TIMEOUT" << RESET << std::endl;
+				close_pipe(pipe_out);
+				kill(cgi_pid, SIGKILL);
+				return 504;
+			}
+		}
+		int count = 0;
+		char buffer[1025];
+		std::string buff;
+		while ((count = read(pipe_out[0], buffer, 1024)) > 0)
+			buff.append(buffer, count);
+		close_pipe(pipe_out);
+		if (!WIFEXITED(status) || WEXITSTATUS(status) != 0 || count == -1)
 		{
 			r.cgi_rep.clear();
-			std::cerr << "TIMEOUT" << RESET << std::endl;
-			close_pipe(pipe_out);
-			kill(cgi_pid, SIGKILL);
-			return 504;
+			return 400;
 		}
+		r.cgi_rep = buff;
+		return 200;
 	}
-	int count = 0;
-	char buffer[1025];
-	std::string buff;
-	while ((count = read(pipe_out[0], buffer, 1024)) > 0)
-		buff.append(buffer, count);
-	close_pipe(pipe_out);
-	if (!WIFEXITED(status) || WEXITSTATUS(status) != 0 || count == -1)
-	{
-		r.cgi_rep.clear();
-		return 400;
-	}
-	r.cgi_rep = buff;
-	return 200;
 }
 
 void FileHandler::setMime(void)

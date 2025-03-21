@@ -1,4 +1,6 @@
 #include "../includes/webserv.hpp"
+#include <algorithm>
+#include <cstddef>
 
 response &response::operator=(response &r)
 {
@@ -102,7 +104,13 @@ std::string response::repInString(void) const
 {
 	if (!cgi_rep.empty())
 	{
+		std::size_t pos = cgi_rep.find("\r\n\r\n") + 4;
+		if(pos == std::string::npos)
+			pos = 0;
 		std::string rep(status_line);
+		rep += "\r\n";
+		rep += "Content-Length: ";
+		rep += to_string(cgi_rep.size() - pos);
 		rep += "\r\n";
 		rep += cgi_rep;
 		return rep;

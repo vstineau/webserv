@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ph7</title>
+    <title>CGI_Php</title>
 </head>
 <body>
 <?php
@@ -13,7 +13,7 @@
     {
 ?>
     <div class="login-form">
-        <form action="/login.php" method="POST">
+        <form action="login.php" method="POST">
             <div>
                 <input type="text" name="username" placeholder="Username" autocomplete="off" />
             </div>
@@ -24,10 +24,11 @@
         </form>
     </div>
 <?php
-    } else
+    } 
+    else
     {
 ?>
-        <p>Welcome <?= $_SESSION["username"] ?> <a href="/logout.php">Logout</a></p>
+        <p>Welcome <?= $_SESSION["username"] ?> <a href="logout.php">Logout</a></p>
 <?php
     }
 ?>

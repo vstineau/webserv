@@ -224,6 +224,8 @@ int Server::allowedMethod(request &req, location &ret_loc)
 
 int Server::isCGI(request &req, location &loc)
 {
+	std::cout << RED << "file ext =" << _file.extention << RESET << std::endl;
+	std::cout << RED << "loc  ext =" << loc.cgi_extention << _file.extention << RESET << std::endl;
 	if (_file.extention == loc.cgi_extention)
 	{
 		int code = _file.execCgi(req, loc, _response);
@@ -236,20 +238,20 @@ int Server::isCGI(request &req, location &loc)
 		}
 		if(loc.cgi_extention == ".php")
 			status_code = 307;
+		std::cout << "HERE" << RESET << std::endl;
 		SetResponseStatus(status_code);
 		// _response.headers["Content-Type: "].push_back("text/html");
-		// _response.headers["Content-Length: "].push_back(to_string(_response.cgi_rep.size()));
+		_response.headers["Content-Length: "].push_back(to_string(_response.cgi_rep.size()));
 		// _response.cgi_rep.insert(0, _response.status_line.c_str());
 		return 1;
 	}
-	std::cout << "HERE" << RESET << std::endl;
 	return 0;
 }
 
 void Server::_responseGET(request &req, location &loc)
 {
-	_file.setFileInfo(req.path);
-	_file.setFile(req.path);
+	// _file.setFileInfo(req.path);
+	// _file.setFile(req.path);
 	if (isCGI(req, loc))
 		return;
 	if (_file.extention != "NO EXTENTION")
@@ -311,9 +313,12 @@ std::string Server::checkUpload(request &req)
 	return "";
 }
 
-void Server::_responsePOST(request &req, int &n)
+void Server::_responsePOST(request &req, int &n, location &loc)
 {
-	(void)req;
+	(void)loc;
+	if (isCGI(req, loc))
+		return;
+	std::cout << GREEN <<req.body << RESET << std::endl;
 	std::string up_dir = checkUpload(req);
 	if (up_dir.empty())
 		return;
@@ -394,10 +399,14 @@ void Server::SetResponse(int n)
 		SetErrorResponse(allowed);
 		return;
 	}
+	// if(_requests[n].path == "www/favicon.ico")
+	// 	return;
+	_file.setFileInfo(_requests[n].path);
+	_file.setFile(_requests[n].path);
 	if (_requests[n].method == GET)
 		_responseGET(_requests[n], loc);
 	else if (_requests[n].method == POST)
-		_responsePOST(_requests[n], n);
+		_responsePOST(_requests[n], n, loc);
 	else if (_requests[n].method == DELETE)
 		_responseDELETE(_requests[n]);
 }
@@ -486,7 +495,7 @@ void Server::fill_header(std::string &header, int &n)
 			{
 				break;
 			}
-			_requests[n].headers[key] = header.substr(offset, pos - offset);
+			_requests[n].headers[key] = header.substr(offset + 1, pos - offset - 1); // offset (+ 1) modifie
 		}
 		offset = pos + 1;
 	}
